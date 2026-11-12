@@ -88,7 +88,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 			Engine.theApp.billingManager.insertBilling(this, "start");
 			
 			Engine.logEngine.debug("HTTP session started [" + httpSessionID + "]");
-			if (Engine.isEngineMode() && !devices.contains(httpSessionID)) {
+			if (Engine.isEngineMode() && !isLauncherStudio() && !devices.contains(httpSessionID)) {
 				int maxCV = KeyManager.getMaxCV(Session.EmulIDSE);
 				int currentCV = countSessions();
 				TASException exception = checkSessionLicense(currentCV, maxCV);
@@ -108,7 +108,10 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 		try {
 			Engine.logContext.debug("HTTP session stopping...");
 			HttpSession httpSession = event.getSession();
-			Engine.theApp.billingManager.insertBilling(this, "stop");
+			// the sessions expire after the engine when its Tomcat stops: nothing left to bill
+			if (Engine.theApp != null && Engine.theApp.billingManager != null) {
+				Engine.theApp.billingManager.insertBilling(this, "stop");
+			}
 			String httpSessionID = httpSession.getId();
 
 			if (Engine.theApp != null) Engine.theApp.contextManager.removeAll(httpSession);
@@ -318,6 +321,16 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 			}
 		}
 		return count;
+	}
+
+	/**
+	 * @return whether the engine is the one of the Electron Studio, which counts no session as the Eclipse Studio:
+	 *         a desktop Studio started by its launcher, with the token that opens it to its one user, which the JVM
+	 *         property of a desktop Studio alone does not make
+	 */
+	private static boolean isLauncherStudio() {
+		var token = System.getenv("CONVERTIGO_STUDIO_AUTH_TOKEN");
+		return Engine.isDesktopStudio() && token != null && token.length() >= 32;
 	}
 
 	private static TASException checkSessionLicense(int currentCV, int maxCV) {

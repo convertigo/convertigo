@@ -24,6 +24,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
@@ -37,6 +38,10 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 public class Stop extends XmlService{
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
+		if (Engine.isDesktopStudio()) {
+			// as in the Eclipse Studio: the engine of a Studio stops with it, its unsaved changes and builds with it
+			throw new ServiceException("The engine of the Studio stops with the Studio");
+		}
 		Engine.stop();
 		Engine.logAdmin.info("Engine stopped");
 	}

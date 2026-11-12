@@ -59,9 +59,22 @@ const app = await electron.launch({
 	timeout: 60_000
 });
 try {
-	const page = await app.firstWindow();
+	// the license, accepted at the first start
+	const license = await app.firstWindow();
+	await license.getByText('Product license agreement').waitFor({ timeout: 60_000 });
+	await license.getByLabel('Accept license').check();
+	await license.getByRole('button', { name: 'Continue' }).click();
 	// the splash, then the Studio once the engine answers, opened by the token of the application
-	await page.waitForURL(/\/convertigo\/studio\//, { timeout: 240_000 });
+	let page;
+	for (let i = 0; i < 240 && !page; i++) {
+		page = app.windows().find((window) => /\/convertigo\/studio\//.test(window.url()));
+		if (!page) {
+			await new Promise((resolve) => setTimeout(resolve, 1000));
+		}
+	}
+	if (!page) {
+		throw new Error('the Studio window did not open');
+	}
 	await page.getByRole('navigation', { name: 'Studio panels' }).waitFor({ timeout: 120_000 });
 	await page.locator('.studio-shell__dock').waitFor({ timeout: 30_000 });
 	if (/\/login/.test(page.url())) {

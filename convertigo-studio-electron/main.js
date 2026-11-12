@@ -42,9 +42,13 @@ let quitting = false;
 let switching = false;
 /** @type {BrowserWindow | null} */
 let mainWindow = null;
+/** the local port of the shutdown command of the Tomcat of the engine */
+let shutdownPort = 0;
+/** @type {BrowserWindow | null} the license, until the Studio window opens */
+let licenseWindow = null;
 
 /**
- * @returns {{ workspace?: string, recent?: string[], askAtStartup?: boolean }}
+ * @returns {{ workspace?: string, recent?: string[], askAtStartup?: boolean, licenseAccepted?: boolean, ports?: Record<string, number>, updateCheckedAt?: number }}
  */
 function readSettings() {
 	try {
@@ -132,6 +136,29 @@ async function isFree(port) {
 	return true;
 }
 
+/**
+ * The port of the engine of the workspace: the one it had, when free, else a port no other workspace had. The
+ * Studio keeps its preferences, its layout and its devices in the storage of its page, whose origin is this port:
+ * they stay with the workspace, as the preferences of the Eclipse Studio do.
+ * @returns {Promise<number>}
+ */
+async function workspacePort() {
+	const ports = settings.ports ?? {};
+	const remembered = ports[workspaceDir];
+	let port = remembered && (await isFree(remembered)) ? remembered : 0;
+	if (!port) {
+		const taken = new Set(Object.entries(ports).filter(([dir]) => dir !== workspaceDir).map(([, used]) => used));
+		for (let candidate = 28080; candidate < 28280 && !port; candidate++) {
+			if (!taken.has(candidate) && (await isFree(candidate))) {
+				port = candidate;
+			}
+		}
+		port ||= await freePort(28080);
+	}
+	settings.ports = { ...ports, [workspaceDir]: port };
+	return port;
+}
+
 async function freePort(from) {
 	for (let port = from; port < from + 200; port++) {
 		if (await isFree(port)) {
@@ -203,7 +230,11 @@ function startEngine(port) {
 		{
 			cwd: tomcatDir,
 			stdio: ['ignore', log, log],
-			env: { ...process.env, CONVERTIGO_STUDIO_AUTH_TOKEN: authToken }
+			env: {
+				...process.env,
+				CONVERTIGO_STUDIO_AUTH_TOKEN: authToken,
+				CONVERTIGO_STUDIO_SHUTDOWN_PORT: String(shutdownPort)
+			}
 		}
 	);
 	engine.on('exit', (code) => {
@@ -236,6 +267,84 @@ function splashPage(message = 'Starting the Convertigo engine…') {
 	</style></head><body>${iconTag}<h1>Convertigo Studio</h1><div class="spinner"></div>
 	<div>${message}</div><div class="workspace">${displayPath(workspaceDir)}</div></body></html>`;
 	return `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
+}
+
+/**
+ * The license of Convertigo, which the user accepts at the first start, as in the Convertigo Setup wizard of the
+ * Eclipse Studio: the application quits when it is not accepted.
+ * @returns {Promise<boolean>} whether the license is accepted
+ */
+function acceptLicense() {
+	if (settings.licenseAccepted === true) {
+		return Promise.resolve(true);
+	}
+	let text;
+	try {
+		text = fs.readFileSync(path.join(engineDir, 'war', 'licenses', 'license.txt'), 'utf8');
+	} catch (error) {
+		text = `Unable to get the license text!\n${error.message}`;
+	}
+	const escaped = text.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
+	const html = `<!doctype html><html><head><meta charset="utf-8"><title>Product license agreement</title><style>
+		:root { color-scheme: light dark; }
+		body { margin: 0; height: 100vh; display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; gap: 12px;
+			box-sizing: border-box; padding: 20px; font: 13px -apple-system, system-ui, sans-serif;
+			background: light-dark(#f3f3f5, #151516); color: light-dark(#3b3b3b, #cccccc); }
+		h1 { margin: 0; font-size: 17px; font-weight: 600; color: light-dark(#1f1f1f, #ffffff); }
+		pre { margin: 0; overflow: auto; padding: 12px; border: 1px solid light-dark(#d4d4d8, #3f3f46); border-radius: 6px;
+			background: light-dark(#ffffff, #1e1e20); font: 12px ui-monospace, Menlo, monospace; white-space: pre-wrap; }
+		p { margin: 0; font-size: 12px; }
+		footer { display: flex; align-items: center; gap: 10px; }
+		label { flex: 1; display: flex; align-items: center; gap: 6px; }
+		button { padding: 6px 16px; border-radius: 6px; border: 1px solid light-dark(#d4d4d8, #3f3f46);
+			background: light-dark(#ffffff, #27272a); color: inherit; font: inherit; }
+		button.primary { background: #18cfff; border-color: #18cfff; color: #0b2a33; font-weight: 600; }
+		button:disabled { opacity: 0.5; }
+	</style></head><body>
+		<h1>Product license agreement</h1>
+		<pre>${escaped}</pre>
+		<p>BY INDICATING YOUR ACCEPTANCE BY CLICKING “Accept license” BELOW, OR INSTALLING OR USING THE SOFTWARE, YOU
+		ARE AGREEING TO BE BOUND BY THE TERMS OF THIS AGREEMENT.</p>
+		<footer>
+			<label><input type="checkbox" id="accept"> Accept license</label>
+			<button onclick="location.href='convertigo-license:decline'">Quit</button>
+			<button class="primary" id="continue" disabled onclick="location.href='convertigo-license:accept'">Continue</button>
+		</footer>
+		<script>document.getElementById('accept').onchange = (e) => (document.getElementById('continue').disabled = !e.target.checked);</script>
+	</body></html>`;
+	const window = new BrowserWindow({
+		width: 820,
+		height: 720,
+		minWidth: 600,
+		minHeight: 480,
+		title: 'Convertigo Studio',
+		icon,
+		backgroundColor: '#151516'
+	});
+	return new Promise((resolve) => {
+		let answered = false;
+		const answer = (accepted) => {
+			if (answered) {
+				return;
+			}
+			answered = true;
+			if (accepted) {
+				settings.licenseAccepted = true;
+				fs.mkdirSync(dataDir, { recursive: true });
+				fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2));
+			}
+			resolve(accepted);
+		};
+		window.webContents.on('will-navigate', (event, url) => {
+			if (url.startsWith('convertigo-license:')) {
+				event.preventDefault();
+				answer(url === 'convertigo-license:accept');
+			}
+		});
+		window.on('closed', () => answer(false));
+		licenseWindow = window;
+		void window.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
+	});
 }
 
 async function createWindow() {
@@ -357,24 +466,68 @@ function stopWorkspacePouchDB() {
 	spawnSync('pkill', ['-f', `^${nodes}[^/]+/bin/node node_modules/pouchdb-server/`]);
 }
 
+/**
+ * Sends the shutdown command of its Tomcat to the engine.
+ * @returns {Promise<boolean>} whether the command was sent
+ */
+function sendShutdown() {
+	return new Promise((resolve) => {
+		if (!shutdownPort) {
+			resolve(false);
+			return;
+		}
+		const socket = net.connect(shutdownPort, '127.0.0.1', () => socket.end(authToken, () => resolve(true)));
+		socket.on('error', () => resolve(false));
+	});
+}
+
+/**
+ * Stops the node processes the engine started from the workspace (the NGX builds and their servers, the
+ * PouchDB server of FullSync), which the engine stops, even when it was killed. Windows has no pkill: PowerShell finds
+ * them by their command line.
+ */
+function stopWorkspaceNodes() {
+	if (process.platform === 'win32') {
+		const dir = workspaceDir.replace(/'/g, "''");
+		spawnSync('powershell.exe', [
+			'-NoProfile',
+			'-NonInteractive',
+			'-Command',
+			`Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Where-Object { $_.CommandLine -and ($_.CommandLine.Contains('${dir}') -or ($_.ExecutablePath -and $_.ExecutablePath.StartsWith('${dir}'))) } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }`
+		], { windowsHide: true });
+		return;
+	}
+	const projects = `${path.join(workspaceDir, 'projects')}${path.sep}`.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+	spawnSync('pkill', ['-f', `^(node|npm|ng) .*${projects}`]);
+	stopWorkspacePouchDB();
+}
+
 function stopEngine() {
 	const running = engine;
 	if (!running) {
 		return Promise.resolve();
 	}
 	return new Promise((resolve) => {
-		const timer = setTimeout(() => running.kill('SIGKILL'), 15_000);
+		// killed after 15 s, its process tree with it on Windows
+		const timer = setTimeout(() => {
+			if (process.platform === 'win32') {
+				spawnSync('taskkill', ['/pid', String(running.pid), '/T', '/F'], { windowsHide: true });
+			} else {
+				running.kill('SIGKILL');
+			}
+		}, 15_000);
 		running.once('exit', () => {
 			clearTimeout(timer);
-			// the node processes of the NGX builds, which the engine stops, stop even when it was killed
-			if (process.platform !== 'win32') {
-				const projects = `${path.join(workspaceDir, 'projects')}${path.sep}`.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-				spawnSync('pkill', ['-f', `^(node|npm|ng) .*${projects}`]);
-			}
-			stopWorkspacePouchDB();
+			stopWorkspaceNodes();
 			resolve();
 		});
-		running.kill('SIGTERM');
+		// gracefully, as the Eclipse Studio stops its engine: the shutdown command of its Tomcat, else SIGTERM,
+		// which Windows does not have (Node kills the process there)
+		void sendShutdown().then((sent) => {
+			if (!sent && process.platform !== 'win32') {
+				running.kill('SIGTERM');
+			}
+		});
 	});
 }
 
@@ -422,7 +575,9 @@ async function switchWorkspace(dir) {
 		setMenu();
 		window.setTitle(windowTitle());
 		await window.loadURL(splashPage());
-		enginePort = await freePort(28080);
+		enginePort = await workspacePort();
+		shutdownPort = await freePort(enginePort + 1000);
+		saveSettings();
 		startEngine(enginePort);
 	} finally {
 		switching = false;
@@ -518,9 +673,98 @@ function setMenu() {
 			{
 				label: 'Window',
 				submenu: [{ role: 'minimize' }, { role: 'zoom' }, ...(isMac ? [{ type: 'separator' }, { role: 'front' }] : [])]
+			},
+			{
+				role: 'help',
+				submenu: [
+					{ label: 'Check for Updates…', click: () => void checkForUpdates(true) },
+					{ label: 'Release Notes', click: () => void shell.openExternal(RELEASES_URL) }
+				]
 			}
 		])
 	);
+}
+
+/** the releases of Convertigo, whose Studio this application is */
+const RELEASES_URL = 'https://github.com/convertigo/convertigo/releases';
+
+/**
+ * @param {string} version
+ * @returns {number[]} its major, minor and patch numbers
+ */
+function versionNumbers(version) {
+	return String(version)
+		.replace(/^v/, '')
+		.split(/[.-]/)
+		.slice(0, 3)
+		.map((part) => Number.parseInt(part, 10) || 0);
+}
+
+/**
+ * @param {string} version
+ * @param {string} current
+ * @returns {boolean} whether a version is newer than the current one
+ */
+function isNewer(version, current) {
+	const [a, b] = [versionNumbers(version), versionNumbers(current)];
+	for (let i = 0; i < 3; i++) {
+		if (a[i] !== b[i]) {
+			return a[i] > b[i];
+		}
+	}
+	return false;
+}
+
+/**
+ * Tells when a newer Convertigo is released, as the Check for Updates of the Eclipse Studio: at a start, once a
+ * day, of the packaged application, or when the user asks.
+ * @param {boolean} asked
+ */
+async function checkForUpdates(asked) {
+	const current = app.getVersion();
+	try {
+		const response = await fetch('https://api.github.com/repos/convertigo/convertigo/releases/latest', {
+			headers: { accept: 'application/vnd.github+json', 'user-agent': 'Convertigo-Studio' },
+			signal: AbortSignal.timeout(15_000)
+		});
+		if (!response.ok) {
+			throw new Error(`HTTP ${response.status}`);
+		}
+		const release = await response.json();
+		const version = String(release?.tag_name ?? '').replace(/^v/, '');
+		settings.updateCheckedAt = Date.now();
+		saveSettings();
+		if (version && isNewer(version, current)) {
+			const { response: choice } = await dialog.showMessageBox(mainWindow ?? undefined, {
+				type: 'info',
+				buttons: ['Download', 'Later'],
+				defaultId: 0,
+				cancelId: 1,
+				title: 'Convertigo Studio',
+				message: `Convertigo Studio ${version} is available`,
+				detail: `This Studio is ${current}.`
+			});
+			if (choice === 0) {
+				void shell.openExternal(String(release?.html_url ?? RELEASES_URL));
+			}
+		} else if (asked) {
+			await dialog.showMessageBox(mainWindow ?? undefined, {
+				type: 'info',
+				title: 'Convertigo Studio',
+				message: 'Convertigo Studio is up to date',
+				detail: `This Studio is ${current}; the latest release is ${version || 'unknown'}.`
+			});
+		}
+	} catch (error) {
+		if (asked) {
+			await dialog.showMessageBox(mainWindow ?? undefined, {
+				type: 'warning',
+				title: 'Convertigo Studio',
+				message: 'The latest release cannot be checked',
+				detail: String(error?.message ?? error)
+			});
+		}
+	}
 }
 
 // the DevTools button of the preview inspects the application it shows, as the one of the Eclipse Studio
@@ -603,9 +847,20 @@ app.whenReady().then(async () => {
 		}
 		saveSettings();
 		setMenu();
-		enginePort = await freePort(28080);
+		if (!(await acceptLicense())) {
+			app.quit();
+			return;
+		}
+		enginePort = await workspacePort();
+		shutdownPort = await freePort(enginePort + 1000);
+		saveSettings();
 		startEngine(enginePort);
 		await createWindow();
+		licenseWindow?.destroy();
+		licenseWindow = null;
+		if (app.isPackaged && Date.now() - (settings.updateCheckedAt ?? 0) > 24 * 3600_000) {
+			void checkForUpdates(false);
+		}
 	} catch (error) {
 		dialog.showErrorBox('Convertigo Studio', String(error?.stack ?? error));
 		app.quit();

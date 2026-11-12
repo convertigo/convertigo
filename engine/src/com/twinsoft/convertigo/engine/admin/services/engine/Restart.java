@@ -25,6 +25,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceParameterDefinition;
@@ -45,6 +46,10 @@ public class Restart extends XmlService {
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		boolean hard = "true".equalsIgnoreCase(request.getParameter("hard"));
+		if (Engine.isDesktopStudio()) {
+			// as in the Eclipse Studio: a hard restart would quit the Studio, a soft one lose its unsaved changes
+			throw new ServiceException("The engine of the Studio restarts with the Studio");
+		}
 
 		try {
 			Engine.stop();

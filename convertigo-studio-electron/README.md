@@ -4,8 +4,9 @@ The Electron Convertigo Studio: a desktop window on the web Studio (`convertigo-
 `/convertigo/studio/`), served by a Convertigo engine that the application starts with its own Java
 runtime and stops when it quits.
 
-- `main.js` shows a splash page, starts the engine on a free port (from 28080) with the workspace of
-  the user, opens the Studio authenticated with a token given to the engine, and handles the
+- `main.js` shows a splash page, starts the engine on the port of the workspace of the user (from
+  28080, kept per workspace in `settings.json`, so that the preferences the Studio keeps in its page stay
+  with the workspace), opens the Studio authenticated with a token given to the engine, and handles the
   workspace choice and switch, the menus, the unsaved-changes prompt and the DevTools bridge.
 - `preload.js` exposes `window.convertigoStudio` to the Studio page, and `window.java` to the
   Marketplace frame, as the Eclipse Studio does.
@@ -65,6 +66,10 @@ The engine runs with `-Dconvertigo.engine.web_studio=enabled`, `-Dconvertigo.eng
 `-Dconvertigo.engine.javascript.debugger=true` and `-Dconvertigo.studio.desktop=true` (a desktop Studio for
 one user, as the Eclipse Studio: its PSC, the local agent of the Assistant), and gets a random
 `CONVERTIGO_STUDIO_AUTH_TOKEN` that opens the Studio without the login page while it runs.
+
+At its first start, the application asks to accept the license of Convertigo (`legal/dual-license.txt`, in the
+war as `licenses/license.txt`), as the Convertigo Setup wizard of the Eclipse Studio, and quits when it is not
+accepted; the answer is kept in `settings.json`.
 
 As the Convertigo Setup wizard of the Eclipse Studio, the Studio asks at its start for the Personal Studio
 Configuration (PSC) of a workspace without one: the registration page of Convertigo Cloud gives it back through
