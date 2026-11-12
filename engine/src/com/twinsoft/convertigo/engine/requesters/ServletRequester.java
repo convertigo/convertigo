@@ -79,7 +79,39 @@ public abstract class ServletRequester extends GenericRequester {
 		checkAccessibility(context.requestedObject, context.httpServletRequest);
 	}
 
+	/** the projects of the agent stack of the Assistant, which run the agents of the user of a desktop Studio */
+	private static final java.util.Set<String> AGENT_STACK_PROJECTS = java.util.Set.of("lib_ConvertigoAssistant",
+			"lib_ConvertigoAgentBridge", "lib_ConvertigoMCP");
+
+	/**
+	 * The Electron Studio listens on the network, as the Eclipse Studio, for the devices that test its applications;
+	 * its agent stack, which runs the agents of its user on this computer with their accounts, answers to this
+	 * computer only.
+	 */
+	public static void checkDesktopAgentCaller(RequestableObject target, HttpServletRequest request) throws EngineException {
+		if (target == null || request == null || Engine.isStudioMode() || !Engine.isDesktopStudio()) {
+			return;
+		}
+		var project = target.getProject();
+		if (project == null || !AGENT_STACK_PROJECTS.contains(project.getName())) {
+			return;
+		}
+		var address = request.getRemoteAddr();
+		boolean local = false;
+		try {
+			local = address != null && java.net.InetAddress.getByName(address).isLoopbackAddress();
+		} catch (Exception e) {
+			// not an address: not this computer
+		}
+		if (!local) {
+			// the caller gets the answer of an unknown requestable, see getCallerError
+			throw new RequestableUnavailableException("Unable to execute the requestable '" + target.getName()
+					+ "' of " + project.getName() + " from " + address + ": the agent stack of the Studio answers to its computer only");
+		}
+	}
+
 	private void checkAccessibility(RequestableObject target, HttpServletRequest request) throws EngineException {
+		checkDesktopAgentCaller(target, request);
 		// By default, requesters disallow private requestables from being executed
 		if (target.isPrivateAccessibility()) {
 			// Only admin users can execute private requestables over HTTP, in studio mode too: the studio runs its

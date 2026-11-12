@@ -63,6 +63,13 @@ public class UrlMapperRequester extends InternalRequester {
 		return "UrlMapperRequester";
 	}
 
+	@Override
+	public void checkAccessibility() throws EngineException {
+		super.checkAccessibility();
+		// the MCP of the agent stack (/api/mcp) answers to the computer of a desktop Studio only
+		ServletRequester.checkDesktopAgentCaller(context.requestedObject, getHttpServletRequest());
+	}
+
 	public boolean isCxmlResponse() {
 		return responseMode == ResponseMode.cxml;
 	}
