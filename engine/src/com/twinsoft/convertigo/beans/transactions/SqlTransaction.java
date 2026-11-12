@@ -31,6 +31,8 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.SQLNonTransientConnectionException;
+import java.sql.SQLRecoverableException;
+import java.sql.SQLTransientConnectionException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -491,36 +493,53 @@ public class SqlTransaction extends TransactionWithVariables {
 			// We execute the query
 			preparedStatement.execute();
 		}
-		// Retry once (should not happens)
 		catch(Exception e) {
 			inError = true;
 			if (runningThread.bContinue) {
 				if (Engine.logBeans.isTraceEnabled()) {
 					Engine.logBeans.trace("(SqlTransaction) An exception occured :" + e.getMessage());
 				}
-				if (Engine.logBeans.isDebugEnabled()) {
-					Engine.logBeans.debug("(SqlTransaction) Retry executing query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'.");
-				}
-				if (e instanceof SQLNonTransientConnectionException) {
-					Engine.logBeans.debug("(SqlTransaction) SQLNonTransientConnectionException occurs, closing the connector's connection");
-					connector.close();
-				}
-				query = prepareQuery(logHiddenValues, sqlQueryInfos);
-				try {
-					connector.connection.setAutoCommit(autoCommit == AutoCommitMode.autocommit_each.ordinal());
-					// We execute the query
-					preparedStatement.execute();
-
-					inError = false;
-				} catch(Exception e1) {
-					inError = true;
-					sql_output = parseResults(e1.getMessage(), e1);
-
-					// We rollback if error and if in auto commit false mode
-					if (autoCommit != AutoCommitMode.autocommit_each.ordinal()) {
-						inError = doRollback(false);
+				boolean inTransaction = autoCommit != AutoCommitMode.autocommit_each.ordinal();
+				boolean connectionLost = isConnectionLost(e);
+				if (inTransaction && !connectionLost) {
+					// The error ends the database transaction: executing the query again on the same transaction cannot
+					// succeed (PostgreSQL refuses it with "current transaction is aborted") and would hide this error.
+					if (Engine.logBeans.isDebugEnabled()) {
+						Engine.logBeans.debug("(SqlTransaction) Query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "' failed inside a transaction, rolling it back.");
 					}
+					sql_output = parseResults(e.getMessage(), e);
+					inError = doRollback(false);
+				} else {
+					// Retry once (the connection may have been lost)
+					if (Engine.logBeans.isDebugEnabled()) {
+						Engine.logBeans.debug("(SqlTransaction) Retry executing query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'.");
+					}
+					if (e instanceof SQLNonTransientConnectionException) {
+						Engine.logBeans.debug("(SqlTransaction) SQLNonTransientConnectionException occurs, closing the connector's connection");
+						connector.close();
+					}
+					query = prepareQuery(logHiddenValues, sqlQueryInfos);
+					try {
+						connector.connection.setAutoCommit(autoCommit == AutoCommitMode.autocommit_each.ordinal());
+						// We execute the query
+						preparedStatement.execute();
 
+						inError = false;
+					} catch(Exception e1) {
+						inError = true;
+						// The error of the query itself, unless the first attempt only lost the connection
+						Exception error = connectionLost ? e1 : e;
+						if (error != e1 && Engine.logBeans.isDebugEnabled()) {
+							Engine.logBeans.debug("(SqlTransaction) The retry failed too: " + e1.getMessage());
+						}
+						sql_output = parseResults(error.getMessage(), error);
+
+						// We rollback if error and if in auto commit false mode
+						if (inTransaction) {
+							inError = doRollback(false);
+						}
+
+					}
 				}
 			}
 		}
@@ -532,6 +551,25 @@ public class SqlTransaction extends TransactionWithVariables {
 		}
 
 		return inError;
+	}
+
+	/** Whether the error comes from the connection (lost or closed) rather than from the query. */
+	private boolean isConnectionLost(Exception e) {
+		if (e instanceof SQLNonTransientConnectionException || e instanceof SQLTransientConnectionException
+				|| e instanceof SQLRecoverableException) {
+			return true;
+		}
+		if (e instanceof SQLException sqlException) {
+			String sqlState = sqlException.getSQLState();
+			if (sqlState != null && sqlState.startsWith("08")) { // SQLSTATE class 08: connection exception
+				return true;
+			}
+		}
+		try {
+			return connector.connection == null || connector.connection.isClosed();
+		} catch (SQLException ex) {
+			return true;
+		}
 	}
 
 	private boolean doRollback(boolean setAutoCommit) {

@@ -570,6 +570,21 @@ tasks.register('hsqldbPoolShutdownTest', JavaExec) {
 }
 tasks.named('check') { dependsOn 'hsqldbPoolShutdownTest' }
 
+tasks.register('sqlAbortedTransactionTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: a query failing inside a database transaction reports its own error (PostgreSQL rule; -Dconvertigo.test.postgresql.url runs it on a real server).'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.beans.transactions.SqlTransactionAbortedTransactionTest'
+	def postgresqlUrl = System.getProperty('convertigo.test.postgresql.url')
+	if (postgresqlUrl) {
+		systemProperty 'convertigo.test.postgresql.url', postgresqlUrl
+		systemProperty 'convertigo.test.postgresql.user', System.getProperty('convertigo.test.postgresql.user', 'postgres')
+	}
+}
+tasks.named('check') { dependsOn 'sqlAbortedTransactionTest' }
+
 tasks.register('sequenceCleanupTest', JavaExec) {
 	group = 'verification'
 	description = 'Regression test: an idle sequence no longer retains the last executed step.'
