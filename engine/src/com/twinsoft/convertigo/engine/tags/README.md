@@ -44,6 +44,8 @@ Shared is a portable declaration, not a permission or a network/Git operation. P
 
 Discovery preserves IDs. Unknown portable IDs are imported locally without rewriting the project; differing definitions under the same ID remain conflicts. Users choose a local presentation explicitly and may separately prepare alignment of known sources. Choosing presentation alone leaves portable sources untouched. Libraries acquire memberships only through explicit assignment.
 
+A Studio (Eclipse, Electron, or an engine with the web Studio enabled) discovers the tags of each project it loads, and gives two workspace tags of its own: Tigo to the projects of the agent stack (`lib_ConvertigoAssistant`, `lib_ConvertigoAgentBridge`, `lib_ConvertigoMCP`) and Template to the Mobile Builder templates (`mobilebuilder_tpl_*`), each to a project without workspace tag. It gives them once: `defaultTags` in the workspace document keeps their IDs and the projects already given, so a tag the user removes or deletes never comes back. A server without the web Studio leaves its workspace document untouched.
+
 ## Declarative metadata contributions
 
 Register a descriptor once with `TagManager.get().contributions().register(namespace, descriptor)`. The descriptor has a `label` and a `fields` object; each field has `label`, `type` and optional `required`. Types are `string`, `boolean`, `integer`, `number`; string fields may declare an `enum` array. Registration accepts up to 128 fields and 128 unique enum choices. The engine validates edits and supplies the same descriptors to both Studios.

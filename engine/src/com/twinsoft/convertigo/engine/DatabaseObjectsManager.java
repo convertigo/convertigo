@@ -1657,6 +1657,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 			Engine.logDatabaseObjectManager
 			.info("[importProject] ProjectLoaded: " + Project.formatNameWithHash(project));
 			getStudioProjects().projectLoaded(project);
+			// the workspace tags a Studio shows: the shared tags of the project, the default tags of the Studio
+			if (Engine.isDesktopStudio() || Engine.isWebStudioAllowed()) {
+				com.twinsoft.convertigo.engine.tags.TagManager.get().projectOpened(project);
+			}
 
 			Engine.logDatabaseObjectManager
 			.info("[importProject] Start initializing: " + Project.formatNameWithHash(project));

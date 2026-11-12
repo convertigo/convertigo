@@ -753,21 +753,58 @@ public final class TagManager {
 		}
 	}
 
+	/** A workspace tag a Studio gives to the projects it installs itself: the agent stack, the Mobile Builder templates. */
+	private record DefaultTag(String key, String label, String color, String description) { }
+	private static final DefaultTag TIGO = new DefaultTag("tigo", "Tigo", "#7c3aed", "A project of the Tigo agent stack");
+	private static final DefaultTag TEMPLATE = new DefaultTag("template", "Template", "#64748b", "A Mobile Builder template");
+	private static final Set<String> TIGO_PROJECTS = Set.of("lib_ConvertigoAssistant", "lib_ConvertigoAgentBridge", "lib_ConvertigoMCP");
+
+	private static DefaultTag defaultTag(String name) {
+		if (!Engine.isDesktopStudio() && !Engine.isWebStudioAllowed()) return null;
+		if (TIGO_PROJECTS.contains(name)) return TIGO;
+		return name.startsWith("mobilebuilder_tpl_") ? TEMPLATE : null;
+	}
+
+	/**
+	 * Gives its default tag to a project without workspace tag, once: the workspace document remembers the tag and the
+	 * projects it was given to, so that a tag removed or deleted by the user never comes back.
+	 */
+	private static void giveDefaultTag(TagDocument next, String name, DefaultTag tag) throws IOException {
+		ObjectNode record = next.defaultTag(tag.key());
+		var given = record.withArray("projects");
+		for (JsonNode project : given) if (project.asText().equals(name)) return;
+		given.add(name);
+		String id = record.path("id").asText("");
+		if (id.isEmpty()) {
+			id = UUID.randomUUID().toString(); record.put("id", id);
+			ObjectNode definition = TagDocument.JSON.createObjectNode().put("label", tag.label()).put("description", tag.description());
+			definition.putObject("presentation").put("color", tag.color());
+			definition.putObject("metadata"); definition.put("shared", false);
+			TagDocument.validateDefinition(definition, true);
+			next.tags.put(id, definition);
+		}
+		if (next.tags.containsKey(id) && !next.assignments.containsKey(name))
+			next.assignments.computeIfAbsent(name, key -> new LinkedHashSet<>()).add(id);
+	}
+
 	/** Called only on project discovery/reload. Reading never republishes an abandoned draft. */
 	public synchronized void projectOpened(Project project) {
 		State state = state(project);
 		cachePortable(project.getName(), state.base.projectTags);
-		if (state.diagnostic != null || state.base.projectTags.isEmpty()) return;
+		boolean portable = state.diagnostic == null && !state.base.projectTags.isEmpty();
+		DefaultTag defaultTag = defaultTag(project.getName());
+		if (!portable && defaultTag == null) return;
 		State workspace = workspace();
 		try {
 			workspace.checkExternal(); if (workspace.diagnostic != null) return;
 			TagDocument next = workspace.work.copy();
-			for (var definition : state.base.projectTags.entrySet()) {
+			if (portable) for (var definition : state.base.projectTags.entrySet()) {
 				ObjectNode known = next.tags.get(definition.getKey());
 				if (known == null) { known = definition.getValue().deepCopy(); known.put("shared", true); next.tags.put(definition.getKey(), known); }
 				if (known.path("shared").asBoolean() && portableDefinition(known).equals(definition.getValue()))
 					next.assignments.computeIfAbsent(project.getName(), key -> new LinkedHashSet<>()).add(definition.getKey());
 			}
+			if (defaultTag != null) giveDefaultTag(next, project.getName(), defaultTag);
 			if (!next.object().equals(workspace.work.object())) {
 				TagDocument.write(workspace.path, next.bytes(), workspace.fingerprint);
 				workspace.work = next; workspace.base = next.copy(); workspace.fingerprint = TagDocument.fingerprint(workspace.path); workspace.generation++;

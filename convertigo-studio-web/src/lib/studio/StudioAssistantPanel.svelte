@@ -127,6 +127,31 @@
 	async function loadStack() {
 		const result = await call('studio.assistant.Stack', {}, { silentError: () => true });
 		stack = result?.projects ? result : null;
+		if (stack?.state === 'loading') {
+			watchLoadingStack();
+		}
+	}
+
+	/** the timer that reads the stack again while the engine loads its projects */
+	let stackTimer = 0;
+
+	/**
+	 * Reads the stack again each second while the engine loads its projects, as the Eclipse Studio posts its
+	 * context again: the hosted Assistant gives way to the local one once the stack is ready.
+	 */
+	function watchLoadingStack() {
+		if (!browser || stackTimer) {
+			return;
+		}
+		stackTimer = window.setTimeout(async () => {
+			stackTimer = 0;
+			const wasReady = stack?.state === 'ready';
+			await loadStack();
+			if (!wasReady && stack?.state === 'ready' && !assistant?.local && !activating) {
+				iframeReady = false;
+				chooseAssistant();
+			}
+		}, 1000);
 	}
 
 	function chooseAssistant() {
@@ -168,6 +193,7 @@
 				void loadManifest();
 			}
 		});
+		return () => window.clearTimeout(stackTimer);
 	});
 
 	$effect(() => {
@@ -436,6 +462,9 @@
 		}
 		const type = event.data?.type;
 		if (type === assistantContextRequestType) {
+			// the init of the load may have come before the page listened: as the Eclipse Studio, it comes
+			// again with the context the page asks for
+			postAssistantMessage({ type: 'init' });
 			sendAssistantContext();
 		} else if (type === activateType) {
 			activateLocalAgent(event.data?.payload);

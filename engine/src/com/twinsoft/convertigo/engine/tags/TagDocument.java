@@ -139,6 +139,10 @@ public final class TagDocument {
 	boolean presentationChosen(String id, ObjectNode definition) throws IOException {
 		return extensions.path("presentationChoices").path(id).asText().equals(fingerprint(JSON.writeValueAsBytes(sorted(definition))));
 	}
+	/** The record of a default tag of the Studio, kept with the workspace document as an extension. */
+	ObjectNode defaultTag(String key) {
+		return extensions.withObject("defaultTags").withObject(key);
+	}
 	TagDocument copy() {
 		TagDocument copy = new TagDocument(workspace);
 		copy.extensions = extensions.deepCopy();

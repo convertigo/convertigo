@@ -793,4 +793,56 @@ public class TagManagerTest {
 		assertFalse(project.hasChanged); assertFalse(Files.exists(source(project)));
 	}
 
+	private String labelled(ObjectNode workspace, String label) {
+		var ids = new java.util.ArrayList<String>();
+		workspace.path("tags").fields().forEachRemaining(tag -> { if (tag.getValue().path("label").asText().equals(label)) ids.add(tag.getKey()); });
+		assertTrue("one " + label + " tag at most: " + ids, ids.size() <= 1);
+		return ids.isEmpty() ? null : ids.get(0);
+	}
+	private void opened(String... names) throws Exception { for (String name : names) manager.projectOpened(projects.containsKey(name) ? projects.get(name) : project(name)); }
+	private <T> T inDesktopStudio(java.util.concurrent.Callable<T> test) throws Exception {
+		System.setProperty("convertigo.studio.desktop", "true");
+		try { return test.call(); } finally { System.clearProperty("convertigo.studio.desktop"); }
+	}
+	@Test public void aStudioTagsTheAgentStackAndTheTemplatesOnce() throws Exception {
+		inDesktopStudio(() -> {
+			opened("lib_ConvertigoAssistant", "lib_ConvertigoMCP", "mobilebuilder_tpl_8_5_0", "lib_Other");
+			ObjectNode workspace = read(Scope.workspaceProjects);
+			String tigo = labelled(workspace, "Tigo"), templates = labelled(workspace, "Template");
+			assertNotNull(tigo); assertNotNull(templates);
+			assertEquals("#7c3aed", workspace.path("tags").path(tigo).path("presentation").path("color").asText());
+			assertFalse(workspace.path("tags").path(tigo).path("shared").asBoolean());
+			assertEquals(TagDocument.JSON.valueToTree(List.of(tigo)), workspace.path("assignments").path("lib_ConvertigoAssistant"));
+			assertEquals(TagDocument.JSON.valueToTree(List.of(tigo)), workspace.path("assignments").path("lib_ConvertigoMCP"));
+			assertEquals(TagDocument.JSON.valueToTree(List.of(templates)), workspace.path("assignments").path("mobilebuilder_tpl_8_5_0"));
+			assertFalse(workspace.path("assignments").has("lib_Other")); assertFalse(workspace.path("assignments").has("Demo"));
+			assertFalse(Files.exists(source(projects.get("lib_ConvertigoAssistant"))));
+
+			// the user organizes them: a removed tag, a deleted tag, never come back
+			ObjectNode remove = json("{\"tagIds\":[\"" + tigo + "\"],\"targets\":[\"lib_ConvertigoMCP\"]}");
+			command(Scope.workspaceProjects, "remove", remove);
+			command(Scope.workspaceProjects, "delete", json("{\"id\":\"" + templates + "\",\"confirmed\":true,\"memberCount\":1}"));
+			manager.projectClosed(projects.get("lib_ConvertigoMCP")); opened("lib_ConvertigoMCP", "mobilebuilder_tpl_8_6_0");
+			var reloaded = new TagManager(root, projects::get, this::source, projects::keySet);
+			for (var name : List.of("lib_ConvertigoMCP", "mobilebuilder_tpl_8_5_0")) reloaded.projectOpened(projects.get(name));
+			workspace = reloaded.read(Scope.workspaceProjects, null);
+			assertFalse(workspace.path("assignments").has("lib_ConvertigoMCP"));
+			assertNull(labelled(workspace, "Template")); assertFalse(workspace.path("assignments").has("mobilebuilder_tpl_8_6_0"));
+			return null;
+		});
+		// an engine without Studio leaves its workspace untouched
+		var server = new TagManager(root.resolve("server"), projects::get, this::source, projects::keySet);
+		server.projectOpened(projects.get("lib_ConvertigoAssistant")); assertFalse(Files.exists(root.resolve("server/studio/tags.json")));
+	}
+	@Test public void aProjectAlreadyTaggedKeepsItsOwnTags() throws Exception {
+		inDesktopStudio(() -> {
+			String own = create(Scope.workspaceProjects, "AI"); project("lib_ConvertigoAssistant");
+			assign(Scope.workspaceProjects, own, "lib_ConvertigoAssistant"); opened("lib_ConvertigoAssistant");
+			ObjectNode workspace = read(Scope.workspaceProjects);
+			assertNotNull(labelled(workspace, "Tigo"));
+			assertEquals(TagDocument.JSON.valueToTree(List.of(own)), workspace.path("assignments").path("lib_ConvertigoAssistant"));
+			return null;
+		});
+	}
+
 }
