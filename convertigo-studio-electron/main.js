@@ -90,7 +90,7 @@ function canListen(port, host) {
 	return new Promise((resolve) => {
 		const server = net.createServer();
 		// a machine without IPv6 has no listener on it either
-		server.once('error', (error) => resolve(error?.code === 'EAFNOSUPPORT'));
+		server.once('error', (error) => resolve(['EAFNOSUPPORT', 'EADDRNOTAVAIL'].includes(error?.code)));
 		server.once('listening', () => server.close(() => resolve(true)));
 		server.listen(port, host);
 	});
@@ -98,12 +98,18 @@ function canListen(port, host) {
 
 /**
  * A port is free when nothing listens on it, on any interface: an engine that listens on all of them in
- * IPv6 takes the connections to localhost, which the Studio opens.
+ * IPv6 takes the connections to localhost, which the Studio opens. A server on the loopback only, as a
+ * Docker container published on 127.0.0.1, takes them too, and the wildcard addresses do not see it.
  * @param {number} port
  * @returns {Promise<boolean>}
  */
 async function isFree(port) {
-	return (await canListen(port, '::')) && (await canListen(port, '0.0.0.0'));
+	for (const host of ['::', '0.0.0.0', '127.0.0.1', '::1']) {
+		if (!(await canListen(port, host))) {
+			return false;
+		}
+	}
+	return true;
 }
 
 async function freePort(from) {
