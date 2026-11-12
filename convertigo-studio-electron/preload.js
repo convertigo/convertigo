@@ -6,7 +6,8 @@ const { contextBridge, ipcRenderer, webFrame } = require('electron');
 if (window !== window.top) {
 	// the Marketplace in its frame talks to the Studio as to the Eclipse Studio, through window.java: its
 	// messages go to the Studio page, those of the Studio page to its window.receiveFromJava
-	if (/^marketplace\./.test(location.hostname)) {
+	// the Marketplace of convertigo.com, or the one of the Studio preferences, whose frame the Studio names
+	if (/^marketplace\./.test(location.hostname) || window.name === 'convertigo-marketplace') {
 		contextBridge.exposeInMainWorld('java', {
 			receiveFromJS: (json) => {
 				try {

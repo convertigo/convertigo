@@ -14,6 +14,7 @@ export const PSC_MESSAGE_TYPE = 'convertigo.studio.psc';
  *   anonymous?: boolean,
  *   owner?: string,
  *   servers?: string[],
+ *   deployServers?: { index: number, server: string, https: boolean, user: string }[],
  *   error?: string,
  *   saved?: boolean,
  *   invalid?: string

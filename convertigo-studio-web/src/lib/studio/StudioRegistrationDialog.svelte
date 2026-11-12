@@ -2,6 +2,7 @@
 	import Light from '#lib/common/Light.svelte.js';
 	import { untrack } from 'svelte';
 	import { pscOfMessage, registration, registrationUrl, savePsc } from './registration.svelte.js';
+	import StudioProxyDialog from './StudioProxyDialog.svelte';
 
 	/**
 	 * The registration of the Studio, as the Convertigo Setup wizard of the Eclipse Studio: the Convertigo Cloud
@@ -18,6 +19,8 @@
 	let busy = $state(false);
 	let message = $state('');
 	let failed = $state(false);
+	/** the proxy of the engine, as the Configure proxy step of the Convertigo Setup wizard */
+	let proxyOpen = $state(false);
 	/** a registered Studio shows its owner, until the user changes its PSC */
 	let changing = $state(false);
 	let current = $derived(registration.state);
@@ -150,6 +153,13 @@
 					</button>
 					<button type="button" class="button-primary" onclick={() => onClose?.()}>Close</button>
 				{:else}
+					<button
+						type="button"
+						class="studio-dialog__proxy button-secondary"
+						onclick={() => (proxyOpen = true)}
+					>
+						Network proxy…
+					</button>
 					<button type="button" class="button-secondary" onclick={() => onClose?.()}>
 						{current?.registered ? 'Cancel' : 'Later'}
 					</button>
@@ -163,6 +173,10 @@
 		</form>
 	</div>
 </div>
+
+{#if proxyOpen}
+	<StudioProxyDialog onClose={() => (proxyOpen = false)} />
+{/if}
 
 <style>
 	.studio-dialog {
@@ -216,6 +230,10 @@
 
 	.studio-dialog__footer {
 		border-top: 1px solid var(--studio-line);
+	}
+
+	.studio-dialog__proxy {
+		margin-inline-end: auto;
 	}
 
 	.studio-dialog__body {

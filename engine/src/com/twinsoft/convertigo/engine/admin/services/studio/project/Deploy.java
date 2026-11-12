@@ -30,6 +30,8 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.studio.StudioPsc;
+import com.twinsoft.convertigo.engine.studio.StudioPsc.DeploymentKey;
 import com.twinsoft.convertigo.engine.enums.ArchiveExportOption;
 import com.twinsoft.convertigo.engine.util.CarUtils;
 import com.twinsoft.convertigo.engine.util.RemoteAdmin;
@@ -43,6 +45,8 @@ import com.twinsoft.convertigo.engine.util.RemoteAdmin;
  * <li>server: the server, as "host[:port]/convertigo"</li>
  * <li>https, trustAllCertificates: how to reach the server</li>
  * <li>user, password: an administrator of the server</li>
+ * <li>pscServer: rather than the server and its administrator, the server N of the PSC of a desktop Studio, as the
+ * deployment configurations the Eclipse Studio reads from it: its credentials stay in the engine</li>
  * <li>assembleXsl: true to assemble the XSL sheets, for the legacy web clipping projects</li>
  * </ul>
  */
@@ -55,13 +59,27 @@ public class Deploy extends JSonService {
 		var server = request.getParameter("server");
 		var user = request.getParameter("user");
 		var password = request.getParameter("password");
+		var https = "true".equals(request.getParameter("https"));
+		var trustAllCertificates = "true".equals(request.getParameter("trustAllCertificates"));
+		var assembleXsl = "true".equals(request.getParameter("assembleXsl"));
+		var pscServer = request.getParameter("pscServer");
+		if (pscServer != null && !pscServer.isBlank()) {
+			if (!Engine.isDesktopStudio()) {
+				throw new ServiceException("Only a desktop Studio has a Personal Studio Configuration");
+			}
+			var psc = StudioPsc.decode();
+			var index = Integer.parseInt(pscServer.trim());
+			server = DeploymentKey.server.value(psc, index);
+			user = DeploymentKey.adminUser.value(psc, index);
+			password = DeploymentKey.adminPassword.value(psc, index);
+			https = Boolean.parseBoolean(DeploymentKey.sslHttps.value(psc, index));
+			trustAllCertificates = Boolean.parseBoolean(DeploymentKey.sslTrustCert.value(psc, index));
+			assembleXsl |= Boolean.parseBoolean(DeploymentKey.assembleXsl.value(psc, index));
+		}
 		if (projectName == null || server == null || server.isBlank() || user == null || password == null) {
 			throw new ServiceException("missing projectName, server, user or password parameter");
 		}
 		server = server.trim().replaceFirst("^https?://", "").replaceFirst("/+$", "");
-		var https = "true".equals(request.getParameter("https"));
-		var trustAllCertificates = "true".equals(request.getParameter("trustAllCertificates"));
-		var assembleXsl = "true".equals(request.getParameter("assembleXsl"));
 
 		var project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
 		if (project == null) {

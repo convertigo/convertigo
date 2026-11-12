@@ -1,11 +1,14 @@
 <script>
 	import Ico from '#lib/utils/Ico.svelte';
 	import { call } from '#lib/utils/service.js';
+	import { onMount } from 'svelte';
+	import { loadRegistration, registration } from './registration.svelte.js';
 	import { studioActivity } from './studioActivity.svelte.js';
 
 	/**
-	 * Deploys a project on a remote Convertigo server, as the deployment wizard of the Eclipse Studio. The
-	 * servers already used are remembered in this browser, without their password.
+	 * Deploys a project on a remote Convertigo server, as the deployment wizard of the Eclipse Studio: on a
+	 * server of the PSC of a desktop Studio, with the credentials the engine keeps, or on another server. The
+	 * other servers already used are remembered in this browser, without their password.
 	 *
 	 * @typedef {{ server: string, https: boolean, trustAllCertificates: boolean, user: string }} DeployServer
 	 */
@@ -27,6 +30,26 @@
 	let error = $state('');
 	/** @type {{ dashboard?: string, application?: string } | null} */
 	let deployed = $state(null);
+	/** the servers of the PSC, as the deployment configurations the Eclipse Studio reads from it */
+	let pscServers = $derived(
+		/** @type {{ index: number, server: string, https: boolean, user: string }[]} */ (
+			registration.state?.deployServers ?? []
+		)
+	);
+	/** the index of the server of the PSC chosen, 0 for another server */
+	let pscServer = $state(0);
+	let chosenPscServer = $derived(pscServers.find((candidate) => candidate.index === pscServer));
+
+	onMount(() => {
+		void (registration.state ? Promise.resolve(registration.state) : loadRegistration()).then(
+			() => {
+				// a registered Studio deploys to its Convertigo Cloud first, as the Eclipse Studio proposes it
+				if (!pscServer && pscServers.length) {
+					pscServer = pscServers[0].index;
+				}
+			}
+		);
+	});
 
 	/** @returns {DeployServer[]} */
 	function readServers() {
@@ -62,23 +85,36 @@
 
 	async function submit(/** @type {SubmitEvent} */ event) {
 		event.preventDefault();
-		if (busy || !server.trim() || !user.trim() || !password) {
+		if (busy || (!chosenPscServer && (!server.trim() || !user.trim() || !password))) {
 			return;
 		}
 		busy = true;
 		error = '';
 		try {
-			const result = await call('studio.project.Deploy', {
-				projectName,
-				server: server.trim(),
-				https: String(https),
-				trustAllCertificates: String(trustAllCertificates),
-				user: user.trim(),
-				password,
-				assembleXsl: String(assembleXsl)
-			});
+			const result = await call(
+				'studio.project.Deploy',
+				chosenPscServer
+					? {
+							projectName,
+							pscServer: String(chosenPscServer.index),
+							assembleXsl: String(assembleXsl)
+						}
+					: {
+							projectName,
+							server: server.trim(),
+							https: String(https),
+							trustAllCertificates: String(trustAllCertificates),
+							user: user.trim(),
+							password,
+							assembleXsl: String(assembleXsl)
+						}
+			);
 			if (result?.done) {
-				rememberServer();
+				if (chosenPscServer) {
+					server = chosenPscServer.server;
+				} else {
+					rememberServer();
+				}
 				deployed = { dashboard: result.dashboard, application: result.application };
 				studioActivity.lastDeployment = projectName;
 			} else {
@@ -137,42 +173,59 @@
 		{:else}
 			<form class="studio-dialog__form" onsubmit={submit}>
 				<fieldset class="studio-dialog__body" disabled={busy}>
-					<label class="studio-dialog__field">
-						<span>Convertigo server</span>
-						<!-- svelte-ignore a11y_autofocus -->
-						<input
-							class="input-common"
-							list="studio-deploy-servers"
-							bind:value={server}
-							onchange={() => chooseServer(server)}
-							placeholder="myserver.example.com/convertigo"
-							autofocus
-						/>
-						<datalist id="studio-deploy-servers">
-							{#each servers as candidate (candidate.server)}
-								<option value={candidate.server}></option>
-							{/each}
-						</datalist>
-					</label>
-					<label class="studio-dialog__check">
-						<input type="checkbox" bind:checked={https} /> HTTPS
-					</label>
-					<label class="studio-dialog__check">
-						<input type="checkbox" bind:checked={trustAllCertificates} /> Trust all certificates
-					</label>
-					<label class="studio-dialog__field">
-						<span>Administrator of the server</span>
-						<input class="input-common" bind:value={user} autocomplete="username" />
-					</label>
-					<label class="studio-dialog__field">
-						<span>Password</span>
-						<input
-							class="input-common"
-							type="password"
-							bind:value={password}
-							autocomplete="current-password"
-						/>
-					</label>
+					{#if pscServers.length}
+						<label class="studio-dialog__field">
+							<span>Deployment configuration</span>
+							<select class="input-common" bind:value={pscServer}>
+								{#each pscServers as candidate (candidate.index)}
+									<option value={candidate.index}>{candidate.server} (from the PSC)</option>
+								{/each}
+								<option value={0}>Another server</option>
+							</select>
+						</label>
+					{/if}
+					{#if chosenPscServer}
+						<p class="studio-dialog__hint">
+							As {chosenPscServer.user}, with the credentials of the PSC, which stay in the Studio.
+						</p>
+					{:else}
+						<label class="studio-dialog__field">
+							<span>Convertigo server</span>
+							<!-- svelte-ignore a11y_autofocus -->
+							<input
+								class="input-common"
+								list="studio-deploy-servers"
+								bind:value={server}
+								onchange={() => chooseServer(server)}
+								placeholder="myserver.example.com/convertigo"
+								autofocus
+							/>
+							<datalist id="studio-deploy-servers">
+								{#each servers as candidate (candidate.server)}
+									<option value={candidate.server}></option>
+								{/each}
+							</datalist>
+						</label>
+						<label class="studio-dialog__check">
+							<input type="checkbox" bind:checked={https} /> HTTPS
+						</label>
+						<label class="studio-dialog__check">
+							<input type="checkbox" bind:checked={trustAllCertificates} /> Trust all certificates
+						</label>
+						<label class="studio-dialog__field">
+							<span>Administrator of the server</span>
+							<input class="input-common" bind:value={user} autocomplete="username" />
+						</label>
+						<label class="studio-dialog__field">
+							<span>Password</span>
+							<input
+								class="input-common"
+								type="password"
+								bind:value={password}
+								autocomplete="current-password"
+							/>
+						</label>
+					{/if}
 					<label class="studio-dialog__check">
 						<input type="checkbox" bind:checked={assembleXsl} /> Assemble the XSL sheets (legacy web clipping
 						projects)
@@ -188,7 +241,7 @@
 					<button
 						type="submit"
 						class="button-primary"
-						disabled={busy || !server.trim() || !user.trim() || !password}
+						disabled={busy || (!chosenPscServer && (!server.trim() || !user.trim() || !password))}
 					>
 						{#if busy}<Ico icon="mdi:sync" size={4} />{/if}
 						Deploy
@@ -300,5 +353,11 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.35rem;
+	}
+
+	.studio-dialog__hint {
+		margin: 0;
+		color: var(--studio-text-idle);
+		font-size: 0.72rem;
 	}
 </style>

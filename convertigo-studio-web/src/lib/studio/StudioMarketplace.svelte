@@ -189,6 +189,7 @@
 			bind:this={frame}
 			{src}
 			title="Convertigo Marketplace"
+			name="convertigo-marketplace"
 			allow="clipboard-write"
 			onload={() => {
 				void init();

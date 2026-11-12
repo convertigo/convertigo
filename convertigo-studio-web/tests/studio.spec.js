@@ -3500,6 +3500,37 @@ test('studio vibe profile opens the local Assistant once the engine has loaded i
 	);
 });
 
+test('studio deploys to a server of its PSC with the credentials the engine keeps, as Eclipse', async ({
+	page
+}) => {
+	/** @type {URLSearchParams[]} */
+	const deployRequests = [];
+	const registration = {
+		desktop: true,
+		registered: true,
+		owner: 'me@example.com',
+		saves: [],
+		deployServers: [
+			{ index: 1, server: 'cloud.example.com/convertigo', https: true, user: 'me@example.com' }
+		]
+	};
+	await mockStudioServices(page, { registration, deployRequests });
+	await page.goto('/studio/');
+	await selectTreeNode(page, projectName);
+	await page.getByRole('button', { name: `Actions for ${projectName}` }).click();
+	await page.getByRole('menuitem', { name: 'Deploy to a server…' }).click();
+	await page.locator('form button[type="submit"]').last().click();
+	const dialog = page.getByRole('dialog', { name: `Deploy ${projectName}` });
+	await expect(dialog.getByRole('combobox')).toHaveValue('1');
+	await expect(dialog).toContainText('cloud.example.com/convertigo (from the PSC)');
+	await expect(dialog.getByLabel('Password')).toHaveCount(0);
+	await dialog.getByRole('button', { name: 'Deploy' }).click();
+	await expect(dialog).toContainText(`${projectName} is deployed on cloud.example.com/convertigo.`);
+	expect(deployRequests.map((params) => [params.get('pscServer'), params.get('password')])).toEqual(
+		[['1', null]]
+	);
+});
+
 test('studio copies objects to the system clipboard and pastes the ones of another Studio', async ({
 	page
 }) => {
@@ -4087,6 +4118,7 @@ function responseEditor(page) {
  *  undefinedSymbols?: Record<string, string[]>,
  *  missingProjects?: string[],
  *  importArchiveRequests?: URLSearchParams[],
+ *  deployRequests?: URLSearchParams[],
  *  paletteProbe?: { remaining: number, requests: number },
  *  frontendRefreshDelayMs?: number,
  *  noProjects?: boolean,
@@ -4289,6 +4321,7 @@ function serviceName(url) {
  *  undefinedSymbols?: Record<string, string[]>,
  *  missingProjects?: string[],
  *  importArchiveRequests?: URLSearchParams[],
+ *  deployRequests?: URLSearchParams[],
  *  paletteProbe?: { remaining: number, requests: number },
  *  frontendRefreshDelayMs?: number,
  *  noProjects?: boolean,
@@ -4347,7 +4380,8 @@ function responseForService(service, params, options = {}) {
 			const state = () => ({
 				desktop: psc.desktop,
 				registered: psc.registered,
-				...(psc.owner ? { owner: psc.owner, servers: [] } : {})
+				...(psc.owner ? { owner: psc.owner, servers: [] } : {}),
+				...(psc.deployServers ? { deployServers: psc.deployServers } : {})
 			});
 			if (params.get('action') === 'save') {
 				psc.saves.push(params.get('psc'));
@@ -4432,6 +4466,11 @@ function responseForService(service, params, options = {}) {
 			}
 			return { done: true, project: name, projectName: name };
 		}
+		case 'studio.project.ArchiveOptions':
+			return { options: [], version: '1.0' };
+		case 'studio.project.Deploy':
+			options.deployRequests?.push(params);
+			return { done: true, dashboard: 'https://cloud.example.com/convertigo/dashboard/' };
 		case 'studio.project.MissingReferences':
 			return { references: [], projects: options.missingProjects ?? [] };
 		case 'projects.CheckDependencies':

@@ -39,7 +39,8 @@ import com.twinsoft.convertigo.engine.studio.StudioPsc.DeploymentKey;
  * start: the Convertigo agent of the Assistant needs its owner.
  * <ul>
  * <li>action=state (default): desktop (whether the engine serves a desktop Studio), registered, anonymous, owner and
- * servers of the PSC of the workspace, or error; never its secret nor the passwords of its servers</li>
+ * servers of the PSC of the workspace (servers, and deployServers with their index, https and user), or error;
+ * never its secret nor the passwords of its servers</li>
  * <li>action=save, psc: the PSC given at the registration, or pasted, written as the PSC of the workspace once
  * decoded, in a desktop Studio only; invalid tells why it is not</li>
  * </ul>
@@ -82,12 +83,18 @@ public class Psc extends JSonService {
 			response.put("owner", StudioPsc.owner(properties));
 		}
 		var servers = new JSONArray();
+		// the servers of the PSC the Studio deploys to, without their password, which stays in the engine
+		var deployServers = new JSONArray();
 		for (int i = 1; properties.containsKey(DeploymentKey.adminUser.key(i)); i++) {
 			var server = DeploymentKey.server.value(properties, i);
 			if (server != null && !server.isEmpty()) {
 				servers.put(server);
+				deployServers.put(new JSONObject().put("index", i).put("server", server)
+						.put("https", Boolean.parseBoolean(DeploymentKey.sslHttps.value(properties, i)))
+						.put("user", DeploymentKey.adminUser.value(properties, i)));
 			}
 		}
 		response.put("servers", servers);
+		response.put("deployServers", deployServers);
 	}
 }

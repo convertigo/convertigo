@@ -6,6 +6,7 @@
 		saveStudioPreferences,
 		studioPreferences
 	} from './studioPreferences.svelte.js';
+	import StudioProxyDialog from './StudioProxyDialog.svelte';
 
 	/**
 	 * The preferences of the Studio, as the Studio preference page of the Eclipse Studio.
@@ -23,6 +24,9 @@
 	let assistantChannel = $state(
 		studioPreferences.assistantChannel === 'preview' ? 'preview' : 'stable'
 	);
+
+	/** the proxy of the engine, in its own dialog */
+	let proxyOpen = $state(false);
 
 	/** the registration of a desktop Studio, in its own dialog */
 	function openRegistration() {
@@ -124,6 +128,15 @@
 					/>
 				</label>
 				<p class="studio-dialog__hint">These preferences are kept in this browser.</p>
+				<div class="studio-dialog__field">
+					<span>Network proxy</span>
+					<div class="studio-dialog__row">
+						<small>The proxy the engine uses to reach the Internet, kept in the workspace</small>
+						<button type="button" class="button-secondary" onclick={() => (proxyOpen = true)}>
+							Configure…
+						</button>
+					</div>
+				</div>
 				{#if registration.state?.desktop}
 					<div class="studio-dialog__field">
 						<span>Personal Studio Configuration</span>
@@ -147,6 +160,10 @@
 		</form>
 	</div>
 </div>
+
+{#if proxyOpen}
+	<StudioProxyDialog onClose={() => (proxyOpen = false)} />
+{/if}
 
 <style>
 	.studio-dialog {
