@@ -70,7 +70,8 @@
 					<span>
 						Create a Git repository for the new projects
 						<small
-							>With an initial commit, for the projects created or installed from the Marketplace.</small
+							>With an initial commit, for the projects created, or started from a Marketplace
+							starter.</small
 						>
 					</span>
 				</label>

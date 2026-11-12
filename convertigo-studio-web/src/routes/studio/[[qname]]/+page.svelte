@@ -3478,6 +3478,34 @@
 		await Projects.refresh();
 		selectedId = projectName;
 		refreshStudioViews();
+		await offerUndefinedSymbols(projectName);
+	}
+
+	/**
+	 * Offers to declare the global symbols a project just imported or created uses and the engine does not know,
+	 * as the Eclipse Studio asks at the opening of such a project: they are declared with an empty value.
+	 * @param {string} projectName
+	 */
+	async function offerUndefinedSymbols(projectName) {
+		const symbols = await Projects.undefinedSymbols(projectName);
+		const names = symbols.map((symbol) => String(symbol?.name ?? symbol)).filter(Boolean);
+		if (
+			!names.length ||
+			!window.confirm(
+				`The project ${projectName} uses global symbols that are not defined: ${names.join(', ')}. Declare them, with an empty value?`
+			)
+		) {
+			return;
+		}
+		const result = await call('studio.project.DeclareSymbols', {
+			projectName,
+			symbols: JSON.stringify(names)
+		});
+		const declared = checkArray(result?.symbols);
+		if (declared.length) {
+			toaster.success({ description: `Global symbols declared: ${declared.join(', ')}.` });
+			refreshStudioViews();
+		}
 	}
 
 	/**
@@ -3488,6 +3516,10 @@
 	async function addMissingReferences(projectName) {
 		const result = await call('studio.project.MissingReferences', { projectName });
 		const missing = Array.isArray(result?.references) ? result.references.map(String) : [];
+		await loadMissingProjects(
+			projectName,
+			Array.isArray(result?.projects) ? result.projects.map(String) : []
+		);
 		if (!missing.length) {
 			return;
 		}
@@ -3513,6 +3545,30 @@
 			refreshStudioViews();
 			toaster.info({
 				description: `References added to ${added.added.join(', ')}: save ${projectName} to keep them.`
+			});
+		}
+	}
+
+	/**
+	 * Loads the projects a project references and the Studio has not loaded, as the Eclipse Studio does after a
+	 * save: the closed ones are opened, the others imported from the URL of their reference.
+	 * @param {string} projectName
+	 * @param {string[]} projects
+	 */
+	async function loadMissingProjects(projectName, projects) {
+		if (!projects.length) {
+			return;
+		}
+		const closed = projects.filter((name) => isProjectClosed(name));
+		if (closed.length) {
+			await setProjectsClosed(closed, false);
+		}
+		const result = await call('projects.CheckDependencies');
+		await Projects.refresh();
+		if (closed.length || String(result?.admin?.result?.loaded) === 'true') {
+			refreshStudioViews();
+			toaster.success({
+				description: `The projects ${projectName} references are loaded: ${projects.join(', ')}.`
 			});
 		}
 	}
@@ -4141,8 +4197,11 @@
 {/if}
 {#if marketplaceOpen}
 	<StudioMarketplace
-		onInstalled={async (projectName) => {
-			await ensureGitRepository(projectName);
+		onInstalled={async (projectName, starter) => {
+			if (starter) {
+				await ensureGitRepository(projectName);
+			}
+			await offerUndefinedSymbols(projectName);
 			selectedId = projectName;
 			refreshStudioViews();
 		}}

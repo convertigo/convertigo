@@ -20,6 +20,9 @@
 	let folder = $state('');
 	/** @type {File | null} */
 	let archive = $state(null);
+	/** the name of the project of an archive, as the import wizard of the Eclipse Studio: its own when empty */
+	let archiveName = $state('');
+	let archiveNameError = $derived(archiveName.trim() ? projectNameError(archiveName.trim()) : '');
 	let templateId = $state(PROJECT_TEMPLATES[0].id);
 	let name = $state('');
 	/** @type {Record<string, any>} */
@@ -54,7 +57,7 @@
 				? Boolean(url.trim()) && !urlNameError
 				: mode === 'folder'
 					? Boolean(folder.trim())
-					: Boolean(archive)
+					: Boolean(archive) && !archiveNameError
 	);
 
 	/**
@@ -103,15 +106,32 @@
 					);
 				}
 			} else if (mode === 'file' && archive) {
-				const form = new FormData();
-				form.append('file', archive);
-				form.append('bAssembleXsl', 'false');
-				const result = await call('projects.Deploy', form);
-				const deployed = String(result?.admin?.message ?? '').match(/project '([^']+)'/)?.[1];
-				if (deployed) {
-					await onDone?.(deployed);
+				/** @param {boolean} overwrite */
+				const importArchive = (overwrite) => {
+					const form = new FormData();
+					form.append('projectName', archiveName.trim());
+					form.append('overwrite', String(overwrite));
+					form.append('file', /** @type {File} */ (archive));
+					return call('studio.project.ImportArchive', form);
+				};
+				let result = await importArchive(false);
+				// never over a project of the workspace without asking
+				if (
+					result?.exists &&
+					window.confirm(
+						`A project named ${result.projectName} already exists in the workspace. Replace it with the project of the archive?`
+					)
+				) {
+					result = await importArchive(true);
+				}
+				if (result?.done) {
+					await onDone?.(String(result.project));
+				} else if (result?.exists) {
+					error = `A project named ${result.projectName} already exists: give the imported project another name.`;
 				} else {
-					error = String(result?.admin?.error ?? 'The project was not imported.');
+					error = String(
+						result?.error?.message ?? result?.error ?? 'The project was not imported.'
+					);
 				}
 			} else {
 				const typed = url.trim();
@@ -265,9 +285,18 @@
 							accept=".car,.zip"
 							onchange={(event) => (archive = event.currentTarget.files?.[0] ?? null)}
 						/>
-						<small
-							>A .car or .zip archive exported from a Studio. It replaces a project of the same
-							name.</small
+						<small>A .car or .zip archive exported from a Studio.</small>
+					</label>
+					<label class="studio-dialog__field">
+						<span>Project name</span>
+						<input
+							class="input-common"
+							bind:value={archiveName}
+							placeholder="The name of the project of the archive"
+						/>
+						<small class:studio-dialog__error={archiveNameError}
+							>{archiveNameError ||
+								'Leave it empty to keep the name of the project of the archive; a project of the same name is replaced only once confirmed.'}</small
 						>
 					</label>
 				{:else}

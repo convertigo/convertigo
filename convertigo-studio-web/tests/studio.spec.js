@@ -3370,6 +3370,136 @@ test('studio deletes a project without its folder unless asked, as the Eclipse S
 	expect(removeProjectRequests.at(-1)?.get('deleteFiles')).toBe('true');
 });
 
+test('the Marketplace gives a Git repository to a starter only, as the Eclipse Studio', async ({
+	page
+}) => {
+	/** @type {URLSearchParams[]} */
+	const marketplaceRequests = [];
+	await mockStudioServices(page, {
+		noProjects: true,
+		marketplaceRequests,
+		undefinedSymbols: { Starter: ['api.key'] }
+	});
+	// the starter uses a global symbol the engine does not know: its declaration is offered, as in Eclipse
+	page.on('dialog', (dialog) => void dialog.accept());
+	// the site asks to install a library, then a starter
+	await page.route('https://marketplace.convertigo.com/**', (route) =>
+		route.fulfill({
+			status: 200,
+			contentType: 'text/html',
+			body: `<main>Marketplace</main><script>
+				parent.postMessage({ type: 'install', url: 'lib_Library=https://github.com/convertigo/c8oprj-lib-library.git' }, '*');
+				setTimeout(() => parent.postMessage({ type: 'install', url: 'Starter=https://github.com/convertigo/c8oprj-starter.git', starter: true }, '*'), 500);
+			</script>`
+		})
+	);
+	await page.goto('/studio/');
+	await page.getByRole('button', { name: 'Marketplace' }).click();
+	await expect
+		.poll(() =>
+			marketplaceRequests.map(
+				(params) =>
+					params.get('url') ??
+					(params.get('symbols')
+						? `declare ${params.get('projectName')} ${params.get('symbols')}`
+						: `${params.get('action')} ${params.get('projectName')}`)
+			)
+		)
+		.toEqual([
+			'lib_Library=https://github.com/convertigo/c8oprj-lib-library.git',
+			'Starter=https://github.com/convertigo/c8oprj-starter.git',
+			'init Starter',
+			'declare Starter ["api.key"]'
+		]);
+});
+
+test('studio loads the projects a saved project references and the Studio has not loaded', async ({
+	page
+}) => {
+	const state = createStudioState({ closedProjects: ['Archive'] });
+	/** @type {URLSearchParams[]} */
+	const requests = [];
+	await mockStudioServices(page, {
+		state,
+		projects: [projectName, 'Archive'],
+		marketplaceRequests: requests,
+		closeRequests: requests,
+		missingProjects: ['Archive', 'RefLib']
+	});
+	await page.goto('/studio/');
+	await selectTreeNode(page, projectName);
+	await page.getByRole('button', { name: `Actions for ${projectName}` }).click();
+	await page.getByRole('menuitem', { name: 'Save' }).click();
+	// as the Eclipse Studio: the closed one is opened, the others imported from their reference
+	await expect
+		.poll(() => requests.map((params) => params.get('open') ?? 'check dependencies'))
+		.toEqual(['true', 'check dependencies']);
+	await expect(
+		page.getByText(`The projects ${projectName} references are loaded: Archive, RefLib.`)
+	).toBeVisible();
+});
+
+test('studio imports an archive under another name, never over a project without asking', async ({
+	page
+}) => {
+	/** @type {URLSearchParams[]} */
+	const importArchiveRequests = [];
+	await mockStudioServices(page, { importArchiveRequests });
+	await page.goto('/studio/');
+	await page.getByRole('button', { name: 'New project' }).first().click();
+	const dialog = page.getByRole('dialog', { name: 'New project' });
+	await dialog.getByRole('tab', { name: 'From a file' }).click();
+	await dialog.locator('input[type="file"]').setInputFiles({
+		name: 'project.car',
+		mimeType: 'application/zip',
+		buffer: Buffer.from('PK')
+	});
+	// the archive holds a project of the workspace: refused, then imported under another name
+	await dialog.getByPlaceholder('The name of the project of the archive').fill(projectName);
+	page.once('dialog', (confirm) => void confirm.dismiss());
+	await dialog.getByRole('button', { name: /Import|Create/ }).click();
+	await expect(dialog).toContainText(`A project named ${projectName} already exists`);
+	await dialog.getByPlaceholder('The name of the project of the archive').fill('CarCopy');
+	await dialog.getByRole('button', { name: /Import|Create/ }).click();
+	await expect(dialog).toBeHidden();
+	expect(
+		importArchiveRequests.map((params) => [params.get('projectName'), params.get('overwrite')])
+	).toEqual([
+		[projectName, 'false'],
+		['CarCopy', 'false']
+	]);
+});
+
+test('studio vibe profile opens the local Assistant once the engine has loaded its stack', async ({
+	page
+}) => {
+	const installed = { installed: true, version: '1.6.0' };
+	const assistantStack = {
+		state: 'loading',
+		loadingReads: 3,
+		desktop: true,
+		studioVersion: '8.5.0_beta',
+		installs: [],
+		projects: {
+			lib_ConvertigoAssistant: installed,
+			lib_ConvertigoMCP: installed,
+			lib_ConvertigoAgentBridge: installed
+		}
+	};
+	await mockStudioServices(page, { assistant: true, noProjects: true, assistantStack });
+	await page.route('https://assistant.convertigo.com/**', (route) =>
+		route.fulfill({ status: 200, contentType: 'text/html', body: '<main>Hosted Assistant</main>' })
+	);
+	await page.goto('/studio/');
+	await page.getByRole('radio', { name: 'Vibe' }).click();
+	// as the Eclipse Studio: the stack read again until it is ready, then the local Assistant
+	await expect(page.locator('iframe[title="Convertigo Assistant"]')).toHaveAttribute(
+		'src',
+		/DisplayObjects\/mobile\/path-to-xfirst\/:threadid\?.*localAgentStackAvailable=true/,
+		{ timeout: 15000 }
+	);
+});
+
 test('studio copies objects to the system clipboard and pastes the ones of another Studio', async ({
 	page
 }) => {
@@ -3953,6 +4083,10 @@ function responseEditor(page) {
  *  assistantStack?: any,
  *  registration?: any,
  *  removeProjectRequests?: URLSearchParams[],
+ *  marketplaceRequests?: URLSearchParams[],
+ *  undefinedSymbols?: Record<string, string[]>,
+ *  missingProjects?: string[],
+ *  importArchiveRequests?: URLSearchParams[],
  *  paletteProbe?: { remaining: number, requests: number },
  *  frontendRefreshDelayMs?: number,
  *  noProjects?: boolean,
@@ -3994,6 +4128,12 @@ async function mockStudioServices(page, options = {}) {
 			return;
 		}
 		const params = new URLSearchParams(request.postData() ?? '');
+		// the fields of a request with files go in its URL, as call() sends them
+		for (const [key, value] of new URL(request.url()).searchParams) {
+			if (!params.has(key)) {
+				params.set(key, value);
+			}
+		}
 		if (service === 'studio.palette.Get' && options.paletteProbe) {
 			options.paletteProbe.requests += 1;
 			if (options.paletteProbe.remaining > 0) {
@@ -4145,6 +4285,10 @@ function serviceName(url) {
  *  assistantStack?: any,
  *  registration?: any,
  *  removeProjectRequests?: URLSearchParams[],
+ *  marketplaceRequests?: URLSearchParams[],
+ *  undefinedSymbols?: Record<string, string[]>,
+ *  missingProjects?: string[],
+ *  importArchiveRequests?: URLSearchParams[],
  *  paletteProbe?: { remaining: number, requests: number },
  *  frontendRefreshDelayMs?: number,
  *  noProjects?: boolean,
@@ -4164,6 +4308,10 @@ function responseForService(service, params, options = {}) {
 			const stack = options.assistantStack;
 			if (!stack) {
 				return {};
+			}
+			// a stack the engine loads: ready after some reads
+			if (stack.state === 'loading' && --stack.loadingReads <= 0) {
+				stack.state = 'ready';
 			}
 			if (params.get('action') === 'manifest') {
 				return {
@@ -4255,6 +4403,40 @@ function responseForService(service, params, options = {}) {
 				};
 			}
 			return options.noProjects ? { children: [] } : treeviewResponse(params, state);
+		case 'projects.ImportURL':
+			options.marketplaceRequests?.push(params);
+			return {
+				admin: {
+					success: `The project '${(params.get('url') ?? '').split('=')[0]}' has been imported`
+				}
+			};
+		case 'studio.git.SourceControl':
+			options.marketplaceRequests?.push(params);
+			return { done: true };
+		case 'projects.GetUndefinedSymbols':
+			return {
+				admin: {
+					undefined_symbols: {
+						symbol: options.undefinedSymbols?.[params.get('projectName') ?? ''] ?? []
+					}
+				}
+			};
+		case 'studio.project.DeclareSymbols':
+			options.marketplaceRequests?.push(params);
+			return { symbols: JSON.parse(params.get('symbols') ?? '[]') };
+		case 'studio.project.ImportArchive': {
+			options.importArchiveRequests?.push(params);
+			const name = params.get('projectName') || 'Archived';
+			if (params.get('overwrite') !== 'true' && name === projectName) {
+				return { exists: true, projectName: name };
+			}
+			return { done: true, project: name, projectName: name };
+		}
+		case 'studio.project.MissingReferences':
+			return { references: [], projects: options.missingProjects ?? [] };
+		case 'projects.CheckDependencies':
+			options.marketplaceRequests?.push(params);
+			return { admin: { result: { loaded: 'true' } } };
 		case 'studio.project.Remove': {
 			options.removeProjectRequests?.push(params);
 			const name = params.get('projectName') ?? '';

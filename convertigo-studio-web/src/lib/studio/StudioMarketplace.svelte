@@ -8,11 +8,11 @@
 	/**
 	 * The Convertigo Marketplace, as the Marketplace view of the Eclipse Studio: the site shows the
 	 * libraries and starters, and asks the Studio to install them, which imports their project, a starter
-	 * in a new Git repository. In the desktop Studio, the site talks to it as to the Eclipse Studio, through
+	 * in a new Git repository when the Studio preferences ask for one, a library as it is. In the desktop Studio, the site talks to it as to the Eclipse Studio, through
 	 * the window.java its frame is given; in a browser, the site only copies the path of a project, which is
 	 * imported here.
 	 *
-	 * @type {{ onInstalled?: (projectName: string) => void | Promise<void>, onClose?: () => void }}
+	 * @type {{ onInstalled?: (projectName: string, starter: boolean) => void | Promise<void>, onClose?: () => void }}
 	 */
 	let { onInstalled, onClose } = $props();
 
@@ -69,10 +69,6 @@
 			const result = await call('projects.ImportURL', { url });
 			const project = String(result?.admin?.success ?? '').match(/project '([^']+)'/)?.[1];
 			if (project) {
-				if (starter) {
-					// a new project from a starter, versioned from its start as in the Eclipse Studio
-					await call('studio.git.SourceControl', { projectName: project, action: 'init' });
-				}
 				await Projects.refresh();
 			}
 			post({
@@ -82,7 +78,8 @@
 				version: project ? (installed(project)?.version ?? '') : ''
 			});
 			if (project) {
-				await onInstalled?.(project);
+				// a starter gets a Git repository of its own, as in the Eclipse Studio, a library none
+				await onInstalled?.(project, starter);
 			}
 		} finally {
 			installing = '';
