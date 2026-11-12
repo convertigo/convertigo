@@ -2318,6 +2318,7 @@ test('studio vibe profile opens the local agent of a desktop Studio and asks for
 	const assistantStack = {
 		state: 'ready',
 		desktop: true,
+		studioVersion: '8.5.0_beta',
 		installs: [],
 		projects: {
 			lib_ConvertigoAssistant: installed,
@@ -2347,6 +2348,11 @@ test('studio vibe profile opens the local agent of a desktop Studio and asks for
 		/DisplayObjects\/mobile\/path-to-xfirst\/:threadid\?/
 	);
 	await expect(assistant).not.toHaveAttribute('src', /serverAgent=/);
+	// what the Assistant checks at its start before it offers its agent
+	await expect(assistant).toHaveAttribute(
+		'src',
+		/assistantRuntime=local&studioVersion=8\.5\.0_beta&localAgentStackAvailable=true/
+	);
 	const bar = page.getByRole('region', { name: 'Studio registration' });
 	await bar.getByRole('button', { name: 'Register…' }).click();
 	await expect(dialog).toBeVisible();
@@ -3314,6 +3320,56 @@ test('studio closes a project and opens it again', async ({ page }) => {
 	expect(state.closedProjects).toEqual([projectName]);
 });
 
+test('studio deletes a project without its folder unless asked, as the Eclipse Studio', async ({
+	page
+}) => {
+	const state = createStudioState();
+	/** @type {URLSearchParams[]} */
+	const removeProjectRequests = [];
+	await mockStudioServices(page, {
+		state,
+		projects: [projectName, 'Archive'],
+		removeProjectRequests
+	});
+	await page.goto('/studio/');
+
+	await selectTreeNode(page, projectName);
+	await page.getByRole('button', { name: `Actions for ${projectName}` }).click();
+	await page.getByRole('menuitem', { name: 'Delete project' }).click();
+	const dialog = page.getByRole('dialog', { name: `Delete the project ${projectName}` });
+	await expect(dialog).toContainText(`/workspace/projects/${projectName} (a Git repository)`);
+	const deleteFiles = dialog.getByRole('checkbox', {
+		name: 'Delete the project folder on disk (cannot be undone)'
+	});
+	// the folder stays on disk by default
+	await expect(deleteFiles).not.toBeChecked();
+	await expect(dialog.getByRole('status')).toHaveText(
+		/The project is closed: its folder stays in the workspace/
+	);
+	await deleteFiles.check();
+	await expect(dialog.getByRole('status')).toHaveText(
+		/uncommitted changes, local branches and stashes/
+	);
+	await deleteFiles.uncheck();
+	await dialog.getByRole('button', { name: 'Remove' }).click();
+	await expect(dialog).toBeHidden();
+	expect(
+		removeProjectRequests.map((params) => [params.get('action'), params.get('deleteFiles')])
+	).toEqual([
+		[null, null],
+		['remove', 'false']
+	]);
+
+	await selectTreeNode(page, 'Archive');
+	await page.getByRole('button', { name: 'Actions for Archive' }).click();
+	await page.getByRole('menuitem', { name: 'Delete project' }).click();
+	const archive = page.getByRole('dialog', { name: 'Delete the project Archive' });
+	await archive.getByRole('checkbox').check();
+	await archive.getByRole('button', { name: 'Delete' }).click();
+	await expect(archive).toBeHidden();
+	expect(removeProjectRequests.at(-1)?.get('deleteFiles')).toBe('true');
+});
+
 test('studio copies objects to the system clipboard and pastes the ones of another Studio', async ({
 	page
 }) => {
@@ -3896,6 +3952,7 @@ function responseEditor(page) {
  *  assistant?: boolean,
  *  assistantStack?: any,
  *  registration?: any,
+ *  removeProjectRequests?: URLSearchParams[],
  *  paletteProbe?: { remaining: number, requests: number },
  *  frontendRefreshDelayMs?: number,
  *  noProjects?: boolean,
@@ -4087,6 +4144,7 @@ function serviceName(url) {
  *  assistant?: boolean,
  *  assistantStack?: any,
  *  registration?: any,
+ *  removeProjectRequests?: URLSearchParams[],
  *  paletteProbe?: { remaining: number, requests: number },
  *  frontendRefreshDelayMs?: number,
  *  noProjects?: boolean,
@@ -4129,7 +4187,8 @@ function responseForService(service, params, options = {}) {
 				projects: stack.projects,
 				state: stack.state,
 				updateAllowed: true,
-				desktop: stack.desktop === true
+				desktop: stack.desktop === true,
+				studioVersion: stack.studioVersion
 			};
 		}
 		case 'studio.registration.Psc': {
@@ -4196,6 +4255,24 @@ function responseForService(service, params, options = {}) {
 				};
 			}
 			return options.noProjects ? { children: [] } : treeviewResponse(params, state);
+		case 'studio.project.Remove': {
+			options.removeProjectRequests?.push(params);
+			const name = params.get('projectName') ?? '';
+			const info = {
+				projectName: name,
+				path: `/workspace/projects/${name}`,
+				linked: false,
+				git: true
+			};
+			if (params.get('action') !== 'remove') {
+				return info;
+			}
+			if (params.get('deleteFiles') !== 'true') {
+				state.closedProjects = [...new Set([...(state.closedProjects ?? []), name])];
+				return { ...info, removed: 'closed' };
+			}
+			return { ...info, removed: 'deleted' };
+		}
 		case 'studio.project.Close': {
 			options.closeRequests?.push(params);
 			const names = JSON.parse(params.get('projects') ?? '[]');

@@ -12,7 +12,11 @@
 		propertyDocumentationFromDefinition,
 		propertyDocumentationFromProperties
 	} from '#lib/studio/blockDefinition.js';
-	import { isProjectClosed, setProjectsClosed } from '#lib/studio/closedProjects.svelte.js';
+	import {
+		isProjectClosed,
+		refreshClosedProjects,
+		setProjectsClosed
+	} from '#lib/studio/closedProjects.svelte.js';
 	import { implicitTransactionId } from '#lib/studio/defaultTransaction.js';
 	import {
 		areEquivalentDboObjectIds,
@@ -66,6 +70,7 @@
 	import StudioCopybookDialog from '#lib/studio/StudioCopybookDialog.svelte';
 	import StudioCouchViewDialog from '#lib/studio/StudioCouchViewDialog.svelte';
 	import StudioDebugPanel from '#lib/studio/StudioDebugPanel.svelte';
+	import StudioDeleteProjectDialog from '#lib/studio/StudioDeleteProjectDialog.svelte';
 	import StudioDeployDialog from '#lib/studio/StudioDeployDialog.svelte';
 	import StudioDocPanel from '#lib/studio/StudioDocPanel.svelte';
 	import StudioEditorPanel from '#lib/studio/StudioEditorPanel.svelte';
@@ -369,6 +374,8 @@
 	let statisticsProjectName = $state('');
 	let aboutOpen = $state(false);
 	let preferencesOpen = $state(false);
+	/** the project whose deletion is asked, as the Eclipse Studio asks it */
+	let deleteProjectName = $state('');
 	let addFileProjectName = $state('');
 	/** the lib_* projects hidden from the tree, as the "Toggle libs" of the Eclipse Studio */
 	let hideLibs = $state(false);
@@ -3368,22 +3375,30 @@
 	}
 
 	/**
+	 * Asks how to delete a project: its folder on disk is kept unless the user checks its deletion.
 	 * @param {string} projectName
 	 */
-	async function deleteProject(projectName) {
-		if (
-			!projectName ||
-			!window.confirm(
-				`Delete the project "${projectName}"?\n\nIts folder is deleted from the workspace: this action cannot be undone.`
-			)
-		) {
-			return;
-		}
-		const result = await call('projects.Delete', { projectName });
-		if (result?.isError) {
-			return;
-		}
+	function deleteProject(projectName) {
+		deleteProjectName = projectName ?? '';
+	}
+
+	/**
+	 * @param {string} projectName
+	 * @param {string} removed deleted, unlinked or closed
+	 */
+	async function projectRemoved(projectName, removed) {
+		deleteProjectName = '';
+		clearProjectDirty(projectName);
 		selectedId = '';
+		toaster.success({
+			description:
+				removed === 'deleted'
+					? `The project ${projectName} and its folder are deleted.`
+					: removed === 'closed'
+						? `The project ${projectName} is closed; its folder stays in the workspace.`
+						: `The project ${projectName} left the Studio; its folder stays on disk.`
+		});
+		await refreshClosedProjects();
 		await Projects.refresh();
 		refreshStudioViews();
 	}
@@ -4147,6 +4162,13 @@
 {/if}
 {#if preferencesOpen}
 	<StudioPreferencesDialog onClose={() => (preferencesOpen = false)} />
+{/if}
+{#if deleteProjectName}
+	<StudioDeleteProjectDialog
+		projectName={deleteProjectName}
+		onClose={() => (deleteProjectName = '')}
+		onRemoved={(removed) => projectRemoved(deleteProjectName, removed)}
+	/>
 {/if}
 {#if registration.open}
 	<StudioRegistrationDialog onClose={() => (registration.open = false)} />
