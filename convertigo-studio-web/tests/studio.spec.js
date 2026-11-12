@@ -1712,6 +1712,42 @@ test('studio frontend profile exposes preview devices from a navigation drawer',
 	await expect(page.getByText('iPhone 17 Pro · 874×402')).toBeVisible();
 });
 
+test('studio tree shows a project an agent creates through the MCP', async ({ page }) => {
+	const projects = [projectName];
+	await mockStudioServices(page, { projects });
+	// the engine announces the project once it is saved, after the tree of the Studio is loaded
+	let announce = () => {};
+	const created = new Promise((resolve) => (announce = () => resolve(undefined)));
+	let subscriptions = 0;
+	await page.route('**/admin/services/events.Subscribe**', async (route) => {
+		if (subscriptions++ === 0) {
+			await created;
+		}
+		const event = {
+			id: 'agent-app-saved',
+			topic: 'projects.changed',
+			timestamp: 2,
+			instance: 'studio-test',
+			payload: { project: 'AgentApp', qname: 'AgentApp', scope: 'project', reason: 'project.exported' }
+		};
+		await route.fulfill({
+			status: 200,
+			headers: { 'cache-control': 'no-cache', 'content-type': 'text/event-stream;charset=UTF-8' },
+			body: `id: ${event.id}\ndata: ${JSON.stringify(event)}\n\n`
+		});
+	});
+	await page.goto('/studio/');
+	const tree = page.getByRole('tree', { name: 'Projects' });
+	const node = (name) => tree.locator(`button.studio-tree-node__content[data-node-id="${name}"]`);
+	await expect(node(projectName)).toBeVisible();
+	await expect(node('AgentApp')).toHaveCount(0);
+
+	projects.push('AgentApp');
+	announce();
+	await expect(node('AgentApp')).toBeVisible();
+	await expect(node(projectName)).toBeVisible();
+});
+
 test('studio follows a Flow bootstrap to the new project, exact source and dev viewer', async ({
 	page
 }) => {

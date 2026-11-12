@@ -53,7 +53,8 @@ public class Page extends DownloadService {
 			<base href="%s/">
 			<script>
 			(function () {
-				var success = false;
+				// global, as in the Eclipse Studio: the page sets it back to false at each step
+				window.bSuccess = false;
 				var page = %s;
 				window.IDE = {
 					message: function (message) {
@@ -65,7 +66,7 @@ public class Page extends DownloadService {
 						$('.tutoerror').hide();
 						$('.tutosuccess').fadeIn(500);
 					}
-					success = true;
+					window.bSuccess = true;
 				};
 				window.addEventListener('message', function (event) {
 					if (event.source === parent && event.data && event.data.c8oTutorial === 'next') {
@@ -94,7 +95,7 @@ public class Page extends DownloadService {
 					$(document).on('click', '.expandablegif', function (event) {
 						IDE.message({ type: 'imgEnter', url: event.target.getAttribute('src') });
 					}).on('click', "a:contains('ᐅ')", function (event) {
-						if (success || !event.originalEvent || !event.originalEvent.isTrusted) {
+						if (window.bSuccess || !event.originalEvent || !event.originalEvent.isTrusted) {
 							return true;
 						}
 						$('.tutoerror').fadeIn(500);

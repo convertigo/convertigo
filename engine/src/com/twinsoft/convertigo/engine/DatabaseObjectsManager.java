@@ -1704,6 +1704,16 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 			Engine.logDatabaseObjectManager.info("Project \"" + projectName + "\" imported!");
 
+			// a Studio shows the project as soon as it is loaded, as the agents of the Assistant create one, not
+			// only once it is saved
+			if (Engine.isDesktopStudio() || Engine.isWebStudioAllowed()) {
+				try {
+					AdminEventBus.publishProjectChanged(projectName, projectName, "project", "project.loaded");
+				} catch (Exception e) {
+					Engine.logDatabaseObjectManager.warn("Unable to publish the loading of \"" + projectName + "\"", e);
+				}
+			}
+
 			if (!Engine.isCliMode()) {
 				Project p = project;
 				Engine.logDatabaseObjectManager

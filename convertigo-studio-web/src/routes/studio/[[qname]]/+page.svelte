@@ -353,6 +353,8 @@
 		/** @type {{ projectName: string, mode: 'export' | 'deploy' } | null} */ (null)
 	);
 	let wsImportProjectName = $state('');
+	/** the kind of web service a reference of the palette imports */
+	let wsImportType = $state(/** @type {'rest' | 'soap'} */ ('rest'));
 	/** The transaction whose variables the variables dialog chooses */
 	let variablesTargetId = $state('');
 	/** The NGX application whose translations files the translations dialog writes */
@@ -423,6 +425,8 @@
 	let executionFallbackKey = '';
 	/** @type {{ kind: 'transaction', connectorName?: string, requestable: any } | null} */
 	let executionFallbackTarget = $state(null);
+	/** @type {ReturnType<typeof setTimeout> | undefined} the refresh of the tree after a change of another project */
+	let otherProjectRefreshTimer;
 	let projectChangeRefreshTimer;
 	let projectChangeRefreshPending = false;
 	let projectChangeRefreshRunning = false;
@@ -671,13 +675,23 @@
 		studioReady = true;
 		urlSyncReady = true;
 		clearStudioRouteHash();
+		/** @param {Event} event the reference of the palette, imported as the Eclipse Studio does */
+		const onWsImport = (event) => {
+			const detail = /** @type {CustomEvent} */ (event).detail ?? {};
+			wsImportType = detail.type === 'soap' ? 'soap' : 'rest';
+			wsImportProjectName =
+				parseSelection(String(detail.target ?? '')).projectName || selectedProjectName;
+		};
+		window.addEventListener('convertigo:ws-import', onWsImport);
 		const unsubscribeAdminEvents = subscribeAdminEvents(
 			['projects.changed', 'admin.resync.required', 'flow.browser.open', 'flow.source.changed'],
 			handleAdminEvent
 		);
 		return () => {
+			window.removeEventListener('convertigo:ws-import', onWsImport);
 			unsubscribeAdminEvents();
 			clearTimeout(projectChangeRefreshTimer);
+			clearTimeout(otherProjectRefreshTimer);
 			localMutationEvents.clear();
 		};
 	});
@@ -851,6 +865,19 @@
 		}
 		const eventProject = String(event.payload.project ?? '');
 		if (eventProject && eventProject !== selectedProjectName) {
+			// a change of another project, as an agent of the Assistant makes one: the tree shows it, the
+			// selection stays
+			if (!localMutationEvents.consume(event)) {
+				clearTimeout(otherProjectRefreshTimer);
+				otherProjectRefreshTimer = setTimeout(async () => {
+					// a project the tree does not list yet, as an agent creates one: the projects of the
+					// engine first, as the tree lists them
+					if (!(Projects.projects ?? []).some((project) => project?.name === eventProject)) {
+						await Projects.refresh();
+					}
+					refreshStudioViews();
+				}, 300);
+			}
 			return;
 		}
 		if (localMutationEvents.consume(event)) {
@@ -1386,6 +1413,7 @@
 				position: 'inside',
 				dropAction: 'copy'
 			});
+			if (result.handled) return;
 			if (!result.done)
 				throw new Error('This component cannot be added inside the selected object.');
 			handled = true;
@@ -2003,6 +2031,9 @@
 			);
 			markProjectDirty(nextSelection || mutation?.parentId || mutation?.target || selectedId);
 		} finally {
+			if (mutation?.payload?.type === 'paletteData' && mutation?.done && nextSelection) {
+				void askCreationDetails(String(mutation.payload?.data?.classname ?? ''), nextSelection);
+			}
 			if (serial === mutationRefreshSerial) {
 				// A mutation can keep the selected id (for example Enable/Disable).
 				// Properties must reload even when the selection itself did not change.
@@ -2012,6 +2043,42 @@
 				// refresh can collapse expanded branches while rename/reveal is in progress.
 				refreshStudioViews({ tree: false, flow: true });
 			}
+		}
+	}
+
+	/**
+	 * Asks what the new object wizard of the Eclipse Studio asks for a new object from the palette: the query of a
+	 * SQL transaction, the path of a URL mapping, whose variables and parameters follow.
+	 * @param {string} classname
+	 * @param {string} id
+	 */
+	async function askCreationDetails(classname, id) {
+		const question = /\.SqlTransaction$/.test(classname)
+			? {
+					name: 'sqlQuery',
+					message: 'The SQL query of the transaction ({{name}} for a variable)',
+					value: ''
+				}
+			: /\.(PathMapping|UrlMapping)$/.test(classname)
+				? {
+						name: 'path',
+						message: 'The path of the mapping ({name} for a path parameter)',
+						value: '/'
+					}
+				: null;
+		if (!question) {
+			return;
+		}
+		const value = await studioPrompt(question.message, question.value);
+		if (!value?.trim()) {
+			return;
+		}
+		const result = await call('studio.properties.Set', {
+			id,
+			prop: JSON.stringify({ name: question.name, value: value.trim() })
+		});
+		if (result?.done) {
+			await refreshAfterPropertySave(id, result);
 		}
 	}
 
@@ -4366,6 +4433,7 @@
 {#if wsImportProjectName}
 	<StudioWsImportDialog
 		projectName={wsImportProjectName}
+		initialType={wsImportType}
 		onDone={showImportedWebService}
 		onClose={() => (wsImportProjectName = '')}
 	/>

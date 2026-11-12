@@ -13,6 +13,7 @@ const SILENT_ERROR_OPTIONS = {
  * @property {boolean=} done
  * @property {boolean=} accept
  * @property {boolean=} refused
+ * @property {boolean=} handled the drop opened what the Studio asks instead, as the import of a web service
  * @property {boolean=} retried
  * @property {string=} id
  * @property {string=} selectedId
@@ -316,6 +317,27 @@ async function tryDboDrop(drop) {
 		return {
 			done: false,
 			refused: true,
+			target: drop.target,
+			position: drop.position,
+			payload: drop.payload
+		};
+	}
+	const classname =
+		drop.payload.type === 'paletteData' ? String(drop.payload?.data?.classname ?? '') : '';
+	const reference = /\.(WebServiceReference|RestServiceReference)$/.exec(classname)?.[1];
+	if (reference && typeof window !== 'undefined') {
+		// as the new object wizard of the Eclipse Studio: a web service reference is imported from its definition
+		window.dispatchEvent(
+			new CustomEvent('convertigo:ws-import', {
+				detail: {
+					target: drop.target,
+					type: reference === 'RestServiceReference' ? 'rest' : 'soap'
+				}
+			})
+		);
+		return {
+			done: false,
+			handled: true,
 			target: drop.target,
 			position: drop.position,
 			payload: drop.payload

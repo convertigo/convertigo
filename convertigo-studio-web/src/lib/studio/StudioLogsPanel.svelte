@@ -14,6 +14,8 @@
 	let filters = $state({});
 	/** the levels of the logs, as the Configure Log level of the log view of the Eclipse Studio */
 	let levelsOpen = $state(false);
+	/** a new log viewer, as the Reload Engine Log view of the Eclipse Studio, rather than a new Studio page */
+	let viewerSerial = $state(0);
 	/** @type {{ toolbarLead?: import('svelte').Snippet, toolbarTrail?: import('svelte').Snippet }} */
 	let { toolbarLead, toolbarTrail } = $props();
 
@@ -35,28 +37,39 @@
 		await logViewer?.list?.(true);
 	}
 
-	onMount(() => {
+	/** the logs of the last ten minutes */
+	function showRecentLogs() {
 		const current = now(timezone);
 		startDate = toLogDateTime(current.subtract({ minutes: 10 }));
 		endDate = toLogDateTime(current);
 		void refreshLogs();
-	});
+	}
+
+	function reloadViewer() {
+		viewerSerial += 1;
+		showRecentLogs();
+	}
+
+	onMount(showRecentLogs);
 </script>
 
 <div class="studio-logs">
-	<LogViewer
-		bind:this={logViewer}
-		bind:autoScroll
-		{startDate}
-		{endDate}
-		{live}
-		{serverFilter}
-		bind:filters
-		studioMode={true}
-		onConfigureLevels={() => (levelsOpen = true)}
-		{toolbarLead}
-		{toolbarTrail}
-	/>
+	{#key viewerSerial}
+		<LogViewer
+			bind:this={logViewer}
+			bind:autoScroll
+			{startDate}
+			{endDate}
+			{live}
+			{serverFilter}
+			bind:filters
+			studioMode={true}
+			onConfigureLevels={() => (levelsOpen = true)}
+			onReloadViewer={reloadViewer}
+			{toolbarLead}
+			{toolbarTrail}
+		/>
+	{/key}
 </div>
 
 {#if levelsOpen}

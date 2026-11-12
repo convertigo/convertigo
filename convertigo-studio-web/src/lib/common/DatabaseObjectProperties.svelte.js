@@ -147,6 +147,7 @@ export function createDatabaseObjectProperties() {
 				}
 			});
 			await createUndefinedSymbols(saveId, res.undefinedSymbols);
+			await deleteUnusedVariables(res.unusedVariables);
 			if (res.notice) {
 				// what the change does beyond the object, as a template changed deletes the packages
 				toaster.info({ description: String(res.notice) });
@@ -178,6 +179,26 @@ export function createDatabaseObjectProperties() {
 	 * @param {string} objectId
 	 * @param {any} symbols
 	 */
+	/**
+	 * Offers to delete the variables a changed SQL query or HTTP path no longer uses, as the Eclipse Studio asks.
+	 * @param {any} variables the full names of the variables
+	 */
+	async function deleteUnusedVariables(variables) {
+		const ids = Array.isArray(variables) ? variables.map(String) : [];
+		if (
+			!ids.length ||
+			typeof window === 'undefined' ||
+			!window.confirm(
+				`The variable${ids.length > 1 ? 's' : ''} ${ids.map((variable) => variable.split(/[.:]/).pop()).join(', ')} ${ids.length > 1 ? 'are' : 'is'} no longer used.\n\nDelete ${ids.length > 1 ? 'them' : 'it'}?`
+			)
+		) {
+			return;
+		}
+		for (const variable of ids) {
+			await call('studio.dbo.Remove', { id: variable });
+		}
+	}
+
 	async function createUndefinedSymbols(objectId, symbols) {
 		const names = Array.isArray(symbols) ? symbols.map(String) : [];
 		if (

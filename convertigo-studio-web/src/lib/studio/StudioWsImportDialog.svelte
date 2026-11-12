@@ -1,18 +1,19 @@
 <script>
 	import Ico from '#lib/utils/Ico.svelte';
 	import { call, toaster } from '#lib/utils/service.js';
+	import { untrack } from 'svelte';
 
 	/**
 	 * Imports a remote REST or SOAP web service into a project, as the web service reference wizards of
 	 * the Eclipse Studio: an HTTP connector with a transaction per operation, and a sequence per
 	 * transaction if asked. The definition is an URL or a file of the user, which the project keeps.
 	 *
-	 * @type {{ projectName: string, onDone?: (id: string) => void | Promise<void>, onClose?: () => void }}
+	 * @type {{ projectName: string, initialType?: 'rest' | 'soap', onDone?: (id: string) => void | Promise<void>, onClose?: () => void }}
 	 */
-	let { projectName, onDone, onClose } = $props();
+	let { projectName, initialType = 'rest', onDone, onClose } = $props();
 
 	/** @type {'rest' | 'soap'} */
-	let type = $state('rest');
+	let type = $state(untrack(() => (initialType === 'soap' ? 'soap' : 'rest')));
 	let url = $state('');
 	/** @type {'url' | 'file'} */
 	let source = $state('url');

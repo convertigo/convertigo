@@ -243,6 +243,14 @@ public class Set extends JSonService {
 
 					// notify for app generation
 					BuilderUtils.dboChanged(dbo, pname, oldValue, newValue);
+					if (!oldValue.equals(newValue)) {
+						// as the Eclipse Studio applies them to any changed property, not only at a rename
+						var unused = com.twinsoft.convertigo.engine.admin.services.studio.dbo.DboUtils.ownPropertyChanged(dbo, pname, oldValue);
+						if (!unused.isEmpty()) {
+							// the variables the change no longer uses, which the Studio offers to delete
+							response.put("unusedVariables", new org.codehaus.jettison.json.JSONArray(unused));
+						}
+					}
 					if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent
 							&& "tplProjectName".equals(pname) && !oldValue.equals(newValue)) {
 						response.put("notice", BuilderUtils.templateChanged(dbo.getProject()));

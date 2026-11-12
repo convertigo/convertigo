@@ -91,6 +91,7 @@ public final class DboRemoval {
 		var sources = flowSources(dbo);
 		// as the Eclipse Studio deletes it: the tags of the object are checked before
 		dbo.delete();
+		removed(parent, dbo);
 		if (!sources.isEmpty() && flowEngine != null) {
 			// a working copy removal: the save of the project deletes the files, an undo gives them back
 			flowEngine.applySourceChanges(Map.of(), sources);
@@ -106,6 +107,44 @@ public final class DboRemoval {
 		// notify for app generation
 		BuilderUtils.dboRemoved(parent, dbo);
 		return response.put("done", true);
+	}
+
+	/**
+	 * The side effects of a deletion, as the tree objects of the Eclipse Studio apply them: the end transaction of
+	 * the connector, the path variable of the HTTP transaction, the indexes of the CouchDB connector, the internal
+	 * schemas of the project and its schema cache.
+	 */
+	static void removed(DatabaseObject parent, DatabaseObject dbo) {
+		try {
+			if (dbo instanceof com.twinsoft.convertigo.beans.core.Transaction && parent instanceof com.twinsoft.convertigo.beans.core.Connector connector
+					&& dbo.getName().equals(connector.getEndTransactionName())) {
+				connector.setEndTransactionName("");
+				connector.hasChanged = true;
+			} else if (dbo instanceof com.twinsoft.convertigo.beans.couchdb.JsonIndex && parent instanceof com.twinsoft.convertigo.beans.core.Connector connector) {
+				com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager.syncDocument(connector);
+			} else if (dbo instanceof com.twinsoft.convertigo.beans.core.Variable
+					&& parent instanceof com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction transaction) {
+				var subDir = transaction.getSubDir();
+				var pathVariable = "{" + dbo.getName() + "}";
+				if (subDir != null && subDir.contains(pathVariable)) {
+					transaction.setSubDir(subDir.replace(pathVariable, ""));
+					transaction.hasChanged = true;
+				}
+			}
+			var project = parent == null ? null : parent.getProject();
+			if (project != null) {
+				var internal = new File(project.getDirPath(), com.twinsoft.convertigo.beans.core.Project.XSD_FOLDER_NAME + "/"
+						+ com.twinsoft.convertigo.beans.core.Project.XSD_INTERNAL_FOLDER_NAME);
+				if (dbo instanceof com.twinsoft.convertigo.beans.core.Connector) {
+					FileUtils.deleteQuietly(new File(internal, dbo.getName()));
+				} else if (dbo instanceof com.twinsoft.convertigo.beans.core.Transaction && parent instanceof com.twinsoft.convertigo.beans.core.Connector) {
+					FileUtils.deleteQuietly(new File(internal, parent.getName() + "/" + dbo.getName() + ".xsd"));
+				}
+				Engine.theApp.schemaManager.clearCache(project.getName());
+			}
+		} catch (Exception e) {
+			Engine.logStudio.warn("Unable to apply the side effects of the deletion of " + dbo.getQName(), e);
+		}
 	}
 
 	/**

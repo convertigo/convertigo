@@ -573,8 +573,8 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 			}
 		}
 		if (rootPage == null) {
-			if (Engine.isEngineMode()) {
-				// Fire exception in Engine mode only!
+			if (!Engine.isWebStudioAllowed()) {
+				// Fire exception in Engine mode only, not in a Studio, the web Studio included: it sets the root page
 				throw new EngineException("There is no root page defined for application \"" + getName() + "\".");
 			}
 			else {

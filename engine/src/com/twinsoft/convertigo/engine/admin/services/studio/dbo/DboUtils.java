@@ -224,6 +224,11 @@ public class DboUtils {
 		if (dbo instanceof com.twinsoft.convertigo.beans.transactions.SapJcoLogonTransaction logon) {
 			logon.addCredentialsVariables();
 		}
+		if (dbo instanceof com.twinsoft.convertigo.beans.core.UrlMappingOperation operation
+				&& parent instanceof com.twinsoft.convertigo.beans.core.UrlMapping mapping) {
+			// the path parameters of the mapping, as the Eclipse Studio adds them to a new operation
+			addPathParameters(mapping, operation);
+		}
 	}
 
 	static boolean isPaletteData(JSONObject jsonData) {
@@ -609,6 +614,183 @@ public class DboUtils {
 		}
 	}
 
+	/**
+	 * The side effects of a property changed on its object, as the tree objects of the Eclipse Studio apply them, at
+	 * a rename as at the change of any property: the schemas of a project, the destination of a SAP connector, the
+	 * design documents and the indexes of a CouchDB connector.
+	 */
+	public static java.util.List<String> ownPropertyChanged(DatabaseObject databaseObject, String propertyName, Object oldValue) {
+		var unused = automaticVariables(databaseObject, propertyName, oldValue);
+		// This project changed
+		if (databaseObject instanceof Project) {
+			Project project = (Project) databaseObject;
+			if (propertyName.equals("schemaElementForm") || propertyName.equals("namespaceUri")) {
+				for (Connector connector : project.getConnectorsList()) {
+					for (Transaction transaction : connector.getTransactionsList()) {
+						synchronized (transaction) {
+							transaction.updateSchemaToFile();
+						}
+					}
+				}
+			}
+			Engine.theApp.schemaManager.clearCache(project.getName());
+		}
+		// This SapJcoConnector changed
+		else if (databaseObject instanceof SapJcoConnector) {
+			try {
+				((SapJcoConnector) databaseObject).getSapJCoProvider().updateDestination();
+			} catch (Exception e) {
+				Engine.logEngine.error("Could not update SAP destination !", e);
+			}
+		}
+		// This CouchDbConnector changed
+		else if (databaseObject instanceof CouchDbConnector) {
+			CouchDbConnector connector = (CouchDbConnector) databaseObject;
+			if (propertyName.equals("name")) {
+				if (databaseObject instanceof FullSyncConnector) {
+					try {
+						FullSyncClient fsclient = Engine.theApp.couchDbManager.getFullSyncClient();
+						JSONObject res = fsclient.getDatabase((String) oldValue);
+						if (res.getInt("doc_count") <= 1) {
+							fsclient.deleteDatabase((String) oldValue);
+						}
+					} catch (Exception e) {}
+					CouchDbManager.syncDocument(connector);
+				}
+			}
+			else if (propertyName.equals("https") || propertyName.equals("port")
+					|| propertyName.equals("server") || propertyName.equals("couchUsername")
+					|| propertyName.equals("couchPassword")) {
+				connector.release();
+				CouchDbManager.syncDocument(connector);
+			} else if (propertyName.equals("databaseName")) {
+				CouchDbManager.syncDocument(connector);
+			}
+		}
+		// This JsonIndex changed
+		else if (databaseObject instanceof JsonIndex) {
+			if (propertyName.equals("name") || propertyName.equals("fields") || propertyName.equals("ascending")) {
+				Connector connector = (Connector) databaseObject.getParent();
+				CouchDbManager.syncDocument(connector);
+			}
+		}
+		return unused;
+	}
+
+	/**
+	 * The variables and parameters a changed property makes, as the tree objects of the Eclipse Studio make them:
+	 * the variables of the queries of a SQL transaction, the path variables of an HTTP transaction, the path
+	 * parameters of the operations of a URL mapping.
+	 * @return the full names of the variables the change no longer uses, which the user may delete
+	 */
+	static java.util.List<String> automaticVariables(DatabaseObject databaseObject, String propertyName, Object oldValue) {
+		var unused = new java.util.ArrayList<String>();
+		try {
+			var old = oldValue == null ? "" : String.valueOf(oldValue);
+			if (databaseObject instanceof com.twinsoft.convertigo.beans.transactions.SqlTransaction sql && "sqlQuery".equals(propertyName)) {
+				// the variables of the {{name}} of the queries, created by their parsing
+				sql.initializeQueries(true);
+				var before = sqlVariableNames(old);
+				var after = sqlVariableNames(sql.getSqlQuery());
+				for (var variable : sql.getVariablesList()) {
+					if (before.contains(variable.getName()) && !after.contains(variable.getName())) {
+						unused.add(variable.getFullQName());
+					}
+				}
+			} else if (databaseObject instanceof com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction http && "subDir".equals(propertyName)) {
+				var before = com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction.getPathVariableList(old);
+				var after = com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction.getPathVariableList(http.getSubDir());
+				var shape = "\\{([a-zA-Z0-9_]+)\\}";
+				if (old.replaceAll(shape, "{}").equals(String.valueOf(http.getSubDir()).replaceAll(shape, "{}"))) {
+					// the same path with other names: the variables follow
+					for (int i = 0; i < before.size() && i < after.size(); i++) {
+						var variable = http.getVariable(before.get(i));
+						if (!before.get(i).equals(after.get(i)) && variable != null && http.getVariable(after.get(i)) == null) {
+							variable.setName(after.get(i));
+							variable.hasChanged = true;
+							http.hasChanged = true;
+						}
+					}
+				} else {
+					for (var name : after) {
+						if (http.getVariable(name) == null) {
+							var variable = new com.twinsoft.convertigo.beans.variables.RequestableHttpVariable();
+							variable.setName(name);
+							variable.setHttpMethod("GET");
+							variable.setHttpName("");
+							variable.bNew = true;
+							variable.hasChanged = true;
+							http.addVariable(variable);
+							http.hasChanged = true;
+						}
+					}
+					for (var name : before) {
+						var variable = http.getVariable(name);
+						if (variable != null && !after.contains(name)) {
+							unused.add(variable.getFullQName());
+						}
+					}
+				}
+			} else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.UrlMapping mapping && "path".equals(propertyName)) {
+				var before = mapping.getPathVariableNames(old);
+				var after = mapping.getPathVariableNames();
+				if (!before.equals(after)) {
+					for (var operation : mapping.getOperationList()) {
+						for (var parameter : new java.util.ArrayList<>(operation.getParameterList())) {
+							if (parameter.getType() != com.twinsoft.convertigo.beans.core.UrlMappingParameter.Type.Path) {
+								continue;
+							}
+							var index = before.indexOf(parameter.getName());
+							if (index < 0) {
+								continue;
+							}
+							if (before.size() == after.size()) {
+								// the same parameters with other names
+								parameter.setName(after.get(index));
+								parameter.hasChanged = true;
+								operation.hasChanged = true;
+							} else if (!after.contains(parameter.getName())) {
+								parameter.delete();
+								operation.remove(parameter);
+								operation.hasChanged = true;
+							}
+						}
+						addPathParameters(mapping, operation);
+					}
+				}
+			}
+		} catch (Exception e) {
+			Engine.logStudio.warn("Unable to update the variables of " + databaseObject.getQName() + " after its " + propertyName, e);
+		}
+		return unused;
+	}
+
+	/** the variables of the {{name}} of SQL queries */
+	static java.util.Set<String> sqlVariableNames(String queries) {
+		var names = new java.util.HashSet<String>();
+		var matcher = java.util.regex.Pattern.compile("\\{\\{([a-zA-Z0-9_]+)\\}\\}").matcher(queries == null ? "" : queries);
+		while (matcher.find()) {
+			names.add(matcher.group(1));
+		}
+		return names;
+	}
+
+	/** the path parameters of the variables of the path of a URL mapping, which an operation does not have yet */
+	static void addPathParameters(com.twinsoft.convertigo.beans.core.UrlMapping mapping, com.twinsoft.convertigo.beans.core.UrlMappingOperation operation) throws EngineException {
+		for (var name : mapping.getPathVariableNames()) {
+			try {
+				operation.getParameterByName(name);
+			} catch (EngineException missing) {
+				var parameter = new com.twinsoft.convertigo.beans.rest.PathParameter();
+				parameter.setName(name);
+				parameter.bNew = true;
+				parameter.hasChanged = true;
+				operation.add(parameter);
+				operation.hasChanged = true;
+			}
+		}
+	}
+
 	static private WalkHelper getEventHelper(RefactorMap map, DboChangeEvent event, String update) {
 		DatabaseObject dbo = event.dbo;
 		String propertyName = event.propertyName;
@@ -951,59 +1133,7 @@ public class DboUtils {
 
 					// This bean changed : do some utility works
 					if (databaseObject.equals(dbo)) {
-						// This project changed
-						if (databaseObject instanceof Project) {
-							Project project = (Project) databaseObject;
-							if (propertyName.equals("schemaElementForm") || propertyName.equals("namespaceUri")) {
-								for (Connector connector : project.getConnectorsList()) {
-									for (Transaction transaction : connector.getTransactionsList()) {
-										synchronized (transaction) {
-											transaction.updateSchemaToFile();
-										}
-									}
-								}
-							}
-							Engine.theApp.schemaManager.clearCache(project.getName());
-						}
-						// This SapJcoConnector changed
-						else if (databaseObject instanceof SapJcoConnector) {
-							try {
-								((SapJcoConnector) databaseObject).getSapJCoProvider().updateDestination();
-							} catch (Exception e) {
-								Engine.logEngine.error("Could not update SAP destination !", e);
-							}
-						}
-						// This CouchDbConnector changed
-						else if (databaseObject instanceof CouchDbConnector) {
-							CouchDbConnector connector = (CouchDbConnector) databaseObject;
-							if (propertyName.equals("name")) {
-								if (databaseObject instanceof FullSyncConnector) {
-									try {
-										FullSyncClient fsclient = Engine.theApp.couchDbManager.getFullSyncClient();
-										JSONObject res = fsclient.getDatabase((String) oldValue);
-										if (res.getInt("doc_count") <= 1) {
-											fsclient.deleteDatabase((String) oldValue);
-										}
-									} catch (Exception e) {}
-									CouchDbManager.syncDocument(connector);
-								}
-							}
-							else if (propertyName.equals("https") || propertyName.equals("port")
-									|| propertyName.equals("server") || propertyName.equals("couchUsername")
-									|| propertyName.equals("couchPassword")) {
-								connector.release();
-								CouchDbManager.syncDocument(connector);
-							} else if (propertyName.equals("databaseName")) {
-								CouchDbManager.syncDocument(connector);
-							}
-						}
-						// This JsonIndex changed
-						else if (databaseObject instanceof JsonIndex) {
-							if (propertyName.equals("name") || propertyName.equals("fields") || propertyName.equals("ascending")) {
-								Connector connector = (Connector) databaseObject.getParent();
-								CouchDbManager.syncDocument(connector);
-							}
-						}
+						ownPropertyChanged(databaseObject, propertyName, oldValue);
 						
 
 					}
