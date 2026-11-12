@@ -2244,6 +2244,114 @@ test('studio vibe profile installs the local Assistant from the built releases o
 	]);
 });
 
+test('a desktop Studio without its PSC asks for it at start, as the Eclipse Studio', async ({
+	page
+}) => {
+	const registration = { desktop: true, registered: false, saves: [] };
+	await mockStudioServices(page, { noProjects: true, registration });
+	await page.route('https://c8ocloud.convertigo.net/**', (route) =>
+		route.fulfill({ status: 200, contentType: 'text/html', body: '<main>Sign up</main>' })
+	);
+	await page.goto('/studio/');
+
+	const dialog = page.getByRole('dialog', { name: 'Personal Studio Configuration' });
+	await expect(dialog).toBeVisible();
+	await expect(dialog.locator('iframe[title="Convertigo registration"]')).toHaveAttribute(
+		'src',
+		/^https:\/\/c8ocloud\.convertigo\.net\/convertigo\/projects\/convertigo_signup\/DisplayObjects\/mobile\/login\/true\/(true|false)$/
+	);
+	await dialog.getByText('I want to paste my PSC').click();
+	const field = dialog.getByRole('textbox', { name: 'PSC' });
+	await field.fill('altered');
+	await dialog.getByRole('button', { name: 'Validate' }).click();
+	await expect(dialog.getByRole('status')).toHaveText('Invalid PSC (unable to decipher)!');
+	await field.fill('valid-psc');
+	await dialog.getByRole('button', { name: 'Validate' }).click();
+	await expect(dialog).toContainText('The Studio is registered for owner@example.com.');
+	await dialog.getByRole('button', { name: 'Close' }).click();
+	await expect(dialog).toBeHidden();
+	expect(registration.saves).toEqual(['altered', 'valid-psc']);
+});
+
+test('the registration page of Convertigo Cloud gives the PSC back to the Studio', async ({
+	page
+}) => {
+	const registration = { desktop: true, registered: false, saves: [] };
+	await mockStudioServices(page, { noProjects: true, registration });
+	// as the page does through window.studio.setPSC, which the Electron Studio turns into this message
+	await page.route('https://c8ocloud.convertigo.net/**', (route) =>
+		route.fulfill({
+			status: 200,
+			contentType: 'text/html',
+			body: `<main>Sign up</main><script>
+				parent.postMessage({ type: 'convertigo.studio.psc', psc: 'valid-psc' }, '*');
+			</script>`
+		})
+	);
+	await page.goto('/studio/');
+
+	const dialog = page.getByRole('dialog', { name: 'Personal Studio Configuration' });
+	await expect(dialog).toContainText('The Studio is registered for owner@example.com.');
+	expect(registration.saves).toEqual(['valid-psc']);
+});
+
+test('a Studio that is not desktop, or already registered, does not ask for its PSC', async ({
+	page
+}) => {
+	const registration = { desktop: false, registered: false, saves: [] };
+	await mockStudioServices(page, { registration });
+	await page.goto('/studio/');
+	await expect(page.getByRole('tree', { name: 'Projects' })).toBeVisible();
+	await expect(page.getByRole('dialog', { name: 'Personal Studio Configuration' })).toHaveCount(0);
+
+	registration.desktop = true;
+	registration.registered = true;
+	await page.reload();
+	await expect(page.getByRole('tree', { name: 'Projects' })).toBeVisible();
+	await expect(page.getByRole('dialog', { name: 'Personal Studio Configuration' })).toHaveCount(0);
+});
+
+test('studio vibe profile opens the local agent of a desktop Studio and asks for its PSC', async ({
+	page
+}) => {
+	const installed = { installed: true, version: '1.6.0' };
+	const assistantStack = {
+		state: 'ready',
+		desktop: true,
+		installs: [],
+		projects: {
+			lib_ConvertigoAssistant: installed,
+			lib_ConvertigoMCP: installed,
+			lib_ConvertigoAgentBridge: installed
+		}
+	};
+	const registration = { desktop: true, registered: false, saves: [] };
+	await mockStudioServices(page, {
+		assistant: true,
+		noProjects: true,
+		assistantStack,
+		registration
+	});
+	await page.route('https://c8ocloud.convertigo.net/**', (route) =>
+		route.fulfill({ status: 200, contentType: 'text/html', body: '<main>Sign up</main>' })
+	);
+	await page.goto('/studio/');
+	const dialog = page.getByRole('dialog', { name: 'Personal Studio Configuration' });
+	await dialog.getByRole('button', { name: 'Later' }).click();
+	await expect(dialog).toBeHidden();
+	await page.getByRole('radio', { name: 'Vibe' }).click();
+
+	const assistant = page.locator('iframe[title="Convertigo Assistant"]');
+	await expect(assistant).toHaveAttribute(
+		'src',
+		/DisplayObjects\/mobile\/path-to-xfirst\/:threadid\?/
+	);
+	await expect(assistant).not.toHaveAttribute('src', /serverAgent=/);
+	const bar = page.getByRole('region', { name: 'Studio registration' });
+	await bar.getByRole('button', { name: 'Register…' }).click();
+	await expect(dialog).toBeVisible();
+});
+
 test('studio vibe profile remains usable on touch with the optional tree hidden', async ({
 	page
 }) => {
@@ -3787,6 +3895,7 @@ function responseEditor(page) {
  *  flowPickerProbe?: { remaining: number, requests: number },
  *  assistant?: boolean,
  *  assistantStack?: any,
+ *  registration?: any,
  *  paletteProbe?: { remaining: number, requests: number },
  *  frontendRefreshDelayMs?: number,
  *  noProjects?: boolean,
@@ -3977,6 +4086,7 @@ function serviceName(url) {
  *  flowPickerProbe?: { remaining: number, requests: number },
  *  assistant?: boolean,
  *  assistantStack?: any,
+ *  registration?: any,
  *  paletteProbe?: { remaining: number, requests: number },
  *  frontendRefreshDelayMs?: number,
  *  noProjects?: boolean,
@@ -4015,7 +4125,33 @@ function responseForService(service, params, options = {}) {
 				const names = ['lib_ConvertigoAssistant', 'lib_ConvertigoMCP', 'lib_ConvertigoAgentBridge'];
 				stack.state = names.every((name) => stack.projects[name]?.installed) ? 'ready' : 'missing';
 			}
-			return { projects: stack.projects, state: stack.state, updateAllowed: true };
+			return {
+				projects: stack.projects,
+				state: stack.state,
+				updateAllowed: true,
+				desktop: stack.desktop === true
+			};
+		}
+		case 'studio.registration.Psc': {
+			const psc = options.registration;
+			if (!psc) {
+				return {};
+			}
+			const state = () => ({
+				desktop: psc.desktop,
+				registered: psc.registered,
+				...(psc.owner ? { owner: psc.owner, servers: [] } : {})
+			});
+			if (params.get('action') === 'save') {
+				psc.saves.push(params.get('psc'));
+				if (params.get('psc') !== 'valid-psc') {
+					return { invalid: 'Invalid PSC (unable to decipher)!', ...state() };
+				}
+				psc.registered = true;
+				psc.owner = 'owner@example.com';
+				return { saved: true, ...state() };
+			}
+			return state();
 		}
 		case 'engine.CheckAuthentication':
 			return {

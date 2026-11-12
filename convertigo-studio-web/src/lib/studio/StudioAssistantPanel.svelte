@@ -11,6 +11,7 @@
 		remoteAgentContext,
 		stackChanges
 	} from './assistantHost.js';
+	import { loadRegistration, registration } from './registration.svelte.js';
 	import { saveStudioPreferences, studioPreferences } from './studioPreferences.svelte.js';
 
 	/**
@@ -18,6 +19,8 @@
 	 * when its agent stack is installed, else the Assistant hosted on assistant.convertigo.com, which offers to
 	 * activate the local agent; the Studio then imports the stack and opens the local Assistant. A bar installs
 	 * or updates the stack from the built releases of the published manifest (stable or preview channel).
+	 * A desktop Studio (Eclipse or Electron) opens the local Assistant with its local agent, as the Eclipse Studio,
+	 * and asks for its PSC, which the Convertigo agent needs; another engine opens it with the agent of the server.
 	 *
 	 * @type {{ projectName?: string, agentProfile?: string }}
 	 */
@@ -52,6 +55,12 @@
 	/** a new page of the same Assistant, after an update */
 	let frameSerial = $state(0);
 	let changes = $derived(stack && manifest ? stackChanges(stack, manifest) : []);
+	/** a desktop Studio, whose one user runs the local agent, as in the Eclipse Studio */
+	let desktop = $derived(stack?.desktop === true);
+	/** a desktop Studio without its PSC: the Convertigo agent of the Assistant cannot work */
+	let unregistered = $derived(
+		desktop && registration.state?.desktop === true && !registration.state.registered
+	);
 	let showBar = $derived(
 		!String(studioPreferences.assistantUrl ?? '').trim() &&
 			stack !== null &&
@@ -79,11 +88,14 @@
 			.join(', ')}).`;
 	});
 
-	/** the local Assistant, with the agent of the server, as the Studio opened it before */
+	/**
+	 * the local Assistant, with the local agent in a desktop Studio, else with the agent of the server, as the
+	 * Studio opened it before
+	 */
 	function localAssistantUrl() {
 		const query = new URLSearchParams({
 			agentBridge: '1',
-			serverAgent: '1',
+			...(untrack(() => desktop) ? {} : { serverAgent: '1' }),
 			assistantMode: 'agent',
 			assistantSurface: 'studio',
 			assistantContext: 'studio',
@@ -137,12 +149,25 @@
 	}
 
 	onMount(() => {
+		if (!registration.state) {
+			void loadRegistration();
+		}
 		void loadStack().then(() => {
 			chooseAssistant();
 			if (stack !== null) {
 				void loadManifest();
 			}
 		});
+	});
+
+	$effect(() => {
+		// a PSC saved since the Assistant opened: the Assistant opens again, for its Convertigo agent
+		if (registration.serial && untrack(() => assistant?.local)) {
+			untrack(() => {
+				iframeReady = false;
+				frameSerial += 1;
+			});
+		}
 	});
 
 	$effect(() => {
@@ -185,9 +210,9 @@
 		if (assistant?.local) {
 			return {
 				...common,
-				assistantRuntime: 'server',
+				assistantRuntime: desktop ? 'local' : 'server',
 				agentBridgeAvailable: true,
-				localAgentBridgeAvailable: false
+				localAgentBridgeAvailable: desktop
 			};
 		}
 		return {
@@ -434,6 +459,17 @@
 				onclick={installFromManifest}
 			>
 				{stack?.state === 'ready' ? 'Update' : 'Install'}
+			</button>
+		</div>
+	{/if}
+	{#if unregistered}
+		<div class="studio-assistant-bar" role="region" aria-label="Studio registration">
+			<span class="studio-assistant-bar__text" role="status"
+				>The Studio is not registered: the Convertigo agent of the Assistant needs its Personal
+				Studio Configuration (PSC).</span
+			>
+			<button type="button" class="button-primary" onclick={() => (registration.open = true)}>
+				Register…
 			</button>
 		</div>
 	{/if}

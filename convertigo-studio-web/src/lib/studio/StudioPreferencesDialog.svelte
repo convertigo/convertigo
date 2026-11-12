@@ -1,5 +1,6 @@
 <script>
 	import { setExperimentalFeatures } from './experimentalFeatures.svelte.js';
+	import { registration } from './registration.svelte.js';
 	import {
 		DEFAULT_MARKETPLACE_URL,
 		saveStudioPreferences,
@@ -22,6 +23,12 @@
 	let assistantChannel = $state(
 		studioPreferences.assistantChannel === 'preview' ? 'preview' : 'stable'
 	);
+
+	/** the registration of a desktop Studio, in its own dialog */
+	function openRegistration() {
+		registration.open = true;
+		onClose?.();
+	}
 
 	function submit(/** @type {SubmitEvent} */ event) {
 		event.preventDefault();
@@ -116,6 +123,21 @@
 					/>
 				</label>
 				<p class="studio-dialog__hint">These preferences are kept in this browser.</p>
+				{#if registration.state?.desktop}
+					<div class="studio-dialog__field">
+						<span>Personal Studio Configuration</span>
+						<div class="studio-dialog__row">
+							<small
+								>{registration.state.registered
+									? `Registered for ${registration.state.owner}`
+									: 'Not registered: the Convertigo agent of the Assistant needs it'}</small
+							>
+							<button type="button" class="button-secondary" onclick={openRegistration}>
+								{registration.state.registered ? 'Change…' : 'Register…'}
+							</button>
+						</div>
+					</div>
+				{/if}
 			</div>
 			<footer class="studio-dialog__footer">
 				<button type="button" class="button-secondary" onclick={() => onClose?.()}>Cancel</button>
@@ -215,6 +237,25 @@
 
 	.studio-dialog__field > span {
 		font-weight: 600;
+	}
+
+	.studio-dialog__row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.6rem;
+	}
+
+	.studio-dialog__row small {
+		color: var(--studio-text-idle);
+		font-size: 0.72rem;
+	}
+
+	.studio-dialog__row button {
+		flex: none;
+		min-height: 1.8rem;
+		padding-block: 0;
+		font-size: 0.75rem;
 	}
 
 	.studio-dialog__field select,

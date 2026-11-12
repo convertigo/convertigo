@@ -41,6 +41,7 @@
 		isCodeEditorProperty,
 		togglePropertyPickerTarget
 	} from '#lib/studio/propertyEditors.js';
+	import { loadRegistration, registration } from '#lib/studio/registration.svelte.js';
 	import {
 		decodeStudioSelectionId,
 		studioSelectionIdFromUrl,
@@ -90,6 +91,7 @@
 	import StudioPromptDialog from '#lib/studio/StudioPromptDialog.svelte';
 	import StudioPropertiesPanel from '#lib/studio/StudioPropertiesPanel.svelte';
 	import StudioReferencesPanel from '#lib/studio/StudioReferencesPanel.svelte';
+	import StudioRegistrationDialog from '#lib/studio/StudioRegistrationDialog.svelte';
 	import StudioSapDesignDialog from '#lib/studio/StudioSapDesignDialog.svelte';
 	import StudioSchemaPanel from '#lib/studio/StudioSchemaPanel.svelte';
 	import StudioSearchPanel from '#lib/studio/StudioSearchPanel.svelte';
@@ -653,6 +655,12 @@
 		restoreStudioLayoutPreferences();
 		// the experimental features of the preference, for the calls of this session
 		void syncExperimentalFeatures();
+		// a desktop Studio without its PSC asks for it at start, as the Convertigo Setup wizard of the Eclipse Studio
+		void loadRegistration().then((state) => {
+			if (state?.desktop && !state.registered) {
+				registration.open = true;
+			}
+		});
 		studioReady = true;
 		urlSyncReady = true;
 		clearStudioRouteHash();
@@ -4139,6 +4147,9 @@
 {/if}
 {#if preferencesOpen}
 	<StudioPreferencesDialog onClose={() => (preferencesOpen = false)} />
+{/if}
+{#if registration.open}
+	<StudioRegistrationDialog onClose={() => (registration.open = false)} />
 {/if}
 {#if aboutOpen}
 	<StudioAboutDialog onClose={() => (aboutOpen = false)} />

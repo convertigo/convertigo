@@ -61,9 +61,15 @@ The application keeps its data (settings, `engine.log`, the Tomcat base) in the 
 folder (`~/Library/Application Support/Convertigo Studio` on macOS) and the projects in the workspace
 chosen with File > Switch Workspace (`<data>/workspace` by default).
 
-The engine runs with `-Dconvertigo.engine.web_studio=enabled`, `-Dconvertigo.engine.server_build=studio`
-and `-Dconvertigo.engine.javascript.debugger=true`, and gets a random `CONVERTIGO_STUDIO_AUTH_TOKEN`
-that opens the Studio without the login page while it runs.
+The engine runs with `-Dconvertigo.engine.web_studio=enabled`, `-Dconvertigo.engine.server_build=studio`,
+`-Dconvertigo.engine.javascript.debugger=true` and `-Dconvertigo.studio.desktop=true` (a desktop Studio for
+one user, as the Eclipse Studio: its PSC, the local agent of the Assistant), and gets a random
+`CONVERTIGO_STUDIO_AUTH_TOKEN` that opens the Studio without the login page while it runs.
+
+As the Convertigo Setup wizard of the Eclipse Studio, the Studio asks at its start for the Personal Studio
+Configuration (PSC) of a workspace without one: the registration page of Convertigo Cloud gives it back through
+`window.studio.setPSC`, which `preload.js` exposes to that page, or the user pastes it. The engine writes it in
+`<workspace>/studio/psc.txt`.
 
 These variables leave the user's data alone, for tests:
 

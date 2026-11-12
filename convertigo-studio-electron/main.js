@@ -81,6 +81,26 @@ if (!app.requestSingleInstanceLock()) {
 	app.quit();
 }
 
+/** the registration page of Convertigo Cloud, which the Studio shows in a frame, as the Eclipse Studio */
+const REGISTRATION_ORIGIN = 'https://c8ocloud.convertigo.net';
+
+/**
+ * @param {string} url
+ * @param {{ url?: string } | undefined} referrer
+ * @returns {boolean} whether a window opens from the registration page, as the login of a provider that answers
+ * to its opener
+ */
+function fromRegistration(url, referrer) {
+	const originOf = (/** @type {string | undefined} */ value) => {
+		try {
+			return new URL(String(value)).origin;
+		} catch {
+			return '';
+		}
+	};
+	return originOf(referrer?.url) === REGISTRATION_ORIGIN || originOf(url) === REGISTRATION_ORIGIN;
+}
+
 /**
  * @param {number} port
  * @param {string} host
@@ -157,7 +177,9 @@ function startEngine(port) {
 			`-Dconvertigo.cems.user_workspace_path=${workspaceDir}`,
 			'-Djava.awt.headless=true',
 			// the engine of develop serves the web Studio and runs its builds only when the server allows them;
-			// a desktop Studio also debugs its JavaScript, as the Eclipse Studio
+			// a desktop Studio also debugs its JavaScript, and serves its one user as the Eclipse Studio
+			// (Engine.isDesktopStudio: its PSC, the local agent of the Assistant)
+			'-Dconvertigo.studio.desktop=true',
 			'-Dconvertigo.engine.web_studio=enabled',
 			'-Dconvertigo.engine.server_build=studio',
 			'-Dconvertigo.engine.javascript.debugger=true',
@@ -251,7 +273,7 @@ async function createWindow() {
 			event.preventDefault();
 		}
 	});
-	window.webContents.setWindowOpenHandler(({ url }) => {
+	window.webContents.setWindowOpenHandler(({ url, referrer }) => {
 		// the views moved to a window of their own, which the Studio fills and can put on another screen
 		if (url.startsWith(`http://localhost:${enginePort}/`) && new URL(url).pathname.endsWith('/studio-popout.html')) {
 			return {
@@ -262,6 +284,10 @@ async function createWindow() {
 		// the pages of the engine open in the application, the others in the browser
 		if (url.startsWith(`http://localhost:${enginePort}`)) {
 			return { action: 'allow' };
+		}
+		// the logins of the registration page of Convertigo Cloud keep their opener, as in the Eclipse Studio
+		if (fromRegistration(url, referrer)) {
+			return { action: 'allow', overrideBrowserWindowOptions: { icon, autoHideMenuBar: true } };
 		}
 		void shell.openExternal(url);
 		return { action: 'deny' };
