@@ -465,6 +465,7 @@ task unzipSwaggerUI {
 	
 	def patch = file '../eclipse-plugin-studio/tomcat/webapps/convertigo/swagger/patch'
 	def dist = file '../eclipse-plugin-studio/tomcat/webapps/convertigo/swagger/dist'
+	inputs.dir patch
 	outputs.dir dist
 	
 	doLast {
