@@ -1,0 +1,23 @@
+{
+  "name": "convertigo-studio",
+  "productName": "Convertigo Studio",
+  "version": "0.0.0-dev",
+  "description": "Convertigo Studio: the web Studio and its Convertigo engine in a desktop application",
+  "main": "main.js",
+  "private": true,
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "start": "electron .",
+    "engine": "node scripts/engine.mjs",
+    "jre": "node scripts/jre.mjs",
+    "package": "node scripts/package.mjs",
+    "smoke-test": "node scripts/smoke-test.mjs"
+  },
+  "devDependencies": {
+    "@electron/packager": "^20.3.0",
+    "electron": "^44.4.5",
+    "playwright-core": "^1.65.0"
+  }
+}

@@ -403,6 +403,104 @@ jobs:
           source /tmp/build.env
           aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/.. s3://convertigo-ci/
           
+  # The desktop Studio (convertigo-studio-desktop): the engine WAR of build_engine_war with its embedded
+  # Tomcat and a Java runtime per target, packaged with Electron. Windows and Linux are packaged here,
+  # the macOS resources are handed to build_studio_desktop_mac to be packaged and signed there.
+  build_studio_desktop:
+    <<: *defaults
+
+    steps:
+    - aws-cli/setup
+    - checkout
+
+    - attach_workspace:
+        at: /home/circleci/repo
+
+    - run:
+        name: Expose build.env
+        command: cp build.env /tmp/build.env
+
+    - run:
+        name: Generate desktop Studio fingerprints
+        command: |
+          mkdir -p .circleci/cache
+          sed -n "s/^ext.studioWebNodeVersion = '\\(.*\\)'$/\\1/p" build.gradle > .circleci/cache/webadmin.nodeversion
+          test -s .circleci/cache/webadmin.nodeversion
+
+    - restore_cache:
+        keys:
+        - v1-studio-web-nvm-{{ checksum ".circleci/cache/webadmin.nodeversion" }}
+
+    - restore_cache:
+        keys:
+        - v1-studio-desktop-npm-{{ checksum "convertigo-studio-desktop/package-lock.json" }}
+        - v1-studio-desktop-npm-
+
+    - restore_cache:
+        keys:
+        - v1-studio-desktop-temurin-{{ checksum "installers/nsis/download-jdk.sh" }}
+
+    - run:
+        name: Download the engine WAR
+        command: |
+          source /tmp/build.env
+          mkdir -p engine/build/libs
+          aws s3 cp s3://convertigo-ci/convertigo-$CONVERTIGO_BUILD_NAME/convertigo-$CONVERTIGO_VERSION.war engine/build/libs/
+
+    - run:
+        name: Build the desktop Studio for Windows and Linux
+        command: |
+          source /tmp/build.env
+          if ! command -v zip >/dev/null || ! command -v unzip >/dev/null ; then
+            sudo apt-get update
+            sudo apt-get install -y zip unzip
+          fi
+          export NVM_DIR="$HOME/.nvm"
+          if [ ! -s "$NVM_DIR/nvm.sh" ] ; then
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+          fi
+          . "$NVM_DIR/nvm.sh"
+          nvm install "$(cat .circleci/cache/webadmin.nodeversion)"
+          cd convertigo-studio-desktop
+          ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm ci
+          node scripts/engine.mjs
+          node scripts/jre.mjs all
+          # the executable is signed with the certificate of the Eclipse Studio, when the project has it
+          if [ -n "${PFX_AES:-}" ] && [ -n "${PFX_PWD:-}" ] ; then
+            sudo apt-get install -y osslsigncode || (sudo apt-get update && sudo apt-get install -y osslsigncode)
+            openssl enc -aes-256-cbc -d -md md5 -in ../installers/nsis/convertigo.pfx.aes -out /tmp/convertigo.pfx -k $PFX_AES
+            export WINDOWS_PFX=/tmp/convertigo.pfx WINDOWS_PFX_PASSWORD="$PFX_PWD"
+          fi
+          node scripts/package.mjs win32-x64 linux-x64
+          rm -f /tmp/convertigo.pfx
+          mkdir -p $CONVERTIGO_DIST
+          mv dist/convertigo-studio-desktop-* $CONVERTIGO_DIST/
+
+    - save_cache:
+        paths:
+        - ~/.npm
+        - ~/.cache/electron
+        key: v1-studio-desktop-npm-{{ checksum "convertigo-studio-desktop/package-lock.json" }}
+
+    - save_cache:
+        paths:
+        - convertigo-studio-desktop/.cache/temurin
+        key: v1-studio-desktop-temurin-{{ checksum "installers/nsis/download-jdk.sh" }}
+
+    - run:
+        name: Sync the desktop Studio to S3
+        command: |
+          source /tmp/build.env
+          aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/.. s3://convertigo-ci/
+
+    - persist_to_workspace:
+        root: .
+        paths:
+        - convertigo-studio-desktop/resources/engine
+        - convertigo-studio-desktop/resources/icon.png
+        - convertigo-studio-desktop/resources/darwin-arm64
+        - convertigo-studio-desktop/resources/darwin-x64
+
   build_docker_default:
     <<: *defaults
     
@@ -930,6 +1028,98 @@ jobs:
             --body "${OUTPUT_DIR}/convertigo-studio-${CONVERTIGO_VERSION}-macosx-x86_64.pkg" \
             --storage-class REDUCED_REDUNDANCY \
             --acl public-read
+
+  # The desktop Studio for macOS, from the resources of build_studio_desktop: signed with the Developer ID
+  # of the Eclipse Studio and notarized when the project has them, signed ad hoc otherwise, then started
+  # once to check that the Studio opens.
+  build_studio_desktop_mac:
+    macos:
+      xcode: 26.4.1
+    resource_class: m4pro.medium
+    steps:
+    - run:
+        name: Install AWS CLI
+        command: |
+          if ! command -v aws >/dev/null 2>&1 || ! aws --version 2>&1 | grep -q "aws-cli/2"; then
+            curl -fsSL "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "/tmp/AWSCLIV2.pkg"
+            sudo installer -pkg "/tmp/AWSCLIV2.pkg" -target /
+          fi
+          aws --version
+          echo 'export AWS_PAGER=""' >> "$BASH_ENV"
+    - aws-cli/setup:
+        disable_aws_install: true
+    - checkout
+    - attach_workspace:
+        at: .
+    - run:
+        name: Generate desktop Studio fingerprints
+        command: |
+          mkdir -p .circleci/cache
+          sed -n "s/^ext.studioWebNodeVersion = '\\(.*\\)'$/\\1/p" build.gradle > .circleci/cache/desktop.nodeversion
+          test -s .circleci/cache/desktop.nodeversion
+    - restore_cache:
+        keys:
+        - v1-studio-desktop-mac-nvm-{{ checksum ".circleci/cache/desktop.nodeversion" }}
+    - restore_cache:
+        keys:
+        - v1-studio-desktop-mac-npm-{{ checksum "convertigo-studio-desktop/package-lock.json" }}
+        - v1-studio-desktop-mac-npm-
+    - run:
+        name: Package and sign the desktop Studio for macOS
+        command: |
+          source build.env
+          if [ -n "${APPLE_CERT_DEV_ID_APP_BASE64:-}" ] && [ -n "${APPLE_TEAM_ID:-}" ] ; then
+            security create-keychain -p "" ~/Library/Keychains/MyKeychain.keychain
+            security default-keychain -s ~/Library/Keychains/MyKeychain.keychain
+            security unlock-keychain -p "" ~/Library/Keychains/MyKeychain.keychain
+            security set-keychain-settings -t 7200 -l ~/Library/Keychains/MyKeychain.keychain
+            echo "${APPLE_CERT_DEV_ID_APP_BASE64}" | base64 -D -o DevIdApplication.p12
+            security import ./DevIdApplication.p12 -k ~/Library/Keychains/MyKeychain.keychain -P "${APPLE_CERT_PASSWORD}" -T /usr/bin/codesign -T /usr/bin/security
+            rm -f DevIdApplication.p12
+            security set-key-partition-list -S apple-tool:,apple: -s -k '' ~/Library/Keychains/MyKeychain.keychain
+            security find-identity -p codesigning
+            # notarized too when APPLE_ID and APPLE_PASSWORD are set
+            export APPLE_SIGN_IDENTITY="Developer ID Application: Convertigo (${APPLE_TEAM_ID})"
+          fi
+          export NVM_DIR="$HOME/.nvm"
+          if [ ! -s "$NVM_DIR/nvm.sh" ] ; then
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+          fi
+          . "$NVM_DIR/nvm.sh"
+          nvm install "$(cat .circleci/cache/desktop.nodeversion)"
+          cd convertigo-studio-desktop
+          ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm ci
+          node scripts/package.mjs darwin-arm64 darwin-x64
+    - save_cache:
+        paths:
+        - ~/.nvm
+        key: v1-studio-desktop-mac-nvm-{{ checksum ".circleci/cache/desktop.nodeversion" }}
+    - save_cache:
+        paths:
+        - ~/.npm
+        - ~/Library/Caches/electron
+        key: v1-studio-desktop-mac-npm-{{ checksum "convertigo-studio-desktop/package-lock.json" }}
+    - run:
+        name: Smoke test the desktop Studio
+        command: |
+          . "$HOME/.nvm/nvm.sh"
+          nvm use "$(cat .circleci/cache/desktop.nodeversion)"
+          cd convertigo-studio-desktop
+          SMOKE_TEST_DIR=/tmp/smoke-test node scripts/smoke-test.mjs darwin-arm64
+    - store_artifacts:
+        path: /tmp/smoke-test
+        destination: smoke-test
+    - run:
+        name: Upload the desktop Studio to S3
+        command: |
+          source build.env
+          for archive in convertigo-studio-desktop/dist/convertigo-studio-desktop-*.zip ; do
+            aws s3api put-object --bucket convertigo-ci \
+              --key "convertigo-${CONVERTIGO_BUILD_NAME}/$(basename "$archive")" \
+              --body "$archive" \
+              --storage-class REDUCED_REDUNDANCY \
+              --acl public-read
+          done
   rebuild_release_docker:
     # Keeps convertigo/convertigo:<released version> in line with its base image, like the Docker
     # Official Image: rebuilt from master when the base image digest or the docker/ sources changed.
@@ -1080,6 +1270,19 @@ workflows:
         filters:
           tags:
             only: /^\d+\..*$/
+    # the desktop Studio is built on develop only for now (about 1.4 GB of archives per build)
+    - build_studio_desktop:
+        requires:
+        - build_engine_war
+        filters:
+          branches:
+            only: develop
+    - build_studio_desktop_mac:
+        requires:
+        - build_studio_desktop
+        filters:
+          branches:
+            only: develop
     - build_docker_default:
         requires:
         - build_engine_war
