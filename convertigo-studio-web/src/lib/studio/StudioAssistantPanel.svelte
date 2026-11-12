@@ -91,12 +91,21 @@
 
 	/**
 	 * the local Assistant, with the local agent in a desktop Studio, else with the agent of the server, as the
-	 * Studio opened it before
+	 * Studio opened it before. In a desktop Studio, the URL also gives what the Assistant checks at its start before
+	 * it offers its agent (runtime, version of the Studio, stack available), which the context it receives later
+	 * gives too: else it may start in its component mode and stay there.
 	 */
 	function localAssistantUrl() {
+		const current = untrack(() => stack);
 		const query = new URLSearchParams({
 			agentBridge: '1',
-			...(untrack(() => desktop) ? {} : { serverAgent: '1' }),
+			...(untrack(() => desktop)
+				? {
+						assistantRuntime: 'local',
+						studioVersion: String(current?.studioVersion ?? ''),
+						localAgentStackAvailable: String(current?.state === 'ready')
+					}
+				: { serverAgent: '1' }),
 			assistantMode: 'agent',
 			assistantSurface: 'studio',
 			assistantContext: 'studio',
