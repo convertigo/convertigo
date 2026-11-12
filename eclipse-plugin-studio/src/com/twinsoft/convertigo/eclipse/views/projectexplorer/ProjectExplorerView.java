@@ -38,6 +38,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.swing.undo.UndoManager;
 
@@ -83,6 +85,7 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTException;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.custom.TreeEditor;
 import org.eclipse.swt.dnd.DND;
@@ -3160,29 +3163,62 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 		if (highlightDetectedObject) {
 			if (source instanceof DatabaseObject) {
-				ConvertigoPlugin.syncExec(() -> {
-					DatabaseObjectTreeObject databaseTreeObject = (DatabaseObjectTreeObject) findTreeObjectByUserObject((DatabaseObject)source);
-					if (databaseTreeObject != null) {
-						if (lastDetectedDatabaseObjectTreeObject != null) {
-							lastDetectedDatabaseObjectTreeObject.isDetectedObject = false;
-							updateTreeObject(lastDetectedDatabaseObjectTreeObject);
-						}
-						databaseTreeObject.isDetectedObject = true;
-						updateTreeObject(databaseTreeObject);
-						viewer.expandToLevel(databaseTreeObject, 0);
-						lastDetectedDatabaseObjectTreeObject = databaseTreeObject;
-						if (databaseTreeObject instanceof ScreenClassTreeObject) {
-							lastDetectedScreenClass = (ScreenClass)source;
-							lastDetectedScreenClassTreeObject = (ScreenClassTreeObject)databaseTreeObject;
-						}
-					}
-				});
+				showDetectedObject(source);
 			}
 		}
 		else {
 			if (source instanceof ScreenClass) {
 				lastDetectedScreenClass = (ScreenClass)source;
 			}
+		}
+	}
+
+	// The object detected by the engine is highlighted later by the user interface, which the requests of the engine
+	// must not wait for (it may itself wait for them): a burst of events costs one update, of the last state
+	private static final Object NO_DETECTED_OBJECT = new Object();
+	private final AtomicReference<Object> detectedObjectToShow = new AtomicReference<>();
+	private final AtomicBoolean detectedObjectUpdatePending = new AtomicBoolean(false);
+
+	private void showDetectedObject(Object databaseObjectOrNone) {
+		detectedObjectToShow.set(databaseObjectOrNone);
+		if (!detectedObjectUpdatePending.compareAndSet(false, true)) {
+			return;
+		}
+		try {
+			ConvertigoPlugin.asyncExec(() -> {
+				detectedObjectUpdatePending.set(false);
+				Object toShow = detectedObjectToShow.getAndSet(null);
+				if (toShow == null || viewer == null || viewer.getControl().isDisposed()) {
+					return;
+				}
+				if (toShow == NO_DETECTED_OBJECT) {
+					if (lastDetectedDatabaseObjectTreeObject != null) {
+						lastDetectedDatabaseObjectTreeObject.isDetectedObject = false;
+						updateTreeObject(lastDetectedDatabaseObjectTreeObject);
+					}
+					lastDetectedDatabaseObjectTreeObject = null;
+					lastDetectedScreenClassTreeObject = null;
+					return;
+				}
+				DatabaseObjectTreeObject databaseTreeObject = (DatabaseObjectTreeObject) findTreeObjectByUserObject((DatabaseObject) toShow);
+				if (databaseTreeObject != null) {
+					if (lastDetectedDatabaseObjectTreeObject != null) {
+						lastDetectedDatabaseObjectTreeObject.isDetectedObject = false;
+						updateTreeObject(lastDetectedDatabaseObjectTreeObject);
+					}
+					databaseTreeObject.isDetectedObject = true;
+					updateTreeObject(databaseTreeObject);
+					viewer.expandToLevel(databaseTreeObject, 0);
+					lastDetectedDatabaseObjectTreeObject = databaseTreeObject;
+					if (databaseTreeObject instanceof ScreenClassTreeObject) {
+						lastDetectedScreenClass = (ScreenClass) toShow;
+						lastDetectedScreenClassTreeObject = (ScreenClassTreeObject) databaseTreeObject;
+					}
+				}
+			});
+		} catch (SWTException e) {
+			// the display is disposed: the Studio is closing
+			detectedObjectUpdatePending.set(false);
 		}
 	}
 
@@ -3237,14 +3273,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	public void documentGenerated(EngineEvent engineEvent) {
-		ConvertigoPlugin.syncExec(() -> {
-			if (lastDetectedDatabaseObjectTreeObject != null) {
-				lastDetectedDatabaseObjectTreeObject.isDetectedObject = false;
-				updateTreeObject(lastDetectedDatabaseObjectTreeObject);
-			}
-			lastDetectedDatabaseObjectTreeObject = null;
-			lastDetectedScreenClassTreeObject = null;
-		});
+		showDetectedObject(NO_DETECTED_OBJECT);
 	}
 
 	public void stepReached(EngineEvent engineEvent) {

@@ -107,6 +107,8 @@ public class ContextManager extends AbstractRunnableManager {
 	private static final String REDIS_CONTEXT_REMOVE_ALL_TOPIC = "topic:context:remove-all";
 	private static final String REDIS_CONTEXT_INFLIGHT_KEY = "inflight:contexts";
 	private static final String LOCAL_INSTANCE_ID = InstanceIdentity.getLocalInstanceId();
+	/** at the stop of the Studio, the longest wait for the running requests to release their contexts */
+	private static final long STUDIO_STOP_CONTEXTS_WAIT_MILLIS = 5000L;
 
 
 	private Map<String, Context> contexts;
@@ -1798,7 +1800,11 @@ public class ContextManager extends AbstractRunnableManager {
 	 */
 	private void removeContextsOfThisInstance() {
 		if (contextStore == null) {
-			removeAll();
+			if (Engine.isStudioMode()) {
+				removeAllWithoutWaitingMoreThan(STUDIO_STOP_CONTEXTS_WAIT_MILLIS);
+			} else {
+				removeAll();
+			}
 			return;
 		}
 		try {
@@ -1812,6 +1818,47 @@ public class ContextManager extends AbstractRunnableManager {
 		} catch (NullPointerException e) {
 			// Nothing to do: the Engine object has yet been deleted
 		}
+	}
+
+	/**
+	 * At the stop of the Studio, which stops from its user interface thread: a context held by a running request (a
+	 * sequence launched from the Studio or through its MCP server) is not waited for more than the given delay. The
+	 * request is aborted, and its context is left if it still holds it at the end of the delay.
+	 *
+	 * @return the number of contexts left to their requests
+	 */
+	int removeAllWithoutWaitingMoreThan(long timeoutMillis) {
+		List<String> contextIds;
+		try {
+			contextIds = new ArrayList<String>(contexts.keySet());
+		} catch (NullPointerException e) {
+			// Nothing to do: the Engine object has yet been deleted
+			return 0;
+		}
+		var held = new ArrayList<String>();
+		for (String contextID : contextIds) {
+			if (!tryRemove(contextID, 0L)) {
+				held.add(contextID);
+				Context context = contexts.get(contextID);
+				if (context != null) {
+					try {
+						context.abortRequestable();
+					} catch (Exception e) {
+						Engine.logContextManager.debug("(ContextManager) Failed to abort the request of the context " + contextID, e);
+					}
+				}
+			}
+		}
+		long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);
+		int left = 0;
+		for (String contextID : held) {
+			long waitMillis = Math.max(0L, TimeUnit.NANOSECONDS.toMillis(deadline - System.nanoTime()));
+			if (!tryRemove(contextID, waitMillis)) {
+				left++;
+				Engine.logContextManager.warn("(ContextManager) The context " + contextID + " is still used by a request: it is not removed at the stop of the Studio");
+			}
+		}
+		return left;
 	}
 
 	private void removeDevicePools() {

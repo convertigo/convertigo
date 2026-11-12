@@ -44,6 +44,8 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.editors.BackgroundRenderer;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.jsonpicker.NativeJson;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewImageProvider;
 import com.twinsoft.convertigo.engine.Context;
@@ -86,12 +88,16 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	protected Context context;
 //	protected AbstractSequenceComposite compositeSequence = null;
 
-	public org.w3c.dom.Document lastGeneratedDocument;
+	public volatile org.w3c.dom.Document lastGeneratedDocument;
 	
 	private String shortResultXML;
 	private String shortResultJSON;
 	private String fullResultXML;
 	private String fullResultJSON;
+	// the documents of the engine are rendered in the background, with the render selected in the toolbar
+	private final Object renderLock = new Object();
+	private final BackgroundRenderer renderer = new BackgroundRenderer("a sequence editor", () -> renderDocument());
+	private volatile boolean jsonMode = false;
 	
 	private Map<String, String[]> lastParameters = null;
 	
@@ -128,15 +134,26 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	}
 
 	public void close() {
-		// Remove Studio context if it still exists.
-		var studioContext = Engine.theApp.contextManager.get(contextID);
-		if (studioContext != null) {
-			Engine.theApp.contextManager.remove(studioContext);
+		// Deregister as Engine listener
+		if (Engine.theApp != null) {
+			Engine.theApp.removeEngineListener(this);
 		}
 
-		// Deregister as Engine listener
-		Engine.theApp.removeEngineListener(this);
+		// Release a sequence paused by the debug mode: it holds the Studio context
+		bDebug = false;
+		bDebugStepByStep = false;
+		synchronized (debugDatabaseObject) {
+			debugDatabaseObject.notifyAll();
+		}
 
+		// Remove Studio context if it still exists, out of the user interface thread: a request may hold the context
+		// (the sequence running) and wait for it
+		Engine.execute(() -> {
+			var studioContext = Engine.theApp.contextManager.get(contextID);
+			if (studioContext != null) {
+				Engine.theApp.contextManager.remove(studioContext);
+			}
+		});
 	}
 
 	@Override
@@ -436,9 +453,8 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		SelectionListener sl = new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
 				ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_EDITOR_OUTPUT_MODE, e.widget == toolItemRenderJson ? "json" : "xml");
-				Engine.execute(() -> {
-					renderDocument();
-				});
+				jsonMode = toolItemRenderJson.getSelection();
+				renderer.request();
 			}
 
 			public void widgetDefaultSelected(SelectionEvent e) {
@@ -463,6 +479,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		} else {
 			toolItemRenderXml.setSelection(true);
 		}
+		jsonMode = toolItemRenderJson.getSelection();
 		incr ++;
 
 		new ToolItem(toolBar, SWT.SEPARATOR);
@@ -572,7 +589,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		} catch (Exception e) {
 			return;
 		}
-		getDisplay().syncExec(() -> {
+		SwtUtils.asyncExec(this, () -> {
 			if (!nativePanel.isDisposed()) {
 				sashOutput.setMaximizedControl(null);
 				nativePanel.add(output);
@@ -594,13 +611,17 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		} else {
 			json = String.valueOf(result);
 		}
-		nativeJsonResult = json;
-		shortResultJSON = fullResultJSON = null;
-		getDisplay().syncExec(() -> {
+		synchronized (renderLock) {
+			nativeJsonResult = json;
+			shortResultJSON = fullResultJSON = null;
+		}
+		jsonMode = true;
+		SwtUtils.asyncExec(this, () -> {
 			toolItemRenderJson.setSelection(true);
 			toolItemRenderXml.setSelection(false);
+			jsonMode = true;
 		});
-		renderDocument();
+		renderer.request();
 	}
 
 	public void getDocument(String sequenceName, String testcaseName, String stubFileName, boolean isStubRequested) {
@@ -634,7 +655,9 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 
 	private void run(Map<String, String[]> parameters) {
 		nativeRun = NativeJson.isNativeSequence(sequence);
-		nativeJsonResult = null;
+		synchronized (renderLock) {
+			nativeJsonResult = null;
+		}
 		ConvertigoPlugin.getDefault().runRequestable(projectName, parameters, nativeRun, nativeRun ? this::nativeResult : null);
 	}
 
@@ -651,95 +674,98 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 			} catch (IOException e) {}
 		}
 		
-		lastGeneratedDocument = (org.w3c.dom.Document) engineEvent.getSource();
-		shortResultJSON = shortResultXML = fullResultJSON = fullResultXML = null;
-		if (nativeRun && nativeJsonResult == null) {
-			// the JSON answer comes with the result of the request
+		// a copy, rendered after the return to the engine, which goes on using its document
+		var document = BackgroundRenderer.copyOf((org.w3c.dom.Document) engineEvent.getSource());
+		synchronized (renderLock) {
+			lastGeneratedDocument = document;
+			shortResultJSON = shortResultXML = fullResultJSON = fullResultXML = null;
+			if (nativeRun && nativeJsonResult == null) {
+				// the JSON answer comes with the result of the request
+				return;
+			}
+		}
+		renderer.request();
+	}
+
+	/**
+	 * Renders the last generated document with the selected render, in the background: never in a request of the
+	 * engine, which must not wait for the user interface.
+	 */
+	private void renderDocument() {
+		if (isDisposed()) {
 			return;
 		}
-		renderDocument();
-	}
-	
-	private void renderDocument() {
-		String str;
-		boolean[] isJsonMode = {false};
-		getDisplay().syncExec(() -> {
+		boolean isJsonMode = jsonMode;
+		org.w3c.dom.Document document;
+		String nativeJson;
+		String shortResult;
+		synchronized (renderLock) {
+			document = lastGeneratedDocument;
+			nativeJson = nativeJsonResult;
+			shortResult = isJsonMode ? shortResultJSON : shortResultXML;
+		}
+
+		SequenceEditorInput input = isJsonMode ? inputJSON : inputXML;
+		if (shortResult == null) {
+			String str = null;
+			if (isJsonMode && nativeJson != null) {
+				// the answer of the JSON native sequence, as it is: no conversion of its XML
+				str = nativeJson;
+			} else if (isJsonMode) {
+				if (document != null) {
+					try {
+						str =  XMLUtils.XmlToJson(document.getDocumentElement(), true, useType, jsonRoot);
+						str = str.replaceAll("\n( +)", "\n$1$1");
+					} catch (JSONException e) {
+						str = e.getMessage();
+					}
+				}
+			} else if (document != null || nativeJson != null) {
+				str = document == null
+						// a JSON native sequence that built no document at all
+						? "<!-- JSON native sequence: no XML document was built, its answer is in the JSON view -->"
+						: XMLUtils.prettyPrintDOMWithEncoding(document);
+				if (nativeJson != null && document != null) {
+					str = "<!-- JSON native sequence: the native JSON outputs are only in its JSON answer (JSON view), not in this XML -->\n" + str;
+				}
+			}
+
+			if (str != null) {
+				String fullResult = null;
+				if (str.length() > 10000) {
+					fullResult = str;
+					str = str.substring(0, 10000) + "\n... [reduced content, click the Full Result button in the toolbar to show the full version]";
+				}
+
+				synchronized (renderLock) {
+					if (document != lastGeneratedDocument || nativeJson != nativeJsonResult) {
+						// a newer result is rendered next
+						return;
+					}
+					if (isJsonMode) {
+						shortResultJSON = str;
+						fullResultJSON = fullResult;
+					} else {
+						shortResultXML = str;
+						fullResultXML = fullResult;
+					}
+				}
+
+				input.fileWrite(str);
+				shortResult = str;
+			}
+		}
+
+		boolean show = shortResult != null;
+		SwtUtils.asyncExec(this, () -> {
 			editor.setDirty(false);
 			toolItemRenderJson.setEnabled(true);
 			toolItemRenderXml.setEnabled(true);
-			isJsonMode[0] = toolItemRenderJson.getSelection();
-			
-			if (isJsonMode[0]) {
-				if (editor.getEditorInput() != inputJSON && shortResultJSON != null) {
-					editor.setInput(inputJSON);
-				}
-				toolItemFullResult.setEnabled(fullResultJSON != null);
-			} else if (!isJsonMode[0]) {
-				if (editor.getEditorInput() != inputXML && shortResultXML != null) {
-					editor.setInput(inputXML);
-				}
-				toolItemFullResult.setEnabled(fullResultXML != null);
+			synchronized (renderLock) {
+				toolItemFullResult.setEnabled((isJsonMode ? fullResultJSON : fullResultXML) != null);
 			}
-		});
-		
-		if ((isJsonMode[0] && shortResultJSON != null) || (!isJsonMode[0] && shortResultXML != null)) {
-			return;
-		}
-		
-		SequenceEditorInput input = getInput();
-		if (isJsonMode[0] && nativeJsonResult != null) {
-			// the answer of the JSON native sequence, as it is: no conversion of its XML
-			str = nativeJsonResult;
-			input = inputJSON;
-		} else if (isJsonMode[0]) {
-			if (lastGeneratedDocument == null) {
-				return;
-			}
-			try {
-				str =  XMLUtils.XmlToJson(lastGeneratedDocument.getDocumentElement(), true, useType, jsonRoot);
-				str = str.replaceAll("\n( +)", "\n$1$1");
-			} catch (JSONException e) {
-				str = e.getMessage();
-			}
-			input = inputJSON;
-		} else {
-			if (lastGeneratedDocument == null && nativeJsonResult == null) {
-				return;
-			}
-			str = lastGeneratedDocument == null
-					// a JSON native sequence that built no document at all
-					? "<!-- JSON native sequence: no XML document was built, its answer is in the JSON view -->"
-					: XMLUtils.prettyPrintDOMWithEncoding(lastGeneratedDocument);
-			if (nativeJsonResult != null && lastGeneratedDocument != null) {
-				str = "<!-- JSON native sequence: the native JSON outputs are only in its JSON answer (JSON view), not in this XML -->\n" + str;
-			}
-			input = inputXML;
-		}
-		
-		boolean hasFull = str.length() > 10000;
-		if (hasFull) {
-			if (isJsonMode[0]) {
-				fullResultJSON = str;
-			} else {
-				fullResultXML = str;
-			}
-			
-			str = str.substring(0, 10000) + "\n... [reduced content, click the Full Result button in the toolbar to show the full version]";
-		}
-		
-		if (isJsonMode[0]) {
-			shortResultJSON = str;
-		} else {
-			shortResultXML = str;
-		}
-		
-		input.fileWrite(str);
-		
-		SequenceEditorInput i = input;
-		getDisplay().syncExec(() -> {
-			toolItemFullResult.setEnabled(hasFull);
-			if (editor.getEditorInput() != i) {
-				editor.setInput(i);
+			if (show && editor.getEditorInput() != input) {
+				editor.setInput(input);
 			}
 		});
 	}
@@ -748,7 +774,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		if (!checkEventSource(engineEvent))
 			return;
 		
-		getDisplay().syncExec(() -> {
+		SwtUtils.asyncExec(this, () -> {
 			if (!inputTXT.fileExists()) {
 				inputTXT.fileWrite("Please wait during the Sequence execution.");
 			}
@@ -766,7 +792,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 			return;
 		
 		clearEditor(engineEvent);
-		getDisplay().syncExec(() -> {
+		SwtUtils.asyncExec(this, () -> {
 			if (!nativePanel.isDisposed()) {
 				nativePanel.clear();
 				updateNativePanel();
@@ -778,7 +804,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 			useType = context.project != null && context.project.getJsonOutput() == JsonOutput.useType;
 			jsonRoot = context.project != null ? context.project.getJsonRoot() : JsonRoot.docNode;
 		}
-		getDisplay().syncExec(() -> {
+		SwtUtils.asyncExec(this, () -> {
 			toolItemStopSequence.setEnabled(true);
 			toolItemGenerate.setEnabled(false);
 			toolItemRenderJson.setEnabled(false);
@@ -795,7 +821,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		}
 		context = null;
 		
-		getDisplay().syncExec(() -> {
+		SwtUtils.asyncExec(this, () -> {
 			toolItemRenderJson.setEnabled(true);
 			toolItemRenderXml.setEnabled(true);
 			if ("json".equals(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_EDITOR_OUTPUT_MODE))) {
@@ -805,6 +831,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 				toolItemRenderXml.setSelection(true);
 				toolItemRenderJson.setSelection(false);
 			}
+			jsonMode = toolItemRenderJson.getSelection();
 			toolItemStopSequence.setEnabled(false);
 			toolItemGenerate.setEnabled(true);
 		});
@@ -850,10 +877,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		final Object source = engineEvent.getSource();
 		
 		String str;
-		boolean[] isJsonMode = {false};
-		getDisplay().syncExec(() -> {
-			isJsonMode[0] = toolItemRenderJson.getSelection();
-		});
+		boolean[] isJsonMode = {jsonMode};
 		
 		SequenceEditorInput input;
 		org.w3c.dom.Document outputDocument = context == null ? null : context.outputDocument;
@@ -876,18 +900,18 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		
 		input.fileWrite(str);
 		
-		if (editor.getEditorInput() != input) {
-			SequenceEditorInput i = input;
-			getDisplay().syncExec(() -> {
+		SequenceEditorInput i = input;
+		SwtUtils.asyncExec(this, () -> {
+			if (editor.getEditorInput() != i) {
 				editor.setInput(i);
-			});
-		}
+			}
+		});
 		
 		synchronized(debugDatabaseObject) {
 			debugDatabaseObject = (DatabaseObject) source;
 		}
 		if (source instanceof Step step) {
-			getDisplay().syncExec(() -> {
+			SwtUtils.asyncExec(this, () -> {
 				if (!nativePanel.isDisposed()) {
 					nativePanel.setPausedBefore(step);
 				}
@@ -902,7 +926,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 			synchronized(debugDatabaseObject) {
 				debugDatabaseObject.wait();
 			}
-			getDisplay().syncExec(() -> {
+			SwtUtils.asyncExec(this, () -> {
 				toolItemStep.setEnabled(true);
 			});
 		}
