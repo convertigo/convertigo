@@ -29,6 +29,8 @@
 		agentFollow.entries.find((entry) => entry.change !== 'opened') ?? agentFollow.entries[0]
 	);
 	let lastText = $derived(last ? describeEntry(last) : null);
+	/** a turn of the agent has started, which has changed nothing yet, as it reads the project */
+	let starting = $derived(agentFollow.running && (!last || last.updatedAt < agentFollow.runStart));
 	let shown = $derived(agentFollow.enabled || agentFollow.entries.length > 0);
 	let mode = $derived(
 		agentFollow.paused ? 'paused' : agentFollow.working ? 'working' : last ? 'idle' : 'waiting'
@@ -39,7 +41,9 @@
 				? 'Following the agent paused while you work in the Studio'
 				: 'Following the agent paused'
 			: mode === 'working'
-				? 'The Studio follows the agent of the Assistant'
+				? starting
+					? 'The agent of the Assistant works: the Studio shows what it changes'
+					: 'The Studio follows the agent of the Assistant'
 				: 'The actions of the agent of the Assistant'
 	);
 
@@ -104,6 +108,8 @@
 							? 'Paused while you work'
 							: 'Following paused'}{agentFollow.missed ? ` · ${agentFollow.missed} new` : ''}
 					</span>
+				{:else if starting && mode === 'working'}
+					<span class="studio-agent-follow__text"><strong>Agent working</strong></span>
 				{:else if lastText && mode === 'working'}
 					<span class="studio-agent-follow__text">
 						<strong>{lastText.verb}</strong>
@@ -149,7 +155,7 @@
 						{:else if agentFollow.paused}
 							Paused
 						{:else if agentFollow.working}
-							Following
+							{agentFollow.running ? 'The agent works · following' : 'Following'}
 						{:else}
 							Waiting for the agent
 						{/if}

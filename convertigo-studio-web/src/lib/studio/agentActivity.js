@@ -557,36 +557,57 @@ export function followView(target) {
 
 /**
  * When the Studio follows the agent: it pauses when the user works in the Studio while the agent works, or as the
- * user asks, and offers to resume. A pause of the user's work ends once the agent stopped working for a while, as
- * its next request follows again; one asked stays until the user resumes.
+ * user asks, and offers to resume. A pause of the user's work ends once the agent stopped working, as its next request
+ * follows again; one asked stays until the user resumes. The agent works while the Assistant tells a turn of it runs,
+ * or, for an Assistant that does not tell it, until a while after its last change.
  *
  * @param {{ now?: () => number, activeWindow?: number }} [options] activeWindow: how long after its last change the
  *        agent is still taken for working, as it may think for a minute or more between two changes
  */
 export function createFollowPolicy({ now = () => Date.now(), activeWindow = 180_000 } = {}) {
 	let lastAgent = -Infinity;
+	/** whether the Assistant tells a turn of its agent is running */
+	let running = false;
+	/** when the Assistant told the last turn ended */
+	let endedAt = -Infinity;
 	/** @type {'' | 'user' | 'manual'} */
 	let reason = '';
+
+	/** @returns {boolean} whether the agent works: a turn running, or a change lately, after the last turn ended */
+	const working = () => running || (lastAgent > endedAt && now() - lastAgent <= activeWindow);
 
 	return {
 		/** the agent changed something */
 		agent() {
 			lastAgent = now();
 		},
-		/** @returns {boolean} whether the agent changed something lately */
-		get working() {
-			return now() - lastAgent <= activeWindow;
+		/**
+		 * The Assistant tells a turn of its agent starts or ends, which an older one does not: the change lately is
+		 * then the only sign.
+		 * @param {boolean} value
+		 */
+		run(value) {
+			running = value;
+			if (!value) endedAt = now();
 		},
-		/** @returns {number} when the agent is no longer taken for working */
+		/** @returns {boolean} whether the agent works */
+		get working() {
+			return working();
+		},
+		/** @returns {boolean} whether the Assistant tells a turn of its agent is running */
+		get running() {
+			return running;
+		},
+		/** @returns {number} when the agent is no longer taken for working, Infinity while a turn runs */
 		get idleAt() {
-			return lastAgent + activeWindow;
+			return running ? Infinity : lastAgent > endedAt ? lastAgent + activeWindow : now();
 		},
 		/**
 		 * The user works in the Studio.
 		 * @returns {boolean} whether following pauses now
 		 */
 		userActed() {
-			if (reason || now() - lastAgent > activeWindow) return false;
+			if (reason || !working()) return false;
 			reason = 'user';
 			return true;
 		},
@@ -601,7 +622,7 @@ export function createFollowPolicy({ now = () => Date.now(), activeWindow = 180_
 		 * @returns {boolean} whether a pause of the user's work ended, the agent having stopped working
 		 */
 		expire() {
-			if (reason === 'user' && now() - lastAgent > activeWindow) {
+			if (reason === 'user' && !working()) {
 				reason = '';
 				return true;
 			}

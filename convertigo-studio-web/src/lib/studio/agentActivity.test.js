@@ -381,6 +381,32 @@ describe('following the agent', () => {
 		expect(policy.paused).toBe(false);
 	});
 
+	it('takes the agent for working from the start of a turn the Assistant tells to its end', () => {
+		const time = clock();
+		const policy = createFollowPolicy({ now: time.now, activeWindow: 10_000 });
+		policy.run(true);
+		// before any change, as the agent reads the project
+		expect(policy.working).toBe(true);
+		expect(policy.idleAt).toBe(Infinity);
+		expect(policy.userActed()).toBe(true);
+		policy.agent();
+		time.advance(60_000);
+		// a long turn, quiet for a minute: the agent still works
+		expect(policy.working).toBe(true);
+		expect(policy.expire()).toBe(false);
+		policy.run(false);
+		// the turn ended: no more waiting for the estimate
+		expect(policy.working).toBe(false);
+		expect(policy.expire()).toBe(true);
+		expect(policy.paused).toBe(false);
+		// a change after the turn, as from another agent: the estimate again
+		time.advance(1_000);
+		policy.agent();
+		expect(policy.working).toBe(true);
+		time.advance(11_000);
+		expect(policy.working).toBe(false);
+	});
+
 	it('keeps a pause the user asked until the user resumes', () => {
 		const time = clock();
 		const policy = createFollowPolicy({ now: time.now, activeWindow: 10_000 });

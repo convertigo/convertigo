@@ -2,7 +2,8 @@
 // in the Eclipse Studio: a process of its own, which the Studio starts with the remote debugging port it gives its
 // engine (-Dconvertigo.studio.cdp.port), on the loopback only. Its one page shows the applications of the Studio,
 // authenticated with the token of the Studio, and never the Studio itself, which the agents then cannot drive.
-// Its window shows as soon as an agent opens a page in it, without taking the focus, and hides when closed.
+// The Agent view of the Studio shows its page and takes the input of the user for it: its window shows on demand only,
+// and hides when closed.
 const { app, BrowserWindow, net, session, shell } = require('electron');
 const path = require('node:path');
 
@@ -114,9 +115,7 @@ app.whenReady().then(async () => {
 	const contents = window.webContents;
 	let retried = '';
 	contents.on('did-navigate', (event, url, httpResponseCode) => {
-		if (url !== 'about:blank' && !window.isVisible()) {
-			window.showInactive();
-		}
+		// its window shows on demand only: the Agent view of the Studio shows its page
 		// a session that ended answers 404 to a page of a development server: once more, authenticated
 		if (httpResponseCode === 404 && isDevelopmentPage(url) && retried !== url) {
 			retried = url;
@@ -134,6 +133,16 @@ app.whenReady().then(async () => {
 		}
 		return { action: 'deny' };
 	});
+	// the Studio asks for its window, from its Agent view: it shows in front, its page as it is
+	process.stdin.setEncoding('utf8');
+	process.stdin.on('data', (chunk) => {
+		if (/\bshow\b/.test(String(chunk))) {
+			window.show();
+			app.focus({ steal: true });
+			window.focus();
+		}
+	});
+	process.stdin.on('error', () => {});
 	await window.loadURL('about:blank');
 });
 

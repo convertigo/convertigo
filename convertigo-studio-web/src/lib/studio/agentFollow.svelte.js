@@ -32,8 +32,12 @@ export const agentFollow = $state({
 	paused: false,
 	/** @type {'' | 'user' | 'manual'} the pause of the user's work in the Studio, or asked */
 	pauseReason: /** @type {'' | 'user' | 'manual'} */ (''),
-	/** whether the agent changed something lately */
+	/** whether the agent works: a turn the Assistant tells running, or a change lately */
 	working: false,
+	/** whether the Assistant tells a turn of its agent is running */
+	running: false,
+	/** when the turn running started, 0 for none told */
+	runStart: 0,
 	/** the actions of the agent since following paused */
 	missed: 0,
 	/** @type {AgentEntry[]} the activity feed, the last action first */
@@ -93,6 +97,8 @@ function syncPolicy() {
 
 function scheduleWorkingEnd() {
 	clearTimeout(workingTimer);
+	// a turn running ends as the Assistant tells it
+	if (policy.idleAt === Infinity) return;
 	workingTimer = setTimeout(
 		() => {
 			policy.expire();
@@ -100,6 +106,24 @@ function scheduleWorkingEnd() {
 		},
 		Math.max(0, policy.idleAt - Date.now()) + 50
 	);
+}
+
+/**
+ * The Assistant tells a turn of its agent starts or ends: the agent works from the start of the turn, before it
+ * changes anything, until its end, rather than until a while after its last change.
+ * @param {boolean} running
+ */
+export function agentRunSignal(running) {
+	if (running && !policy.running) {
+		agentFollow.runStart = Date.now();
+	}
+	policy.run(running);
+	agentFollow.running = running;
+	if (!running) {
+		policy.expire();
+	}
+	scheduleWorkingEnd();
+	syncPolicy();
 }
 
 /**
@@ -179,7 +203,7 @@ function lightTreeEvents(events) {
 /**
  * The tree read the children of a branch: what appeared or vanished tells the changes of the agent.
  * @param {string} parentId
- * @param {any[] | undefined} previous the children it had, not an array for a branch never read
+ * @param {any} previous the children it had, not an array for a branch never read
  * @param {any[]} next
  */
 export function agentTreeChildren(parentId, previous, next) {

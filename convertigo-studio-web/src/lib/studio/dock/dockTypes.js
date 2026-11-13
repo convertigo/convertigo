@@ -13,6 +13,7 @@
  * @property {boolean=} scroll a view taller than its panel, which scrolls in it
  * @property {string=} alert what goes wrong in the view, as a build that fails, marked on its tab
  * @property {string=} detail what the view shows, as the project of an application, after its name
+ * @property {boolean=} added a view the Studio got later, which comes in a layout kept before it knew its views
  *
  * @typedef {'left' | 'center' | 'right' | 'bottom'} DockArea
  * @typedef {Object} DockLayout the layout of a profile before it is changed

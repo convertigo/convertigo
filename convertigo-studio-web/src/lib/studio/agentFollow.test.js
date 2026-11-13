@@ -4,6 +4,7 @@ import {
 	agentGhostsOf,
 	agentHighlightOf,
 	agentMarkOf,
+	agentRunSignal,
 	agentTreeChildren,
 	clearAgentActivity,
 	connectAgentFollow,
@@ -43,8 +44,12 @@ describe('the Studio following the agent', () => {
 	/** @type {string[]} */
 	let shown;
 
+	/** the time of each test after the one before, as the Studio remembers when the last turn of the agent ended */
+	let clockStart = 100_000;
+
 	beforeEach(() => {
-		vi.useFakeTimers({ now: 100_000 });
+		clockStart += 10_000_000;
+		vi.useFakeTimers({ now: clockStart });
 		vi.stubGlobal('window', new EventTarget());
 		vi.stubGlobal('document', { activeElement: null });
 		shown = [];
@@ -59,6 +64,7 @@ describe('the Studio following the agent', () => {
 	});
 
 	afterEach(async () => {
+		agentRunSignal(false);
 		follow.dispose();
 		// the agent stops working: the next test starts idle
 		await vi.advanceTimersByTimeAsync(200_000);
@@ -256,6 +262,22 @@ describe('the Studio following the agent', () => {
 		expect(
 			agentFollow.entries.map((entry) => `${entry.change} ${entry.name} ${entry.count}`)
 		).toEqual(['changed Cart 1', 'opened NgxApp 2']);
+	});
+
+	it('shows the agent working from the start of a turn the Assistant tells, and pauses until its end', async () => {
+		agentRunSignal(true);
+		expect(agentFollow).toMatchObject({ running: true, working: true });
+		expect(agentFollow.runStart).toBeGreaterThan(0);
+		// the user works while the agent reads the project, before it changes anything
+		follow.activity(userEvent('pointerdown'));
+		expect(agentFollow).toMatchObject({ paused: true, pauseReason: 'user' });
+		follow.receive(target('Shop.sq:Checkout.st:a'));
+		// a long turn: following stays paused past the estimate of an older Assistant
+		await vi.advanceTimersByTimeAsync(300_000);
+		expect(agentFollow).toMatchObject({ paused: true, working: true, missed: 1 });
+		agentRunSignal(false);
+		expect(agentFollow).toMatchObject({ running: false, working: false, paused: false });
+		expect(shown).toEqual([]);
 	});
 
 	it('follows nothing when the preference does not ask', async () => {

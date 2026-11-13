@@ -7,6 +7,7 @@ if (process.argv.includes('--convertigo-agent-browser')) {
 	return;
 }
 const { app, BrowserWindow, Menu, dialog, ipcMain, session, shell } = require('electron');
+const { connectAgentScreen } = require('./agentScreen.js');
 const { spawn } = require('node:child_process');
 const crypto = require('node:crypto');
 const fs = require('node:fs');
@@ -511,10 +512,12 @@ function syncAgentBrowser() {
 		CONVERTIGO_STUDIO_PID: String(process.pid)
 	};
 	delete env.ELECTRON_RUN_AS_NODE;
+	// its input takes the requests of the Studio, as showing its window
 	const child = spawn(process.execPath, [...(app.isPackaged ? [] : [app.getAppPath()]), '--convertigo-agent-browser'], {
-		stdio: 'ignore',
+		stdio: ['pipe', 'ignore', 'ignore'],
 		env
 	});
+	child.stdin.on('error', () => {});
 	agentBrowser = child;
 	child.on('exit', () => {
 		if (agentBrowser === child) {
@@ -808,6 +811,17 @@ async function checkForUpdates(asked) {
 		}
 	}
 }
+
+// the Agent view of the Studio shows the screen of the browser of the agents, and brings its window forward
+connectAgentScreen({
+	port: () => agentBrowserPort,
+	running: () => agentBrowser != null,
+	show: () => {
+		if (agentBrowser?.stdin?.writable) {
+			agentBrowser.stdin.write('show\n');
+		}
+	}
+});
 
 // the DevTools button of the preview inspects the application it shows, as the one of the Eclipse Studio
 ipcMain.on('studio:inspect', (event, x, y) => {

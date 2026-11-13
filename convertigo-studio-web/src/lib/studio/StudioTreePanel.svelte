@@ -1214,12 +1214,13 @@
 			return null;
 		}
 		const path = await locate(findNodeById(rootId), []);
-		if (!path || cancelled()) return;
+		const last = path?.at(-1);
+		if (!path || !last || cancelled()) return;
 		keepExpanded(path.slice(0, -1));
 		await tick();
 		if (!cancelled())
 			document
-				.querySelector(`[data-row-id="${CSS.escape(path.at(-1))}"]`)
+				.querySelector(`[data-row-id="${CSS.escape(last)}"]`)
 				?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 	}
 

@@ -1982,6 +1982,62 @@ test('studio lists what the agent does, pauses while the user works and resumes 
 	);
 });
 
+test('studio shows the agent working from the start of a turn the Assistant tells, until its end', async ({
+	page
+}) => {
+	await mockStudioServices(page, { assistant: true });
+	const events = await routeAdminEvents(page);
+	// the Assistant tells the Studio embedding it when a turn of its agent starts and ends
+	await page.route('**/projects/lib_ConvertigoAssistant/DisplayObjects/mobile/**', (route) =>
+		route.fulfill({
+			status: 200,
+			contentType: 'text/html',
+			body: `<!doctype html>
+			<html><body>
+				<main data-testid="assistant-run">Assistant</main>
+				<script>
+					window.tellRun = (running) =>
+						parent.postMessage(
+							{ type: 'convertigo:assistant-run', running, runid: 'run-1', conversation: 'c-1' },
+							location.origin
+						);
+				</script>
+			</body></html>`
+		})
+	);
+	await page.goto('/studio/');
+	await page.getByRole('radio', { name: 'Vibe' }).click();
+	const tree = page.getByRole('tree', { name: 'Projects' });
+	await expect(tree.locator(`[data-node-id="${projectName}"]`).first()).toBeVisible();
+	await expect(
+		page.frameLocator('iframe[title="Convertigo Assistant"]').getByTestId('assistant-run')
+	).toBeVisible();
+	const assistant = page.frames().find((frame) => frame.url().includes('lib_ConvertigoAssistant'));
+	const chip = page.locator('[data-agent-follow]');
+
+	// the turn starts: the agent works before it changes anything, as it reads the project
+	await assistant?.evaluate(() => /** @type {any} */ (window).tellRun(true));
+	await expect(chip).toContainText('Agent working');
+	await expect(chip.locator('.studio-agent-follow__chip--working')).toBeVisible();
+
+	// the user works in the Studio meanwhile: following pauses, the changes of the agent wait
+	await tree.locator(`[data-node-id="${projectName}"]`).first().click();
+	await expect(chip).toContainText('Paused while you work');
+	events.send(
+		studioReveal({ project: projectName, id: sequenceId, kind: 'sequence', sequence: sequenceId })
+	);
+	await expect(chip).toContainText('1 new');
+	const path = page.getByRole('navigation', { name: 'Selection path' });
+	await expect(path).not.toContainText(sequenceName);
+
+	// the turn ends: the pause of the user's work ends with it, the Studio stays where the user is
+	await assistant?.evaluate(() => /** @type {any} */ (window).tellRun(false));
+	await expect(chip).not.toContainText('Paused');
+	await expect(chip).toContainText('1 change');
+	await expect(chip.locator('.studio-agent-follow__chip--idle')).toBeVisible();
+	await expect(path).not.toContainText(sequenceName);
+});
+
 test('studio follows an agent in another profile only when its preference asks', async ({
 	page
 }) => {
@@ -2554,6 +2610,175 @@ test('studio vibe profile gives the Assistant the selected project and keeps the
 	);
 });
 
+test('desktop studio shows the browser of the agents in its Agent view, which takes the input of the user', async ({
+	page
+}) => {
+	// the bridge of the desktop Studio, as its preload gives it: frames and states of the browser of the agents
+	await page.addInitScript(() => {
+		/** @type {any} */
+		const calls = [];
+		/** @type {any} */
+		const listeners = { frame: [], state: [] };
+		/** @type {any} */ (window).agentScreenCalls = calls;
+		/** @type {any} */ (window).agentScreenEmit = (
+			/** @type {string} */ kind,
+			/** @type {any} */ value
+		) => listeners[kind].forEach((/** @type {any} */ callback) => callback(value));
+		/** @type {any} */ (window).convertigoStudio = {
+			inspect: () => {},
+			debugApplication: () => {},
+			agentScreen: {
+				start: () => calls.push('start'),
+				watch: () => calls.push('watch'),
+				stop: () => calls.push('stop'),
+				show: () => calls.push('show'),
+				input: (/** @type {any} */ input) => calls.push({ ...input }),
+				onFrame: (/** @type {any} */ callback) => {
+					listeners.frame.push(callback);
+					return () =>
+						(listeners.frame = listeners.frame.filter((/** @type {any} */ c) => c !== callback));
+				},
+				onState: (/** @type {any} */ callback) => {
+					listeners.state.push(callback);
+					return () =>
+						(listeners.state = listeners.state.filter((/** @type {any} */ c) => c !== callback));
+				}
+			}
+		};
+	});
+	await mockStudioServices(page, { assistant: true, noProjects: true });
+	await page.goto('/studio/');
+	await page.getByRole('radio', { name: 'Vibe' }).click();
+	const calls = () => page.evaluate(() => /** @type {any} */ (window).agentScreenCalls);
+	const agentTab = page.getByRole('tab', { name: 'Agent' });
+
+	// hidden, the view follows the address of the page only, the page the agent is on opening nothing
+	await expect.poll(calls).toContain('watch');
+	await expect(agentTab).not.toHaveAttribute('aria-selected', 'true');
+	const app = 'http://localhost:28080/convertigo/projects/Crm/DisplayObjects/dev47297';
+	await page.evaluate((url) => {
+		/** @type {any} */ (window).agentScreenEmit('state', { state: 'on', url });
+	}, `${app}/login`);
+	await page.waitForTimeout(300);
+	await expect(agentTab).not.toHaveAttribute('aria-selected', 'true');
+
+	// the agent, followed, opens a page: the Studio shows it, as it shows the preview the agent opens
+	await page.evaluate((url) => {
+		/** @type {any} */ (window).agentScreenEmit('state', { state: 'on', url });
+	}, `${app}/deals`);
+	await expect(agentTab).toHaveAttribute('aria-selected', 'true');
+	await expect.poll(calls).toContain('start');
+
+	// a frame of 400×300 pixels for a page of 800×600
+	const jpeg = await page.evaluate(() => {
+		const canvas = document.createElement('canvas');
+		canvas.width = 400;
+		canvas.height = 300;
+		const context = /** @type {CanvasRenderingContext2D} */ (canvas.getContext('2d'));
+		context.fillStyle = '#ccc';
+		context.fillRect(0, 0, 400, 300);
+		return canvas.toDataURL('image/jpeg').split(',')[1];
+	});
+	await page.evaluate((data) => {
+		/** @type {any} */ (window).agentScreenEmit('frame', { data, width: 800, height: 600 });
+	}, jpeg);
+	const screen = page.getByAltText('The page the agent checks');
+	await expect(screen).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
+	await expect(
+		page.getByText('/convertigo/projects/Crm/DisplayObjects/dev47297/deals')
+	).toBeVisible();
+
+	// a click in the view clicks the page where it is, in the pixels of the page; the keys typed then go to it
+	await screen.click();
+	await page.keyboard.type('a');
+	await page.keyboard.press('Enter');
+	// the moves of the pointer aside, rounded to the pixels of the border of the view
+	const inputs = async () =>
+		(await calls())
+			.filter((/** @type {any} */ call) => typeof call === 'object' && call.action !== 'mouseMoved')
+			.map((/** @type {any} */ call) =>
+				call.type === 'mouse'
+					? `${call.action} ${Math.round(call.x / 10) * 10},${Math.round(call.y / 10) * 10} ${call.button} ${call.clickCount}`
+					: `${call.action} ${call.key}`
+			);
+	await expect
+		.poll(inputs)
+		.toEqual([
+			'mousePressed 400,300 left 1',
+			'mouseReleased 400,300 left 1',
+			'keyDown a',
+			'keyUp a',
+			'keyDown Enter',
+			'keyUp Enter'
+		]);
+
+	await page.getByRole('button', { name: 'Open in a window' }).click();
+	await expect.poll(calls).toContain('show');
+
+	// the browser of the agents stopped: the view tells it, without its last frame
+	await page.evaluate(() =>
+		/** @type {any} */ (window).agentScreenEmit('state', { state: 'off', url: '' })
+	);
+	await expect(page.getByText(/The browser of the agents does not run/)).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Open in a window' })).toBeDisabled();
+});
+
+test('a view the Studio gets later comes in a kept layout, a view the user closed stays closed', async ({
+	page
+}) => {
+	// the desktop bridge only once the test asks for it: the Studio without the Agent view first
+	await page.addInitScript(() => {
+		if (localStorage.getItem('test.desktop') !== 'true') return;
+		const noop = () => {};
+		/** @type {any} */ (window).convertigoStudio = {
+			inspect: noop,
+			debugApplication: noop,
+			agentScreen: {
+				start: noop,
+				watch: noop,
+				stop: noop,
+				show: noop,
+				input: noop,
+				onFrame: () => noop,
+				onState: () => noop
+			}
+		};
+	});
+	await mockStudioServices(page, { assistant: true, noProjects: true });
+	await page.goto('/studio/');
+	await page.getByRole('radio', { name: 'Vibe' }).click();
+	await expect(page.getByRole('tab', { name: 'Frontend' })).toBeVisible();
+	await expect(page.getByRole('tab', { name: 'Agent' })).toHaveCount(0);
+	const vibeKeys = () =>
+		page.evaluate(() => Object.keys(localStorage).filter((key) => /\.vibe(\.views)?$/.test(key)));
+	await expect.poll(vibeKeys).toHaveLength(2);
+
+	// a layout kept before the Studio had the view: it comes in the area of the default layout
+	await page.evaluate(() => localStorage.setItem('test.desktop', 'true'));
+	await page.reload();
+	await page.getByRole('radio', { name: 'Vibe' }).click();
+	await expect(page.getByRole('tab', { name: 'Agent' })).toBeVisible();
+
+	// closed by the user, it stays closed
+	await page.getByRole('button', { name: 'Close the Agent view' }).click();
+	await expect(page.getByRole('tab', { name: 'Agent' })).toHaveCount(0);
+	await page.waitForTimeout(500);
+	await page.reload();
+	await page.getByRole('radio', { name: 'Vibe' }).click();
+	await expect(page.getByRole('tab', { name: 'Frontend' })).toBeVisible();
+	await expect(page.getByRole('tab', { name: 'Agent' })).toHaveCount(0);
+
+	// a layout kept before the Studio noted its views takes the views marked as added
+	await page.evaluate(() =>
+		Object.keys(localStorage)
+			.filter((key) => key.endsWith('.views'))
+			.forEach((key) => localStorage.removeItem(key))
+	);
+	await page.reload();
+	await page.getByRole('radio', { name: 'Vibe' }).click();
+	await expect(page.getByRole('tab', { name: 'Agent' })).toBeVisible();
+});
+
 test('studio vibe profile opens the Agent route without requiring a selected project', async ({
 	page
 }) => {
@@ -2613,7 +2838,9 @@ test('studio Assistant panel answers the context requests of its page without ma
 	await page.goto('/studio/');
 	await page.getByRole('radio', { name: 'Vibe' }).click();
 
-	const assistant = page.frameLocator('iframe[title="Convertigo Assistant"]').getByTestId('assistant-loop');
+	const assistant = page
+		.frameLocator('iframe[title="Convertigo Assistant"]')
+		.getByTestId('assistant-loop');
 	await expect(assistant).toHaveAttribute('data-counts', /"context":[1-9]/);
 	await page.waitForTimeout(1500);
 	const counts = JSON.parse((await assistant.getAttribute('data-counts')) ?? '{}');

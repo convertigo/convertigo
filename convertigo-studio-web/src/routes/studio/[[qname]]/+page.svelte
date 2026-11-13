@@ -2,6 +2,8 @@
 	import { subscribeAdminEvents } from '#lib/admin/adminEvents.js';
 	import Projects from '#lib/common/Projects.svelte.js';
 	import TestPlatform from '#lib/common/TestPlatform.svelte.js';
+	import { followView } from '#lib/studio/agentActivity.js';
+	import { agentFollow, connectAgentFollow } from '#lib/studio/agentFollow.svelte.js';
 	import {
 		blockDefinitionForInstance,
 		blockDefinitionSourceId,
@@ -58,6 +60,7 @@
 	import StudioAboutDialog from '#lib/studio/StudioAboutDialog.svelte';
 	import StudioActivityBar from '#lib/studio/StudioActivityBar.svelte';
 	import StudioAddFileDialog from '#lib/studio/StudioAddFileDialog.svelte';
+	import StudioAgentScreen from '#lib/studio/StudioAgentScreen.svelte';
 	import StudioArchiveDialog from '#lib/studio/StudioArchiveDialog.svelte';
 	import StudioAssistantPanel from '#lib/studio/StudioAssistantPanel.svelte';
 	import {
@@ -97,8 +100,6 @@
 	import StudioPropertiesPanel from '#lib/studio/StudioPropertiesPanel.svelte';
 	import StudioReferencesPanel from '#lib/studio/StudioReferencesPanel.svelte';
 	import StudioRegistrationDialog from '#lib/studio/StudioRegistrationDialog.svelte';
-	import { followView } from '#lib/studio/agentActivity.js';
-	import { connectAgentFollow } from '#lib/studio/agentFollow.svelte.js';
 	import {
 		followsAgent,
 		isEditableElement,
@@ -191,6 +192,11 @@
 	];
 	const DOCK_LEFT_VIEWS = ['projects', 'search', 'git'];
 	const DOCK_BOTTOM_VIEWS = ['logs', 'references', 'schema', 'build', 'debug'];
+	/** the desktop Studio shows the screen of the browser of the agents, beside the preview of the application */
+	const AGENT_SCREEN =
+		typeof window !== 'undefined' &&
+		Boolean(/** @type {any} */ (window).convertigoStudio?.agentScreen);
+
 	/**
 	 * The layout of the views of each profile before it is changed, as the perspectives of the Eclipse
 	 * Studio: the projects on the left, the work area in the middle, the tools on the right and the logs,
@@ -225,7 +231,7 @@
 		vibe: {
 			areas: {
 				left: DOCK_LEFT_VIEWS,
-				center: ['frontend', 'execution'],
+				center: ['frontend', ...(AGENT_SCREEN ? ['agent'] : []), 'execution'],
 				right: ['assistant'],
 				bottom: DOCK_BOTTOM_VIEWS
 			},
@@ -1520,6 +1526,16 @@
 	 */
 	function canShowInFrontend(id) {
 		return frontendPreviewMode === 'development' && isFrontendAuthoringNodeId(id);
+	}
+
+	/**
+	 * The agent opened a page in its browser: the Studio following it shows its Agent view, as it shows the preview of
+	 * the application it opens.
+	 */
+	function showAgentPage() {
+		if (followingAgent && !agentFollow.paused) {
+			dock?.show('agent');
+		}
 	}
 
 	/**
@@ -4098,6 +4114,10 @@
 	/>
 {/snippet}
 
+{#snippet agentScreenPane()}
+	<StudioAgentScreen active={Boolean(dockVisible.agent)} onAgentPage={showAgentPage} />
+{/snippet}
+
 {#snippet frontendPane()}
 	<StudioPreviewPanel
 		projectName={applicationProjectName}
@@ -4339,6 +4359,18 @@
 				detail: applicationProjectName,
 				main: true
 			},
+			...(AGENT_SCREEN
+				? [
+						{
+							id: 'agent',
+							title: 'Agent',
+							icon: 'mdi:robot-outline',
+							content: agentScreenPane,
+							main: true,
+							added: true
+						}
+					]
+				: []),
 			{ id: 'palette', title: 'Palette', icon: 'mdi:palette-outline', content: palettePane },
 			{
 				id: 'properties',

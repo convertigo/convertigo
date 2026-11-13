@@ -15,7 +15,9 @@ runtime and stops when it quits.
   of its own, while the workspace has the agent stack (`lib_ConvertigoMCP`) and File > Agent Browser
   is checked. Its remote debugging port listens on the loopback only, the engine gets it as
   `-Dconvertigo.studio.cdp.port`, and it shows a single page, authenticated as the Studio, never the
-  Studio itself. `Target.createTarget` is not supported: the agents drive that page.
+  Studio itself. `Target.createTarget` is not supported: the agents drive that page. `agentScreen.js` shows
+  that page in the Agent view of the Studio, live, and gives it the clicks, the wheel and the keys of the user
+  there; its window shows on demand only.
 - `engine/DevEngine.java` serves the exploded engine war in an embedded Tomcat.
 
 ## Prerequisites

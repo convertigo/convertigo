@@ -469,6 +469,48 @@
 		return `${storageKey}.${name}${narrow ? '.narrow' : ''}`;
 	}
 
+	/**
+	 * Keeps the layout of the profile, with the views the Studio had then: a view it gets later comes in it.
+	 * Throws when the browser keeps nothing, as before.
+	 */
+	function storeLayout() {
+		if (!api) {
+			return;
+		}
+		localStorage.setItem(layoutKey(), JSON.stringify(api.toJSON()));
+		localStorage.setItem(`${layoutKey()}.views`, JSON.stringify(views.map((view) => view.id)));
+	}
+
+	/**
+	 * The views the Studio got since the layout of a profile was kept come in their area of its default layout,
+	 * the views the user closed staying closed. A layout kept before the Studio noted its views takes the views
+	 * marked as added.
+	 * @param {string} name
+	 */
+	function addNewViews(name) {
+		const layout = layouts[name];
+		if (!api || !layout) {
+			return;
+		}
+		/** @type {string[] | null} */
+		let known = null;
+		try {
+			const raw = JSON.parse(localStorage.getItem(`${layoutKey(name)}.views`) ?? 'null');
+			known = Array.isArray(raw) ? raw.map(String) : null;
+		} catch {
+			known = null;
+		}
+		for (const area of AREAS) {
+			for (const id of areaViews(area, layout)) {
+				const view = viewOf(id);
+				const isNew = known ? !known.includes(id) : Boolean(view?.added);
+				if (view && isNew && !api.getPanel(id) && !layout.closed?.includes(id)) {
+					addBack(id);
+				}
+			}
+		}
+	}
+
 	function saveLayout() {
 		clearTimeout(saveTimer);
 		saveTimer = setTimeout(() => {
@@ -476,7 +518,7 @@
 				return;
 			}
 			try {
-				localStorage.setItem(layoutKey(), JSON.stringify(api.toJSON()));
+				storeLayout();
 			} catch {
 				// a browser without storage keeps the layout until the page is left
 			}
@@ -598,6 +640,9 @@
 			}
 			if (!restored) {
 				buildDefaultLayout(name);
+			} else {
+				layoutProfile = name;
+				addNewViews(name);
 			}
 			// a view the Studio no longer has leaves the layout
 			for (const panel of [...api.panels]) {
@@ -624,7 +669,7 @@
 		if (layoutProfile) {
 			clearTimeout(saveTimer);
 			try {
-				localStorage.setItem(layoutKey(), JSON.stringify(api.toJSON()));
+				storeLayout();
 			} catch {
 				// the layout is not kept
 			}
@@ -868,7 +913,7 @@
 			}
 			clearTimeout(saveTimer);
 			try {
-				localStorage.setItem(layoutKey(), JSON.stringify(api.toJSON()));
+				storeLayout();
 			} catch {
 				// the layout is not kept
 			}

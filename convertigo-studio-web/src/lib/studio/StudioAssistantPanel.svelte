@@ -12,6 +12,7 @@
 		remoteAgentContext,
 		stackChanges
 	} from './assistantHost.js';
+	import { agentRunSignal } from './agentFollow.svelte.js';
 	import { loadRegistration, registration } from './registration.svelte.js';
 	import { saveStudioPreferences, studioPreferences } from './studioPreferences.svelte.js';
 
@@ -33,6 +34,8 @@
 	const activateType = `${assistantProject}.activateLocalAgent`;
 	const activationStatusType = `${activateType}.status`;
 	const openExternalType = `${assistantProject}.openExternal`;
+	/** a turn of the agent starts or ends, as the Assistant tells the web Studio embedding it */
+	const assistantRunType = 'convertigo:assistant-run';
 	const assistantBaseUrl = getFrontendUrl(assistantProject).replace(/index\.html$/, '');
 	const assistantAgentUrl = `${assistantBaseUrl}path-to-xfirst/:threadid`;
 	let iframe = $state();
@@ -479,6 +482,9 @@
 			}
 		} else if (type === activateType) {
 			activateLocalAgent(event.data?.payload);
+		} else if (type === assistantRunType) {
+			// a turn of the agent starts or ends, which the Studio following it shows from its start
+			agentRunSignal(event.data?.running === true);
 		} else if (type === openExternalType) {
 			const url = externalUrl(event.data);
 			if (url) {
