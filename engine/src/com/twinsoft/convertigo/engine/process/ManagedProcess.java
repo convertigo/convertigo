@@ -66,6 +66,7 @@ public final class ManagedProcess {
 	private final AtomicReference<State> state = new AtomicReference<>(State.RUNNING);
 	private volatile String status = "";
 	private List<ProcessHandle> survivors = null;
+	private volatile Thread reader = null;
 
 	ManagedProcess(ManagedProcesses service, ManagedProcessSpec spec, Process process) {
 		this.service = service;
@@ -220,6 +221,20 @@ public final class ManagedProcess {
 		}
 	}
 
+	/**
+	 * Waits until the output consumer has read the whole output, once the process exited.
+	 *
+	 * @return whether the output is read
+	 */
+	public boolean awaitOutput(Duration timeout) throws InterruptedException {
+		Thread thread = reader;
+		if (thread == null) {
+			return true;
+		}
+		thread.join(Math.max(1, timeout.toMillis()));
+		return !thread.isAlive();
+	}
+
 	void readOutput(Charset charset) {
 		Thread reader = new Thread(() -> {
 			try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream(), charset))) {
@@ -244,6 +259,7 @@ public final class ManagedProcess {
 			}
 		}, "Output of " + spec.function + " " + process.pid());
 		reader.setDaemon(true);
+		this.reader = reader;
 		reader.start();
 	}
 
