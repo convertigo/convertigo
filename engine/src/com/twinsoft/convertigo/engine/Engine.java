@@ -486,6 +486,9 @@ public class Engine {
 
 				LocalWorkDirectory.init();
 
+				// the processes a previous session of this workspace left running, when it did not stop normally
+				com.twinsoft.convertigo.engine.process.ManagedProcesses.get().open(new File(Engine.USER_WORKSPACE_PATH));
+
 				// Initializing the engine
 				Engine.theApp = new Engine();
 
@@ -837,9 +840,10 @@ public class Engine {
 			try {
 				Engine.logEngine.info("Stopping the engine");
 
-				// first, as the process of the engine may be killed soon after: the node processes of the NGX
-				// builds of the web Studio would outlive the engine
+				// first, as the process of the engine may be killed soon after: the processes it launched (the NGX
+				// builds of the Studio, the PouchDB server, the Process execute steps) would outlive the engine
 				com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.WsBuilder.stopAll();
+				com.twinsoft.convertigo.engine.process.ManagedProcesses.get().stopAll();
 				LocalWorkDirectory.release();
 
 				// Temporary reset the start/stop date in order to unlink the requestable's
