@@ -7,7 +7,7 @@ if (process.argv.includes('--convertigo-agent-browser')) {
 	return;
 }
 const { app, BrowserWindow, Menu, dialog, ipcMain, session, shell } = require('electron');
-const { spawn, spawnSync } = require('node:child_process');
+const { spawn } = require('node:child_process');
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const http = require('node:http');
@@ -199,8 +199,6 @@ function engineAnswers(port) {
 
 function startEngine(port) {
 	fs.mkdirSync(workspaceDir, { recursive: true });
-	// the PouchDB server an engine that stopped abruptly left running
-	stopWorkspacePouchDB();
 	if (!fs.existsSync(path.join(tomcatDir, 'conf'))) {
 		fs.cpSync(path.join(engineDir, 'base', 'conf'), path.join(tomcatDir, 'conf'), { recursive: true });
 	}
@@ -230,6 +228,9 @@ function startEngine(port) {
 			// loopback, as the one of the browser of a project in the Eclipse Studio: nothing listens to it while
 			// that browser does not run
 			...(agentBrowserPort ? [`-Dconvertigo.studio.cdp.port=${agentBrowserPort}`] : []),
+			// the engine stops when the Studio is gone, even killed, and its processes with it: the engine stops the
+			// processes it launched (the NGX builds, the PouchDB server), also when it dies itself
+			`-Dconvertigo.parent.pid=${process.pid}`,
 			'--enable-native-access=ALL-UNNAMED',
 			'--add-opens',
 			'java.base/java.lang=ALL-UNNAMED',
@@ -465,23 +466,6 @@ async function openStudio(window) {
 }
 
 /**
- * Stops the engine, saving its sessions, and the node processes of its NGX builds.
- * @returns {Promise<void>}
- */
-/**
- * Stops the PouchDB server of FullSync the engine started with the Node.js of the workspace: the engine starts it
- * again while it stops on a signal, and a server left running keeps the lock of the databases of the workspace,
- * which the next one then cannot open.
- */
-function stopWorkspacePouchDB() {
-	if (process.platform === 'win32') {
-		return;
-	}
-	const nodes = `${path.join(workspaceDir, 'nodes')}${path.sep}`.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-	spawnSync('pkill', ['-f', `^${nodes}[^/]+/bin/node node_modules/pouchdb-server/`]);
-}
-
-/**
  * Sends the shutdown command of its Tomcat to the engine.
  * @returns {Promise<boolean>} whether the command was sent
  */
@@ -494,27 +478,6 @@ function sendShutdown() {
 		const socket = net.connect(shutdownPort, '127.0.0.1', () => socket.end(authToken, () => resolve(true)));
 		socket.on('error', () => resolve(false));
 	});
-}
-
-/**
- * Stops the node processes the engine started from the workspace (the NGX builds and their servers, the
- * PouchDB server of FullSync), which the engine stops, even when it was killed. Windows has no pkill: PowerShell finds
- * them by their command line.
- */
-function stopWorkspaceNodes() {
-	if (process.platform === 'win32') {
-		const dir = workspaceDir.replace(/'/g, "''");
-		spawnSync('powershell.exe', [
-			'-NoProfile',
-			'-NonInteractive',
-			'-Command',
-			`Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Where-Object { $_.CommandLine -and ($_.CommandLine.Contains('${dir}') -or ($_.ExecutablePath -and $_.ExecutablePath.StartsWith('${dir}'))) } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }`
-		], { windowsHide: true });
-		return;
-	}
-	const projects = `${path.join(workspaceDir, 'projects')}${path.sep}`.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-	spawnSync('pkill', ['-f', `^(node|npm|ng) .*${projects}`]);
-	stopWorkspacePouchDB();
 }
 
 /**
@@ -567,6 +530,11 @@ function stopAgentBrowser() {
 	running?.kill();
 }
 
+/**
+ * Stops the engine, saving its sessions: the engine stops the processes it launched (the NGX builds and their
+ * servers, the PouchDB server of FullSync), also when it is killed (Node.js preload, process reaper, Windows job).
+ * @returns {Promise<void>}
+ */
 function stopEngine() {
 	stopAgentBrowser();
 	const running = engine;
@@ -574,17 +542,10 @@ function stopEngine() {
 		return Promise.resolve();
 	}
 	return new Promise((resolve) => {
-		// killed after 15 s, its process tree with it on Windows
-		const timer = setTimeout(() => {
-			if (process.platform === 'win32') {
-				spawnSync('taskkill', ['/pid', String(running.pid), '/T', '/F'], { windowsHide: true });
-			} else {
-				running.kill('SIGKILL');
-			}
-		}, 15_000);
+		// killed after 15 s: the engine stops the processes it launched even then
+		const timer = setTimeout(() => running.kill('SIGKILL'), 15_000);
 		running.once('exit', () => {
 			clearTimeout(timer);
-			stopWorkspaceNodes();
 			resolve();
 		});
 		// gracefully, as the Eclipse Studio stops its engine: the shutdown command of its Tomcat, else SIGTERM,

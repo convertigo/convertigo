@@ -1,6 +1,7 @@
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.time.Instant;
 
 import org.apache.catalina.Context;
 import org.apache.catalina.connector.Connector;
@@ -10,9 +11,16 @@ import org.apache.catalina.startup.Tomcat;
  * Serves an exploded Convertigo war on a port, in an embedded Tomcat: the engine of the Electron
  * Studio, which main.js starts with the Java runtime of the application.
  * Usage: DevEngine <port> <exploded war dir> <tomcat base dir>
+ * <p>
+ * With -Dconvertigo.parent.pid=<PID of the Studio>, the engine stops when the Studio is gone, even killed: the
+ * hooks then stop Tomcat, the engine and the processes it launched.
  */
 public class DevEngine {
 	public static void main(String[] args) throws Exception {
+		String parent = System.getProperty("convertigo.parent.pid");
+		if (parent != null && !parent.isBlank()) {
+			watchParent(Long.parseLong(parent.trim()));
+		}
 		int port = Integer.parseInt(args[0]);
 		String war = new File(args[1]).getAbsolutePath();
 		String base = new File(args[2]).getAbsolutePath();
@@ -66,5 +74,41 @@ public class DevEngine {
 		tomcat.getServer().await();
 		// the shutdown command: the hooks stop Tomcat and the engine, as on SIGTERM
 		System.exit(0);
+	}
+
+	/**
+	 * Stops this JVM, gracefully (its shutdown hooks run), when the process pid is gone: checked every second, by its
+	 * start instant (a PID reused by another process is not the Studio) and, when it started this JVM, by the
+	 * adoption of this JVM by another process on Unix.
+	 */
+	static void watchParent(long pid) {
+		long start = startOf(pid);
+		boolean isParent = ProcessHandle.current().parent().map(ProcessHandle::pid).orElse(-1L) == pid;
+		boolean windows = File.separatorChar == '\\';
+		Thread watch = new Thread(() -> {
+			try {
+				while (true) {
+					Thread.sleep(1000);
+					boolean alive = start > 0 && startOf(pid) == start;
+					boolean adopted = isParent && !windows
+							&& ProcessHandle.current().parent().map(ProcessHandle::pid).orElse(-1L) != pid;
+					if (!alive || adopted) {
+						System.out.println("DevEngine: the Studio (PID " + pid + ") is gone, the engine stops");
+						System.out.flush();
+						System.exit(0);
+					}
+				}
+			} catch (InterruptedException e) {
+				// stopped
+			}
+		}, "Studio watch");
+		watch.setDaemon(true);
+		watch.start();
+	}
+
+	/** @return the start instant of the process pid, in ms, -1 when it is gone */
+	private static long startOf(long pid) {
+		return ProcessHandle.of(pid).filter(ProcessHandle::isAlive)
+				.flatMap(handle -> handle.info().startInstant()).map(Instant::toEpochMilli).orElse(-1L);
 	}
 }
