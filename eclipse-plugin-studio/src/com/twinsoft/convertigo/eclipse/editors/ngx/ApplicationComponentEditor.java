@@ -28,16 +28,13 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.ProcessBuilder.Redirect;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Base64;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -172,6 +169,8 @@ import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.mobile.MobileEventListener;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.NetworkUtils;
+import com.twinsoft.convertigo.engine.process.ManagedProcess;
+import com.twinsoft.convertigo.engine.process.ProjectProcesses;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
 
 
@@ -322,7 +321,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	private String debugUrl;
 	private String baseUrl = null;
 	private String pagePath = null;
-	private Collection<Process> processes = new LinkedList<>();
 	private File datasetDir;
 	private File devicePref;
 	private String dataset = "none";
@@ -408,11 +406,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			devicesMenu.dispose();
 		}
 
-		for (Process p: processes) {
-			p.destroyForcibly();
-			p.destroy();
-		}
-
+		// the node processes of the project, with their trees
 		terminateNode(false);
 		super.dispose();
 	}
@@ -2108,13 +2102,12 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					}
 
 					ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path + File.pathSeparator + ionicDir.toString() , "npm", "install",
-							"--legacy-peer-deps", "--loglevel", "info", "--ssl-key=" + new File(project.getDirFile(), "DisplayObjects/mobile").getAbsolutePath());
+							"--legacy-peer-deps", "--loglevel", "info");
 					pb.redirectErrorStream(true);
 					pb.directory(ionicDir);
 					LocalWorkDirectory.beginWork(nodeModules);
-					Process p = pb.start();
+					Process p = ProjectProcesses.start(ProjectProcesses.INSTALL, project.getName(), pb).getProcess();
 
-					processes.add(p);
 					BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 					String line;
 					while ((line = br.readLine()) != null) {
@@ -2214,9 +2207,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				cmd.add("--host=0.0.0.0");
 			}
 
-			// #183 add useless option to help terminateNode method to find the current path
-			cmd.add("--ssl-key=" + new File(project.getDirFile(), "DisplayObjects/mobile").getAbsolutePath());
-
 			pb.redirectErrorStream(true);
 			pb.directory(ionicDir);
 
@@ -2224,8 +2214,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			angular_json = angular_json.replaceFirst("(\"serve\":\s*\\{).*", "$1");
 			FileUtils.write(new File(ionicDir, "angular.json"), angular_json, "UTF-8");
 
-			Process p = pb.start();
-			processes.add(p);
+			ManagedProcess served = ProjectProcesses.start(ProjectProcesses.SERVE, project.getName(), pb);
+			Process p = served.getProcess();
 
 			Matcher matcher = Pattern.compile("(\\d+)% (.*)").matcher("");
 			BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -2340,8 +2330,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 							output.append(line);
 							if (lowerLine.startsWith("an unhandled exception occurred")) {
 								// Angular can leave its watcher alive after the builder itself has failed.
-								p.descendants().toList().forEach(ProcessHandle::destroy);
-								p.destroy();
+								served.stop();
 							}
 							if (errorStartLine) {
 								standaloneFailedCycle = true;
@@ -2688,35 +2677,18 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		}
 	}
 
+	/**
+	 * Stops the node processes the Studio started for the application of the project (this editor, the web Studio),
+	 * with their trees: all of them, or only a build that watches the sources.
+	 */
 	private void terminateNode(boolean prodOnly) {
-		// #183 the node processes of this project carry "=<project dir>/DisplayObjects/mobile" in their command line:
-		// match the full path, not only the project folder name, to spare the same project opened in another workspace.
-		// The marker goes through the environment and is compared as plain text, so its characters need no escaping.
-		String marker = "=" + new File(project.getDirFile(), "DisplayObjects").getAbsolutePath() + File.separator;
-		int retry = 10;
-		try {
-			while (retry-- > 0) {
-				ProcessBuilder pb;
-				if (Engine.isWindows()) {
-					String prod = prodOnly ? " -and $_.CommandLine -like '*--watch*'" : "";
-					pb = new ProcessBuilder("powershell", "-Command",
-							"Get-WmiObject Win32_Process | Where-Object { $_.Name -eq 'node.exe' -and $_.CommandLine -and $_.CommandLine.IndexOf($env:C8O_NODE_MARKER, [StringComparison]::OrdinalIgnoreCase) -ge 0" + prod + " } | ForEach-Object { $_.Terminate() }");
-				} else {
-					String prod = prodOnly ? " && /--watch|:watch/" : "";
-					pb = new ProcessBuilder("/bin/bash", "-c",
-							"ps -A -ww -o pid= -o args= | awk '{ i = index($0, ENVIRON[\"C8O_NODE_MARKER\"]) } i && substr($0, 1, i) ~ /node|npm|ng/" + prod + " { print $1 }' | xargs kill");
-				}
-				pb.environment().put("C8O_NODE_MARKER", marker);
-				int code = pb.redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start().waitFor();
-				if (code == 0) {
-					retry = 0;
-				}
-			}
-			synchronized (usedPort) {
-				usedPort.remove(portNode);
-			}
-		} catch (Exception e) {
-			Engine.logStudio.warn("Failed to terminate the node server", e);
+		if (prodOnly) {
+			ProjectProcesses.stop(project.getName(), ProjectProcesses.WATCH);
+		} else {
+			ProjectProcesses.stop(project.getName());
+		}
+		synchronized (usedPort) {
+			usedPort.remove(portNode);
 		}
 	}
 
@@ -2756,7 +2728,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		String appName = applicationEditorInput.application.getParent().getComputedApplicationName();
 		prodJob = Job.create("Build in " + buildMode.label() + " mode for " + appName, monitor -> {
 			StandaloneBuildProgress standaloneProgress = null;
-			Process process = null;
+			ManagedProcess process = null;
 			BuildOutputTail output = new BuildOutputTail();
 			try {
 				Engine.logStudio.debug("Build in " + buildMode.label() + " mode requested for " + appName);
@@ -2787,12 +2759,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				cmd.add("--");
 
 				if (!isStandalone) {
-					// #183 add useless option to help terminateNode method to find the current path
 					cmd.add("--output-path=" + new File(project.getDirFile(), "DisplayObjects/mobile").getAbsolutePath());
-				}
-				else {
-					// #183 add useless option to help terminateNode method to find the current path
-					cmd.add("--external-dependencies=" + new File(project.getDirFile(), "DisplayObjects/mobile").getAbsolutePath());
 				}
 
 				// #393 add base href for project's web app
@@ -2800,9 +2767,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 				pb.redirectErrorStream(true);
 				pb.directory(ionicDir);
-				Process p = pb.start();
-				process = p;
-				processes.add(p);
+				ManagedProcess build = ProjectProcesses.start(buildMode == NgxBuilderBuildMode.watch ? ProjectProcesses.WATCH : ProjectProcesses.BUILD,
+						project.getName(), pb);
+				process = build;
+				Process p = build.getProcess();
 				BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 				String line;
 
@@ -2838,8 +2806,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					}
 					if (!terminated.get()) {
 						// Cancel this build only, including finite builds and npm post-build hooks.
-						p.descendants().toList().forEach(ProcessHandle::destroy);
-						p.destroy();
+						build.stop();
 					}
 				});
 				boolean fatalBuildError = false;
@@ -2869,8 +2836,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 									Engine.logStudio.error("Build failed for " + appName + ":\n" + output.tail);
 									if (normalizedLine.toLowerCase(Locale.ROOT).startsWith("an unhandled exception occurred")) {
 										fatalBuildError = true;
-										p.descendants().toList().forEach(ProcessHandle::destroy);
-										p.destroy();
+										build.stop();
 										break;
 									}
 								}
@@ -2950,11 +2916,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				terminated.set(true);
 				if (standaloneProgress != null) standaloneProgress.shutdown();
 				if (process != null) {
-					if (process.isAlive()) {
-						process.descendants().toList().forEach(ProcessHandle::destroy);
-						process.destroy();
-					}
-					processes.remove(process);
+					process.stop();
 				}
 				buildItem.getDisplay().asyncExec(() -> {
 					if (!buildItem.isDisposed()) buildItem.setSelection(false);

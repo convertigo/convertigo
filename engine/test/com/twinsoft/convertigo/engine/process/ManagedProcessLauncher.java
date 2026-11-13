@@ -26,8 +26,10 @@ import java.io.File;
  * PIDs, then waits to be killed, or stops normally when its stdin ends.
  * <p>
  * Arguments: workspace, reaper mode (on, off), then the kinds of processes: shell (a tree of sleep), node
- * (node with the preload), npm (a shell running node, the preload in NODE_OPTIONS); the node executable
- * is the system property nodeExecutable.
+ * (node with the preload), npm (a shell running node, the preload in NODE_OPTIONS), app-serve (npm run serve
+ * in &lt;workspace&gt;/app, as the development server of an application), legacy-serve (the same, started as
+ * before the managed processes); the node executable is the one of the tests (nodeExecutable, else the
+ * PATH), npm is next to it.
  */
 public class ManagedProcessLauncher {
 
@@ -36,8 +38,20 @@ public class ManagedProcessLauncher {
 		ManagedProcesses service = ManagedProcesses.get();
 		service.setReaperMode(args[1]);
 		service.open(workspace);
-		String node = System.getProperty("nodeExecutable", "node");
+		String node = args.length > 2 && args[2].matches("node|npm|app-serve|legacy-serve") ? ProcessTestSupport.node().getAbsolutePath() : "node";
 		for (int i = 2; i < args.length; i++) {
+			if (args[i].equals("app-serve") || args[i].equals("legacy-serve")) {
+				File bin = new File(node).getParentFile();
+				ProcessBuilder builder = new ProcessBuilder(new File(bin, "npm").getAbsolutePath(), "run", "serve")
+						.directory(new File(workspace, "app")).redirectOutput(ProcessBuilder.Redirect.DISCARD)
+						.redirectError(ProcessBuilder.Redirect.DISCARD);
+				builder.environment().put("PATH", bin.getAbsolutePath() + File.pathSeparator + System.getenv("PATH"));
+				long pid = args[i].equals("app-serve")
+						? ProjectProcesses.start(ProjectProcesses.SERVE, "demo", builder).pid()
+						: builder.start().pid();
+				System.out.println(args[i] + " " + pid);
+				continue;
+			}
 			ManagedProcessSpec spec = ManagedProcessSpec.of("test-" + args[i]);
 			switch (args[i]) {
 			case "shell" -> spec.command("sh", "-c", "sleep 600 & sleep 600 & wait");

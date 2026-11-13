@@ -23,7 +23,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.ProcessBuilder.Redirect;
 import java.net.Inet4Address;
 import java.net.NetworkInterface;
 import java.net.URL;
@@ -54,6 +53,8 @@ import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
 import com.twinsoft.convertigo.engine.enums.NgxBuilderBuildMode;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.mobile.MobileEventListener;
+import com.twinsoft.convertigo.engine.process.ManagedProcess;
+import com.twinsoft.convertigo.engine.process.ProjectProcesses;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.NetworkUtils;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
@@ -104,7 +105,8 @@ public class WsBuilder extends WebSocketService {
 		/** what the build does, installing the packages, building the application, or nothing */
 		volatile String phase = "";
 		volatile String state = "idle";
-		volatile Process process;
+		/** the running process of this build, managed: stopped with its tree, and with the engine */
+		volatile ManagedProcess process;
 		/** whether the build was stopped, which does not fail */
 		volatile boolean stopped;
 		/** also receives the output of the build (a build of the server) */
@@ -313,10 +315,10 @@ public class WsBuilder extends WebSocketService {
 			}
 			LocalWorkDirectory.beginWork(nodeModules);
 			var pb = ProcessUtils.getNpmProcessBuilder(path + File.pathSeparator + ionicDir, "npm", "install",
-					"--legacy-peer-deps", "--loglevel", "info", "--ssl-key=" + marker());
+					"--legacy-peer-deps", "--loglevel", "info");
 			pb.redirectErrorStream(true);
 			pb.directory(ionicDir);
-			var p = start(pb);
+			var p = start(ProjectProcesses.INSTALL, pb);
 			try (var br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
 				String line;
 				while ((line = br.readLine()) != null) {
@@ -385,8 +387,6 @@ public class WsBuilder extends WebSocketService {
 				cmd.add("--host=0.0.0.0");
 				cmd.add("--disable-host-check=true");
 			}
-			// #183 add useless option to help terminateNode method to find the current path
-			cmd.add("--ssl-key=" + marker());
 
 			pb.redirectErrorStream(true);
 			pb.directory(ionicDir);
@@ -400,7 +400,7 @@ public class WsBuilder extends WebSocketService {
 			FileUtils.write(angularJson, angular, "UTF-8");
 
 			var standalone = mb.isStandalone();
-			var p = start(pb);
+			var p = start(ProjectProcesses.SERVE, pb);
 			try (var br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
 				String line;
 				StringBuilder errors = null;
@@ -496,14 +496,15 @@ public class WsBuilder extends WebSocketService {
 			var pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "run", buildMode.command());
 			List<String> cmd = pb.command();
 			cmd.add("--");
-			// #183 add useless option to help terminateNode method to find the current path
-			cmd.add((standalone ? "--external-dependencies=" : "--output-path=") + displayObjectsMobile.getAbsolutePath());
+			if (!standalone) {
+				cmd.add("--output-path=" + displayObjectsMobile.getAbsolutePath());
+			}
 			// #393 add base href for project's web app
 			cmd.add("--base-href=" + baseHref);
 			pb.redirectErrorStream(true);
 			pb.directory(ionicDir);
 
-			var p = start(pb);
+			var p = start(buildMode == NgxBuilderBuildMode.watch ? ProjectProcesses.WATCH : ProjectProcesses.BUILD, pb);
 			var failed = false;
 			try (var br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
 				String line;
@@ -600,21 +601,27 @@ public class WsBuilder extends WebSocketService {
 		}
 
 		/**
-		 * Stops the processes this build started, with their children.
+		 * Stops the processes this build started, with their whole trees.
 		 */
 		void stopProcess() {
 			stopped = true;
 			var current = process;
-			if (current != null && current.isAlive()) {
-				current.toHandle().descendants().forEach(ProcessHandle::destroy);
-				current.destroy();
+			if (current != null) {
+				current.stop();
 			}
 		}
 
-		private Process start(ProcessBuilder pb) throws IOException {
-			var p = pb.start();
+		/**
+		 * @param kind what the process is, for the other launchers of the project (ProjectProcesses)
+		 */
+		private Process start(String kind, ProcessBuilder pb) throws IOException {
+			var p = ProjectProcesses.start(kind, projectName, pb);
 			process = p;
-			return p;
+			if (stopped) {
+				// stopped while it started
+				p.stop();
+			}
+			return p.getProcess();
 		}
 
 		private static String clean(String line) {
@@ -624,13 +631,6 @@ public class WsBuilder extends WebSocketService {
 
 		private static String normalize(String line) {
 			return line.replace(' ', ' ').replaceAll("\\s+", " ").trim();
-		}
-
-		/**
-		 * @return the useless option value that marks the node processes of the project
-		 */
-		private String marker() {
-			return new File(project.getDirFile(), "DisplayObjects/mobile").getAbsolutePath();
 		}
 
 		private void progress(int progress) {
@@ -699,15 +699,18 @@ public class WsBuilder extends WebSocketService {
 		}
 
 		/**
-		 * Kills the node processes of the project left by previous builds, all of them or only a watching one,
-		 * as this build starts: unlike a stop, this build goes on and reports its own result.
+		 * Stops the node processes of the project the Studio started for previous builds (this one, the
+		 * application editor), all of them or only a watching one, as this build starts: unlike a stop, this
+		 * build goes on and reports its own result.
 		 */
 		private void clearNode(boolean prodOnly) {
-			killNode(prodOnly ? " && /--watch|:watch/" : "", prodOnly ? " -and $_.CommandLine -like '*--watch*'" : "");
-			if (!prodOnly) {
+			if (prodOnly) {
+				ProjectProcesses.stop(projectName, ProjectProcesses.WATCH);
+			} else {
+				ProjectProcesses.stop(projectName);
 				baseUrl = null;
 				// the gateway no longer reaches its port
-				portNode = 0;
+				releasePort();
 			}
 		}
 
@@ -718,45 +721,15 @@ public class WsBuilder extends WebSocketService {
 		void terminateServe() {
 			baseUrl = null;
 			stopProcess();
-			killNode(" && /serve/", " -and $_.CommandLine -like '*serve*'");
-			portNode = 0;
+			ProjectProcesses.stop(projectName, ProjectProcesses.SERVE);
+			releasePort();
 		}
 
-		/**
-		 * @param filter what the command line of a node process of the project also matches to be killed, for
-		 * awk
-		 * @param windowsFilter the same, for PowerShell
-		 */
-		private void killNode(String filter, String windowsFilter) {
-			if (project == null) {
-				return;
+		private void releasePort() {
+			synchronized (usedPort) {
+				usedPort.remove(portNode);
 			}
-			// #183 the node processes of this project carry "=<project dir>/DisplayObjects/mobile" in their
-			// command line: match the full path to spare the same project opened in another workspace
-			var marker = "=" + new File(project.getDirFile(), "DisplayObjects").getAbsolutePath() + File.separator;
-			int retry = 10;
-			try {
-				while (retry-- > 0) {
-					ProcessBuilder pb;
-					if (Engine.isWindows()) {
-						pb = new ProcessBuilder("powershell", "-Command",
-								"Get-WmiObject Win32_Process | Where-Object { $_.Name -eq 'node.exe' -and $_.CommandLine -and $_.CommandLine.IndexOf($env:C8O_NODE_MARKER, [StringComparison]::OrdinalIgnoreCase) -ge 0" + windowsFilter + " } | ForEach-Object { $_.Terminate() }");
-					} else {
-						pb = new ProcessBuilder("/bin/bash", "-c",
-								"ps -A -ww -o pid= -o args= | awk '{ i = index($0, ENVIRON[\"C8O_NODE_MARKER\"]) } i && substr($0, 1, i) ~ /node|npm|ng/" + filter + " { print $1 }' | xargs kill");
-					}
-					pb.environment().put("C8O_NODE_MARKER", marker);
-					int code = pb.redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start().waitFor();
-					if (code == 0) {
-						retry = 0;
-					}
-				}
-				synchronized (usedPort) {
-					usedPort.remove(portNode);
-				}
-			} catch (Exception e) {
-				Engine.logStudio.warn("Failed to terminate the node server", e);
-			}
+			portNode = 0;
 		}
 	}
 
