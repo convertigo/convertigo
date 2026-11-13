@@ -2575,6 +2575,53 @@ test('studio vibe profile opens the Agent route without requiring a selected pro
 	await expect(assistantContext).toHaveAttribute('data-query-project', 'No project');
 });
 
+test('studio Assistant panel answers the context requests of its page without making them loop', async ({
+	page
+}) => {
+	await mockStudioServices(page, { assistant: true, noProjects: true });
+	// the Assistant asks for its context again at each init, as lib_ConvertigoAssistant does
+	await page.route('**/projects/lib_ConvertigoAssistant/DisplayObjects/mobile/**', (route) =>
+		route.fulfill({
+			status: 200,
+			contentType: 'text/html',
+			body: `<!doctype html>
+			<html><body>
+				<main data-testid="assistant-loop">Assistant</main>
+				<script>
+					const output = document.querySelector('[data-testid="assistant-loop"]');
+					const counts = { init: 0, context: 0, requests: 0 };
+					const ask = () => {
+						counts.requests++;
+						output.dataset.counts = JSON.stringify(counts);
+						parent.postMessage({ type: 'lib_ConvertigoAssistant.context.request' }, location.origin);
+					};
+					window.addEventListener('message', (event) => {
+						const type = (event.data || {}).type;
+						if (type === 'init') {
+							counts.init++;
+							setTimeout(ask, 0);
+						} else if (type === 'lib_ConvertigoAssistant.context') {
+							counts.context++;
+						}
+						output.dataset.counts = JSON.stringify(counts);
+					});
+					ask();
+				</script>
+			</body></html>`
+		})
+	);
+	await page.goto('/studio/');
+	await page.getByRole('radio', { name: 'Vibe' }).click();
+
+	const assistant = page.frameLocator('iframe[title="Convertigo Assistant"]').getByTestId('assistant-loop');
+	await expect(assistant).toHaveAttribute('data-counts', /"context":[1-9]/);
+	await page.waitForTimeout(1500);
+	const counts = JSON.parse((await assistant.getAttribute('data-counts')) ?? '{}');
+	// the init of the load, and once more for a page that may have missed it, then the context alone
+	expect(counts.init).toBeLessThanOrEqual(2);
+	expect(counts.requests).toBeLessThanOrEqual(3);
+});
+
 test('studio vibe profile opens the hosted Assistant until the local agent stack is activated', async ({
 	page
 }) => {

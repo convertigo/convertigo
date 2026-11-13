@@ -37,6 +37,9 @@
 	const assistantAgentUrl = `${assistantBaseUrl}path-to-xfirst/:threadid`;
 	let iframe = $state();
 	let iframeReady = $state(false);
+	/** the page loaded in the frame, and the last one the init answered a request of */
+	let assistantLoads = 0;
+	let initRepliedLoad = 0;
 	/** the local agent stack, as studio.assistant.Stack tells it */
 	let stack = $state(/** @type {any} */ (null));
 	/** the page of the panel: chosen once, then only by an activation, never by a selection or a profile */
@@ -289,6 +292,7 @@
 
 	function onAssistantLoad() {
 		iframeReady = true;
+		assistantLoads += 1;
 		postAssistantMessage({ type: 'init' });
 		sendAssistantContext();
 	}
@@ -462,10 +466,17 @@
 		}
 		const type = event.data?.type;
 		if (type === assistantContextRequestType) {
-			// the init of the load may have come before the page listened: as the Eclipse Studio, it comes
-			// again with the context the page asks for
-			postAssistantMessage({ type: 'init' });
-			sendAssistantContext();
+			if (initRepliedLoad !== assistantLoads) {
+				// the init of the load may have come before the page listened: it comes again, once, with the
+				// context the page asks for
+				initRepliedLoad = assistantLoads;
+				postAssistantMessage({ type: 'init' });
+				sendAssistantContext();
+			} else {
+				// the context and the selected project, without the init: the page asks for its context again
+				// at each init, which sent again would make them loop
+				sendAssistantContext();
+			}
 		} else if (type === activateType) {
 			activateLocalAgent(event.data?.payload);
 		} else if (type === openExternalType) {
