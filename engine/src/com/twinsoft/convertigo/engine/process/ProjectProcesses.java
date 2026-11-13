@@ -72,11 +72,4 @@ public final class ProjectProcesses {
 		}
 		return ManagedProcesses.get().stop(process -> functions.contains(process.getFunction()));
 	}
-
-	/**
-	 * @return whether a process of the application of project of one of these kinds runs
-	 */
-	public static boolean isRunning(String project, String kind) {
-		return !ManagedProcesses.get().list(function(kind, project)).isEmpty();
-	}
 }
