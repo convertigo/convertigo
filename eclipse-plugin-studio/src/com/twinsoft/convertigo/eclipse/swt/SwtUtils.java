@@ -42,6 +42,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.e4.ui.css.swt.dom.CompositeElement;
 import org.eclipse.e4.ui.css.swt.theme.IThemeEngine;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTException;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
@@ -57,6 +58,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.PlatformUI;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -162,6 +164,25 @@ public class SwtUtils {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Runs later on the user interface thread, unless the widget is disposed by then. For the listeners of the engine,
+	 * which must not wait for the user interface: it may itself wait for their request, like for its context.
+	 */
+	public static void asyncExec(Widget widget, Runnable runnable) {
+		if (widget == null || widget.isDisposed()) {
+			return;
+		}
+		try {
+			ConvertigoPlugin.asyncExec(() -> {
+				if (!widget.isDisposed()) {
+					runnable.run();
+				}
+			});
+		} catch (SWTException e) {
+			// the display is disposed: the Studio is closing
 		}
 	}
 

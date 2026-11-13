@@ -2,6 +2,16 @@
 <?pde version="3.8"?>
 <target includeMode="feature" name="eclipse">
 	<locations>
+		<location includeDependencyDepth="none" includeSource="false" missingManifest="error" type="Maven">
+			<dependencies>
+				<dependency>
+					<groupId>com.google.guava</groupId>
+					<artifactId>guava</artifactId>
+					<version>33.7.2-jre</version>
+					<type>jar</type>
+				</dependency>
+			</dependencies>
+		</location>
 		<location includeAllPlatforms="false" includeMode="planner" type="InstallableUnit">
 			<unit id="org.eclipse.egit.feature.group" version="0.0.0"/>
 			<unit id="org.eclipse.egit.gitflow.feature.feature.group" version="0.0.0"/>

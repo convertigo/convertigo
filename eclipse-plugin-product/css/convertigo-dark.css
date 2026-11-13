@@ -65,10 +65,6 @@ ObjectsExplorerComposite, ObjectsExplorerComposite * {
   background-color: unset;
 }
 
-.c8oEnginePreferenceExpandBar {
-  color: #2f2f2f;
-}
-
 /* Palette */
 .MPart .c8oPaletteCategory {
   color: #d8d8d8;

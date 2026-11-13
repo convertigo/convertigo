@@ -35,14 +35,19 @@ import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Array;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -125,8 +130,96 @@ public class XMLUtils {
 		}
 	}
 
-	private static DocumentBuilderFactory newDocumentBuilderFactory() {
+	/**
+	 * The two implementations of each factory. PINNED: the one looked up at startup, created by class name with the
+	 * class loader of the engine. JDK: the one inside the JDK (newDefaultInstance), which loads nothing with the
+	 * context class loader. A requestable runs with the class loader of its project as context class loader, which
+	 * looks in the jars of the project first (DirClassLoader), and Xerces and Xalan load their parts (parser
+	 * configuration, serializer...) with the context class loader: when the project ships its own Xerces or Xalan,
+	 * the pinned factory would get some of its classes (ClassCastException). Such a thread uses the implementation
+	 * inside the JDK. The choice is made again at each use, as a thread can serve several projects and the engine.
+	 */
+	private static final int PINNED = 0;
+	private static final int JDK = 1;
+
+	private static final int DOCUMENT_BUILDER_FACTORY = 0;
+	private static final int SAX_PARSER_FACTORY = 1;
+	private static final int TRANSFORMER_FACTORY = 2;
+
+	/** by context class loader (weak: a reloaded project gets a new one), the factories it has its own implementation of */
+	private static final Map<ClassLoader, Map<Integer, Boolean>> ownImplementations = new WeakHashMap<ClassLoader, Map<Integer, Boolean>>();
+
+	/** the choices of a thread for its current context class loader, held weakly */
+	private static final class Choices {
+		private WeakReference<ClassLoader> loader = new WeakReference<ClassLoader>(null);
+		private int known;
+		private int own;
+	}
+
+	private static final ThreadLocal<Choices> choices = ThreadLocal.withInitial(Choices::new);
+
+	/** PINNED, or JDK when the context class loader of the thread has its own implementation of the factory */
+	private static int variant(int factory) {
+		ClassLoader context = Thread.currentThread().getContextClassLoader();
+		if (context == null || context == XMLUtils.class.getClassLoader()) {
+			return PINNED;
+		}
+		Choices choice = choices.get();
+		if (choice.loader.get() != context) {
+			choice.loader = new WeakReference<ClassLoader>(context);
+			choice.known = 0;
+			choice.own = 0;
+		}
+		int bit = 1 << factory;
+		if ((choice.known & bit) == 0) {
+			if (hasOwnImplementation(context, factory)) {
+				choice.own |= bit;
+			}
+			choice.known |= bit;
+		}
+		return (choice.own & bit) == 0 ? PINNED : JDK;
+	}
+
+	/**
+	 * True when the class loader has its own implementation of the factory: another provider in its
+	 * META-INF/services, or its own copy of the pinned class.
+	 */
+	private static boolean hasOwnImplementation(ClassLoader context, int factory) {
+		synchronized (ownImplementations) {
+			Map<Integer, Boolean> known = ownImplementations.get(context);
+			Boolean own = known == null ? null : known.get(factory);
+			if (own != null) {
+				return own;
+			}
+		}
+		ClassLoader engine = XMLUtils.class.getClassLoader();
+		String className = factory == DOCUMENT_BUILDER_FACTORY ? documentBuilderFactoryClassName
+				: factory == SAX_PARSER_FACTORY ? saxParserFactoryClassName : transformerFactoryClassName;
+		Class<?> type = factory == DOCUMENT_BUILDER_FACTORY ? DocumentBuilderFactory.class
+				: factory == SAX_PARSER_FACTORY ? SAXParserFactory.class : TransformerFactory.class;
+		boolean own = false;
+		try {
+			String service = "META-INF/services/" + type.getName();
+			URL provider = context.getResource(service);
+			URL engineProvider = engine == null ? null : engine.getResource(service);
+			own = provider != null && (engineProvider == null || !provider.toExternalForm().equals(engineProvider.toExternalForm()));
+			if (!own && className != null) {
+				own = Class.forName(className, false, context) != Class.forName(className, false, engine);
+			}
+		} catch (Throwable t) {
+			// not visible from the context class loader: the implementation finds its parts in its own
+		}
+		synchronized (ownImplementations) {
+			ownImplementations.computeIfAbsent(context, loader -> new ConcurrentHashMap<Integer, Boolean>()).put(factory, own);
+		}
+		return own;
+	}
+
+	private static DocumentBuilderFactory newDocumentBuilderFactory(int variant) {
 		XmlUseCounter.factory();
+		if (variant == JDK) {
+			return DocumentBuilderFactory.newDefaultInstance();
+		}
 		if (documentBuilderFactoryClassName != null) {
 			try {
 				return DocumentBuilderFactory.newInstance(documentBuilderFactoryClassName, XMLUtils.class.getClassLoader());
@@ -137,7 +230,10 @@ public class XMLUtils {
 		return DocumentBuilderFactory.newInstance();
 	}
 
-	private static SAXParserFactory newSAXParserFactory() {
+	private static SAXParserFactory newSAXParserFactory(int variant) {
+		if (variant == JDK) {
+			return SAXParserFactory.newDefaultInstance();
+		}
 		if (saxParserFactoryClassName != null) {
 			try {
 				return SAXParserFactory.newInstance(saxParserFactoryClassName, XMLUtils.class.getClassLoader());
@@ -148,7 +244,10 @@ public class XMLUtils {
 		return SAXParserFactory.newInstance();
 	}
 
-	private static TransformerFactory newTransformerFactory() {
+	private static TransformerFactory newTransformerFactory(int variant) {
+		if (variant == JDK) {
+			return TransformerFactory.newDefaultInstance();
+		}
 		if (transformerFactoryClassName != null) {
 			try {
 				return TransformerFactory.newInstance(transformerFactoryClassName, XMLUtils.class.getClassLoader());
@@ -157,6 +256,103 @@ public class XMLUtils {
 			}
 		}
 		return TransformerFactory.newInstance();
+	}
+
+	private interface Setting {
+		void apply() throws Exception;
+	}
+
+	/**
+	 * Applies one setting of a factory, on its own: a refused setting is logged with its name, and an essential one
+	 * is added to refused (the factory is then not used).
+	 */
+	private static void set(Object factory, String setting, boolean essential, List<String> refused, Setting apply) {
+		try {
+			apply.apply();
+		} catch (Exception | LinkageError e) {
+			if (essential) {
+				refused.add(setting);
+			}
+			if (Engine.logEngine != null) {
+				String message = "The XML factory " + factory.getClass().getName() + " refuses the setting " + setting
+						+ (essential ? ", it is not used: " : ": ") + e;
+				if (essential) {
+					Engine.logEngine.error(message);
+				} else {
+					Engine.logEngine.warn(message);
+				}
+			}
+		}
+	}
+
+	static final String SECURE_PROCESSING = XMLConstants.FEATURE_SECURE_PROCESSING;
+	static final String EXTERNAL_GENERAL_ENTITIES = "http://xml.org/sax/features/external-general-entities";
+	static final String EXTERNAL_PARAMETER_ENTITIES = "http://xml.org/sax/features/external-parameter-entities";
+	static final String LOAD_EXTERNAL_DTD = "http://apache.org/xml/features/nonvalidating/load-external-dtd";
+	static final String DISALLOW_DOCTYPE = "http://apache.org/xml/features/disallow-doctype-decl";
+
+	/**
+	 * Disables external entity resolution and external DTD access, setting by setting; with forbidDoctype, no
+	 * DOCTYPE at all. Internal DTD subsets (used by some shipped XSL) keep working otherwise.
+	 * @return the essential settings refused (empty: the factory can be used)
+	 */
+	static List<String> harden(DocumentBuilderFactory factory, boolean forbidDoctype) {
+		List<String> refused = new ArrayList<String>(0);
+		if (forbidDoctype) {
+			set(factory, DISALLOW_DOCTYPE, true, refused, () -> factory.setFeature(DISALLOW_DOCTYPE, true));
+		}
+		// essential except for the secure builder, which accepts no DOCTYPE: its limits bound the expansion of entities
+		set(factory, SECURE_PROCESSING, !forbidDoctype, refused, () -> factory.setFeature(SECURE_PROCESSING, true));
+		if (!forbidDoctype) {
+			set(factory, EXTERNAL_GENERAL_ENTITIES, true, refused, () -> factory.setFeature(EXTERNAL_GENERAL_ENTITIES, false));
+			set(factory, EXTERNAL_PARAMETER_ENTITIES, true, refused, () -> factory.setFeature(EXTERNAL_PARAMETER_ENTITIES, false));
+			set(factory, LOAD_EXTERNAL_DTD, true, refused, () -> factory.setFeature(LOAD_EXTERNAL_DTD, false));
+		}
+		set(factory, "XIncludeAware", false, refused, () -> factory.setXIncludeAware(false));
+		set(factory, "ExpandEntityReferences", false, refused, () -> factory.setExpandEntityReferences(false));
+		// Optional JAXP hardening, not supported by every XML implementation.
+		try {
+			factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+			factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+		} catch (Exception e) {
+			// ACCESS_EXTERNAL_* is not supported by every XML implementation; ignore.
+		}
+		return refused;
+	}
+
+	/** as harden(DocumentBuilderFactory, false), for a SAX parser factory */
+	static List<String> harden(SAXParserFactory factory) {
+		List<String> refused = new ArrayList<String>(0);
+		set(factory, SECURE_PROCESSING, true, refused, () -> factory.setFeature(SECURE_PROCESSING, true));
+		set(factory, EXTERNAL_GENERAL_ENTITIES, true, refused, () -> factory.setFeature(EXTERNAL_GENERAL_ENTITIES, false));
+		set(factory, EXTERNAL_PARAMETER_ENTITIES, true, refused, () -> factory.setFeature(EXTERNAL_PARAMETER_ENTITIES, false));
+		set(factory, LOAD_EXTERNAL_DTD, true, refused, () -> factory.setFeature(LOAD_EXTERNAL_DTD, false));
+		set(factory, "XIncludeAware", false, refused, () -> factory.setXIncludeAware(false));
+		return refused;
+	}
+
+	/** a hardened document builder factory of the variant, or of the JDK if this one refuses an essential setting */
+	private static DocumentBuilderFactory newHardenedDocumentBuilderFactory(int variant, boolean forbidDoctype) {
+		DocumentBuilderFactory factory = newDocumentBuilderFactory(variant);
+		if (!harden(factory, forbidDoctype).isEmpty()) {
+			if (variant == JDK) {
+				throw new IllegalStateException("The XML document builder factory of the JDK cannot be hardened");
+			}
+			return newHardenedDocumentBuilderFactory(JDK, forbidDoctype);
+		}
+		return factory;
+	}
+
+	/** a hardened SAX parser factory of the variant, or of the JDK if this one refuses an essential setting */
+	private static SAXParserFactory newHardenedSAXParserFactory(int variant) {
+		SAXParserFactory factory = newSAXParserFactory(variant);
+		if (!harden(factory).isEmpty()) {
+			if (variant == JDK) {
+				throw new IllegalStateException("The SAX parser factory of the JDK cannot be hardened");
+			}
+			return newHardenedSAXParserFactory(JDK);
+		}
+		return factory;
 	}
 
 	private static String serviceProvider(String name, String defaultClassName) {
@@ -176,30 +372,16 @@ public class XMLUtils {
 		return defaultClassName;
 	}
 
-	private static ThreadLocal<DocumentBuilderFactory> defaultDocumentBuilderFactory = new ThreadLocal<DocumentBuilderFactory>() {
-		@Override
-		protected DocumentBuilderFactory initialValue() {
-			DocumentBuilderFactory documentBuilderFactory = newDocumentBuilderFactory();
-			// Disable external entity resolution and external DTD access. Internal
-			// DTD subsets (used by some shipped XSL) keep working; only external
-			// references are blocked.
-			try {
-				documentBuilderFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-				documentBuilderFactory.setFeature("http://xml.org/sax/features/external-general-entities", false);
-				documentBuilderFactory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-				documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-				documentBuilderFactory.setXIncludeAware(false);
-				documentBuilderFactory.setExpandEntityReferences(false);
-			} catch (Exception e) {
-				if (Engine.logEngine != null) Engine.logEngine.warn("Unable to harden the XML document builder factory: " + e.getMessage());
-			}
-			// Optional JAXP hardening, not supported by every XML implementation.
-			try {
-				documentBuilderFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-				documentBuilderFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
-			} catch (Exception e) {
-				// ACCESS_EXTERNAL_* is not supported by every XML implementation; ignore.
-			}
+	/** by thread, the document builder factory, the document builder, the transformer factory and the SAX parser of each variant */
+	private static final ThreadLocal<DocumentBuilderFactory[]> defaultDocumentBuilderFactories = ThreadLocal.withInitial(() -> new DocumentBuilderFactory[2]);
+	private static final ThreadLocal<DocumentBuilder[]> defaultDocumentBuilders = ThreadLocal.withInitial(() -> new DocumentBuilder[2]);
+	private static final ThreadLocal<TransformerFactory[]> defaultTransformerFactories = ThreadLocal.withInitial(() -> new TransformerFactory[2]);
+	private static final ThreadLocal<SAXParser[]> defaultSAXParsers = ThreadLocal.withInitial(() -> new SAXParser[2]);
+
+	private static DocumentBuilderFactory defaultDocumentBuilderFactory(int variant) {
+		DocumentBuilderFactory[] factories = defaultDocumentBuilderFactories.get();
+		if (factories[variant] == null) {
+			DocumentBuilderFactory documentBuilderFactory = newHardenedDocumentBuilderFactory(variant, false);
 			try {
 				String s = EnginePropertiesManager.getProperty(PropertyName.DOCUMENT_NAMESPACE_AWARE);
 				if (s.equalsIgnoreCase("true"))
@@ -208,31 +390,31 @@ public class XMLUtils {
 			catch (IllegalStateException e) {
 				documentBuilderFactory.setNamespaceAware(true);
 			}
-			return documentBuilderFactory;
+			factories[variant] = documentBuilderFactory;
 		}
-	};
+		return factories[variant];
+	}
 
-	private static ThreadLocal<DocumentBuilder> defaultDocumentBuilder = new ThreadLocal<DocumentBuilder>() {
-		@Override
-		protected DocumentBuilder initialValue() {
+	public static DocumentBuilder getDefaultDocumentBuilder() {
+		int variant = variant(DOCUMENT_BUILDER_FACTORY);
+		DocumentBuilder[] builders = defaultDocumentBuilders.get();
+		if (builders[variant] == null) {
 			try {
 				XmlUseCounter.builder();
-				return XmlUseCounter.counting(defaultDocumentBuilderFactory.get().newDocumentBuilder());
+				builders[variant] = XmlUseCounter.counting(defaultDocumentBuilderFactory(variant).newDocumentBuilder());
 			} catch (ParserConfigurationException e) {
 				e.printStackTrace();
 				return null;
 			}
 		}
-	};
-
-	public static DocumentBuilder getDefaultDocumentBuilder() {
-		return defaultDocumentBuilder.get();
+		return builders[variant];
 	}
 	
-	private static ThreadLocal<TransformerFactory> defaultTransformerFactory = new ThreadLocal<TransformerFactory>() {
-		@Override
-		protected TransformerFactory initialValue() {
-			TransformerFactory transformerFactory = newTransformerFactory();
+	private static TransformerFactory defaultTransformerFactory() {
+		int variant = variant(TRANSFORMER_FACTORY);
+		TransformerFactory[] factories = defaultTransformerFactories.get();
+		if (factories[variant] == null) {
+			TransformerFactory transformerFactory = newTransformerFactory(variant);
 			// No FEATURE_SECURE_PROCESSING here: Xalan then rejects every attribute of the
 			// literal result elements of a stylesheet (the SmtpStep XSL loses its href, src, style...).
 			// The transformed documents are DOM trees already parsed by the hardened builder.
@@ -243,48 +425,39 @@ public class XMLUtils {
 			} catch (Exception e) {
 				// ACCESS_EXTERNAL_* is not supported by every XML implementation; ignore.
 			}
-			return transformerFactory;
+			factories[variant] = transformerFactory;
 		}
-	};
+		return factories[variant];
+	}
 
 	public static Transformer getNewTransformer() throws TransformerConfigurationException {
-		return defaultTransformerFactory.get().newTransformer();
+		return defaultTransformerFactory().newTransformer();
 	}
 	
 	public static Transformer getNewTransformer(Source source) throws TransformerConfigurationException {
-		return defaultTransformerFactory.get().newTransformer(source);
+		return defaultTransformerFactory().newTransformer(source);
 	}
 	
-	private static ThreadLocal<SAXParser> defaultSAXParser = new ThreadLocal<SAXParser>() {
-		@Override
-		protected SAXParser initialValue() {
+	private static SAXParser defaultSAXParser() {
+		int variant = variant(SAX_PARSER_FACTORY);
+		SAXParser[] parsers = defaultSAXParsers.get();
+		if (parsers[variant] == null) {
 			try {
-				SAXParserFactory saxParserFactory = newSAXParserFactory();
-				// Disable external entity resolution and external DTD access while
-				// keeping internal DTD subsets working.
-				try {
-					saxParserFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-					saxParserFactory.setFeature("http://xml.org/sax/features/external-general-entities", false);
-					saxParserFactory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-					saxParserFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-					saxParserFactory.setXIncludeAware(false);
-				} catch (Exception e) {
-					if (Engine.logEngine != null) Engine.logEngine.warn("Unable to harden the SAX parser factory: " + e.getMessage());
-				}
-				return saxParserFactory.newSAXParser();
+				parsers[variant] = newHardenedSAXParserFactory(variant).newSAXParser();
 			} catch (Exception e) {
 				e.printStackTrace();
 				return null;
 			}
 		}
-	};
+		return parsers[variant];
+	}
 	
 	public static void saxParse(File file, DefaultHandler defaultHandler) throws SAXException, IOException {
-		defaultSAXParser.get().parse(file, defaultHandler);
+		defaultSAXParser().parse(file, defaultHandler);
 	}
 	
 	public static void saxParse(InputStream inputStream, DefaultHandler defaultHandler) throws SAXException, IOException {
-		defaultSAXParser.get().parse(inputStream, defaultHandler);
+		defaultSAXParser().parse(inputStream, defaultHandler);
 	}
 	
 	public static String simplePrettyPrintDOM(String sDocument) {
@@ -1157,37 +1330,32 @@ public class XMLUtils {
 	// Builder used to parse XML coming from untrusted string input (e.g. request
 	// parameters). It forbids DOCTYPE declarations entirely, so no entity can be
 	// defined or referenced.
-	private static ThreadLocal<DocumentBuilder> secureDocumentBuilder = new ThreadLocal<DocumentBuilder>() {
-		@Override
-		protected DocumentBuilder initialValue() {
+	private static final ThreadLocal<DocumentBuilder[]> secureDocumentBuilders = ThreadLocal.withInitial(() -> new DocumentBuilder[2]);
+
+	private static DocumentBuilder secureDocumentBuilder() {
+		int variant = variant(DOCUMENT_BUILDER_FACTORY);
+		DocumentBuilder[] builders = secureDocumentBuilders.get();
+		if (builders[variant] == null) {
 			try {
-				DocumentBuilderFactory factory = newDocumentBuilderFactory();
-				factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-				factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-				factory.setXIncludeAware(false);
-				factory.setExpandEntityReferences(false);
+				DocumentBuilderFactory factory = newHardenedDocumentBuilderFactory(variant, true);
 				factory.setNamespaceAware(true);
-				try {
-					factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-					factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
-				} catch (Exception ignored) {
-				}
 				XmlUseCounter.builder();
-				return XmlUseCounter.counting(factory.newDocumentBuilder());
+				builders[variant] = XmlUseCounter.counting(factory.newDocumentBuilder());
 			} catch (ParserConfigurationException e) {
-				Engine.logEngine.error("Unable to create the secure XML document builder", e);
-				return null;
+				if (Engine.logEngine != null) Engine.logEngine.error("Unable to create the secure XML document builder", e);
+				throw new IllegalStateException("Unable to create the secure XML document builder", e);
 			}
 		}
-	};
+		return builders[variant];
+	}
 
 	static public Document parseDOMFromString(String sDom) throws SAXException, IOException {
-		Document dom = secureDocumentBuilder.get().parse(new InputSource(new StringReader(sDom)));
+		Document dom = secureDocumentBuilder().parse(new InputSource(new StringReader(sDom)));
 		return dom;
 	}
 
 	static public Document parseDOMFromInputSource(InputSource inputSource) throws SAXException, IOException {
-		return secureDocumentBuilder.get().parse(inputSource);
+		return secureDocumentBuilder().parse(inputSource);
 	}
 
 	public static EntityResolver getEntityResolver() {

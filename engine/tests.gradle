@@ -954,6 +954,16 @@ tasks.register('dynamicContextTest', JavaExec) {
 }
 tasks.named('check') { dependsOn 'dynamicContextTest' }
 
+tasks.register('studioStopContextTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test (#1284): at the stop of the Studio, a request that keeps its context is aborted and waited for a bounded delay, and the free contexts are removed.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.StudioStopContextTest'
+}
+tasks.named('check') { dependsOn 'studioStopContextTest' }
+
 tasks.register('hsqldbPoolShutdownTest', JavaExec) {
 	group = 'verification'
 	description = 'Regression test: a pooled HSQLDB file database stays open between transactions and is shut down when its pool is removed or the engine stops.'
@@ -963,6 +973,21 @@ tasks.register('hsqldbPoolShutdownTest', JavaExec) {
 	args 'com.twinsoft.convertigo.engine.HsqldbPoolShutdownTest'
 }
 tasks.named('check') { dependsOn 'hsqldbPoolShutdownTest' }
+
+tasks.register('sqlAbortedTransactionTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: a query failing inside a database transaction reports its own error, and a failed transaction does not leave its connection in the failed database transaction (PostgreSQL rule; -Dconvertigo.test.postgresql.url runs it on a real server).'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.beans.transactions.SqlTransactionAbortedTransactionTest'
+	def postgresqlUrl = System.getProperty('convertigo.test.postgresql.url')
+	if (postgresqlUrl) {
+		systemProperty 'convertigo.test.postgresql.url', postgresqlUrl
+		systemProperty 'convertigo.test.postgresql.user', System.getProperty('convertigo.test.postgresql.user', 'postgres')
+	}
+}
+tasks.named('check') { dependsOn 'sqlAbortedTransactionTest' }
 
 tasks.register('sequenceCleanupTest', JavaExec) {
 	group = 'verification'
@@ -1063,3 +1088,13 @@ tasks.register('cipheredPropertyPlainTextTest', JavaExec) {
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.CipheredPropertyPlainTextTest'
 }
+
+tasks.register('xmlProjectLibrariesTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: a requestable of a project shipping its own Xerces in its libs gets working XML parsers and transformers.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.XMLUtilsProjectLibrariesTest'
+}
+tasks.named('check') { dependsOn 'xmlProjectLibrariesTest' }
