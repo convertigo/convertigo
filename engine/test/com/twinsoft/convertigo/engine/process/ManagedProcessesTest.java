@@ -227,6 +227,6 @@ public class ManagedProcessesTest {
 		assertEquals("\"C:\\\\Users\\\\John Doe\\\\b.js\"", NodePreload.quote("C:\\Users\\John Doe\\b.js"));
 		Map<String, String> env = new java.util.HashMap<>(Map.of("NODE_OPTIONS", "--max-old-space-size=4096"));
 		NodePreload.addToNodeOptions(env, new File("/w s/p.js"));
-		assertEquals("--max-old-space-size=4096 --require \"/w s/p.js\"", env.get("NODE_OPTIONS"));
+		assertEquals("--require \"/w s/p.js\" --max-old-space-size=4096", env.get("NODE_OPTIONS"));
 	}
 }

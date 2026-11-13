@@ -160,13 +160,14 @@ public final class NodePreload {
 	}
 
 	/**
-	 * Adds the preload to the NODE_OPTIONS of env, after the options already there.
+	 * Adds the preload to the NODE_OPTIONS of env, before the options already there: Node.js ignores the
+	 * options after a malformed one (e.g. max-old-space-size=8192 without its dashes).
 	 */
 	static void addToNodeOptions(Map<String, String> env, File preload) {
 		String key = env.containsKey("NODE_OPTIONS") ? "NODE_OPTIONS" : findKey(env, "NODE_OPTIONS");
 		String previous = env.getOrDefault(key, "");
 		String option = "--require " + quote(preload.getAbsolutePath());
-		env.put(key, previous.isBlank() ? option : previous.trim() + " " + option);
+		env.put(key, previous.isBlank() ? option : option + " " + previous.trim());
 	}
 
 	private static String findKey(Map<String, String> env, String name) {

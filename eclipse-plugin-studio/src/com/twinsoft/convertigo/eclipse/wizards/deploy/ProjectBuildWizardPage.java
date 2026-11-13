@@ -41,6 +41,9 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
 import com.twinsoft.convertigo.engine.enums.NgxBuilderBuildMode;
+import com.twinsoft.convertigo.engine.process.ManagedProcess;
+import com.twinsoft.convertigo.engine.process.ManagedProcessSpec;
+import com.twinsoft.convertigo.engine.process.ManagedProcesses;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
 
 class ProjectBuildWizardPage extends WizardPage {
@@ -83,6 +86,30 @@ class ProjectBuildWizardPage extends WizardPage {
 		}
 	}
 	
+	/**
+	 * Starts a step of the build as a managed process, stopped with its tree when the build is canceled, and with the
+	 * engine.
+	 */
+	private Process start(String kind, ProcessBuilder pb, IProgressMonitor monitor) throws Exception {
+		ManagedProcess process = ManagedProcesses.get().start(ManagedProcessSpec.of("deploy-" + kind + ":" + project.getName())
+				.builder(pb).nodePreload(true).property("project", project.getName()));
+		Thread watcher = new Thread(() -> {
+			try {
+				while (process.isAlive() && !monitor.isCanceled()) {
+					Thread.sleep(200);
+				}
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+			if (monitor.isCanceled()) {
+				process.stop();
+			}
+		}, "Cancel of the build of " + project.getName());
+		watcher.setDaemon(true);
+		watcher.start();
+		return process.getProcess();
+	}
+
 	private IRunnableWithProgress runnable = new IRunnableWithProgress() {
 		@Override
 		public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
@@ -128,7 +155,7 @@ class ProjectBuildWizardPage extends WizardPage {
 				pb.redirectErrorStream(true);
 				pb.directory(ionicDir);
 				com.twinsoft.convertigo.engine.LocalWorkDirectory.beginWork(nodeModules);
-				Process p = pb.start();
+				Process p = start("install", pb, monitor);
 				br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 				while (!monitor.isCanceled() && (line = br.readLine()) != null) {
 					line = pRemoveEchap.matcher(line).replaceAll("");
@@ -181,7 +208,7 @@ class ProjectBuildWizardPage extends WizardPage {
 					
 					pb.redirectErrorStream(true);
 					pb.directory(ionicDir);
-					p = pb.start();
+					p = start("build", pb, monitor);
 					Matcher matcher = Pattern.compile("(\\d+)% (.*)").matcher("");
 					int lastProgress = 0;
 					br = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -213,7 +240,7 @@ class ProjectBuildWizardPage extends WizardPage {
 					pb = ProcessUtils.getNpmProcessBuilder(nodeDir.getAbsolutePath(), "npm", "run", MobileBuilderBuildMode.production.command(), "--nobrowser");
 					pb.redirectErrorStream(true);
 					pb.directory(ionicDir);
-					p = pb.start();
+					p = start("build", pb, monitor);
 					br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 					while (!monitor.isCanceled() && (line = br.readLine()) != null) {
 						line = pRemoveEchap.matcher(line).replaceAll("");
