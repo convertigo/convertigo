@@ -68,6 +68,8 @@ import com.twinsoft.convertigo.engine.localbuild.BuildLocally.Status;
 import com.twinsoft.convertigo.engine.mobile.ComponentRefManager;
 import com.twinsoft.convertigo.engine.mobile.ComponentRefManager.Mode;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
+import com.twinsoft.convertigo.engine.process.ManagedProcessSpec;
+import com.twinsoft.convertigo.engine.process.ManagedProcesses;
 import com.twinsoft.convertigo.engine.util.CarUtils;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
@@ -406,7 +408,8 @@ public class CLI {
 		pb.redirectErrorStream(true);
 		pb.directory(ionicDir);
 		LocalWorkDirectory.beginWork(nodeModules);
-		Process p = pb.start();
+		// managed: stopped with its tree when the JVM exits, Node.js also when it dies
+		Process p = ManagedProcesses.get().start(ManagedProcessSpec.of("cli-install:" + project.getName()).builder(pb).nodePreload(true)).getProcess();
 		try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
 			while ((line = br.readLine()) != null) {
 				line = pRemoveEchap.matcher(line).replaceAll("");
@@ -460,7 +463,7 @@ public class CLI {
 		}
 		pb.redirectErrorStream(true);
 		pb.directory(ionicDir);
-		p = pb.start();
+		p = ManagedProcesses.get().start(ManagedProcessSpec.of("cli-build:" + project.getName()).builder(pb).nodePreload(true)).getProcess();
 		try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
 			while ((line = br.readLine()) != null) {
 				line = pRemoveEchap.matcher(line).replaceAll("");

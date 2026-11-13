@@ -31,6 +31,7 @@ import java.lang.ProcessBuilder.Redirect;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -39,6 +40,7 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -57,6 +59,9 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.process.ManagedProcessSpec;
+import com.twinsoft.convertigo.engine.process.ManagedProcesses;
+import com.twinsoft.convertigo.engine.process.ProcessTrees;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMethod;
@@ -116,6 +121,8 @@ public class ProcessUtils {
 					try (InputStream is = p.getInputStream()) {
 						version = IOUtils.toString(is, Charset.defaultCharset()).trim();
 					}
+				} else {
+					ProcessTrees.stop(p.toHandle(), Duration.ofSeconds(2));
 				}
 			} else {
 				Engine.logConvertigo.info("Node doesn't exist here: " + nodeFile.getAbsolutePath());
@@ -140,7 +147,8 @@ public class ProcessUtils {
 						}
 					}
 				} else {
-					p.destroyForcibly();
+					// npm.cmd runs node through cmd.exe on Windows: the whole tree
+					ProcessTrees.stop(p.toHandle(), Duration.ofSeconds(2));
 				}
 			} else {
 				Engine.logConvertigo.info("npm doesn't exist here: " + npmFile.getAbsolutePath());
@@ -290,6 +298,40 @@ public class ProcessUtils {
 		return getNpmProcessBuilder(paths, new LinkedList<String>(Arrays.asList(command)));
 	}
 
+	/** at most for the extraction of an archive of Node.js or of a JDK */
+	private static final Duration TAR_TIMEOUT = Duration.ofMinutes(10);
+	/** at most for a command of the Android sdkmanager, which downloads */
+	private static final Duration SDK_MANAGER_TIMEOUT = Duration.ofMinutes(30);
+
+	/**
+	 * Waits for process at most timeout, then stops its whole tree.
+	 *
+	 * @return its exit code, -1 when it was stopped
+	 */
+	private static int waitFor(Process process, Duration timeout, String what) throws InterruptedException {
+		if (process.waitFor(timeout.toMillis(), TimeUnit.MILLISECONDS)) {
+			return process.exitValue();
+		}
+		Engine.logEngine.warn(what + " did not end within " + timeout.toMinutes() + " min: it is stopped");
+		ProcessTrees.stop(process.toHandle(), Duration.ofSeconds(5));
+		return -1;
+	}
+
+	/**
+	 * Starts the Android sdkmanager (a script that runs java) as a managed process, stopped with its tree when the
+	 * engine stops or dies, and after SDK_MANAGER_TIMEOUT: its output then ends, and the reader goes on.
+	 */
+	private static Process startSdkManager(ProcessBuilder builder) throws IOException {
+		var managed = ManagedProcesses.get().start(ManagedProcessSpec.of("sdkmanager").builder(builder));
+		CompletableFuture.delayedExecutor(SDK_MANAGER_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS).execute(() -> {
+			if (managed.isAlive()) {
+				Engine.logEngine.warn("The Android sdkmanager did not end within " + SDK_MANAGER_TIMEOUT.toMinutes() + " min: it is stopped");
+				managed.stop();
+			}
+		});
+		return managed.getProcess();
+	}
+
 	private static String getNodeOs() {
 		// an arm64 Linux (Docker on Apple Silicon, Graviton...) cannot run the x64 build: its own folder keeps them apart
 		boolean arm64 = "aarch64".equals(System.getProperty("os.arch"));
@@ -426,8 +468,8 @@ public class ProcessUtils {
 					} else {
 						Engine.logEngine.info("tar -zxf " + source.getAbsolutePath() + " into " + dir.getParentFile());
 						dir.getParentFile().mkdirs();
-						int status = ProcessUtils.getProcessBuilder(null, "tar", "-zxf", source.getAbsolutePath(), "-C", dir.getParentFile().getAbsolutePath())
-								.redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start().waitFor();
+						int status = waitFor(ProcessUtils.getProcessBuilder(null, "tar", "-zxf", source.getAbsolutePath(), "-C", dir.getParentFile().getAbsolutePath())
+								.redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start(), TAR_TIMEOUT, "tar");
 						extracted = status == 0;
 						if (!extracted && fromCache) {
 							Engine.logEngine.warn("getNodeDir unable to extract " + cached + ", it is downloaded again");
@@ -561,8 +603,8 @@ public class ProcessUtils {
 		} else {
 			Engine.logEngine.info("tar -zxf " + archive.getAbsolutePath() + " into " + archive.getParentFile());
 			dir.mkdirs();
-			ProcessUtils.getProcessBuilder(null, "tar", "--strip-components=" + (Engine.isLinux() ? 1 : 3), "-zxf", archive.getAbsolutePath()).directory(dir)
-			.redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start().waitFor();
+			waitFor(ProcessUtils.getProcessBuilder(null, "tar", "--strip-components=" + (Engine.isLinux() ? 1 : 3), "-zxf", archive.getAbsolutePath()).directory(dir)
+			.redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start(), TAR_TIMEOUT, "tar");
 		}
 		archive.delete();
 		Engine.logEngine.info("jdk dir: " + dir);
@@ -671,7 +713,7 @@ public class ProcessUtils {
 		String output;
 		if (buildToolsDir == null) {
 			Engine.logEngine.info("Android commands");
-			p = ProcessUtils.getProcessBuilder(binDir.getAbsolutePath(), Engine.isWindows() ? "sdkmanager.bat" : "sdkmanager", "--licenses", "--sdk_root=" + dir.getAbsolutePath()).redirectErrorStream(true).start();
+			p = startSdkManager(ProcessUtils.getProcessBuilder(binDir.getAbsolutePath(), Engine.isWindows() ? "sdkmanager.bat" : "sdkmanager", "--licenses", "--sdk_root=" + dir.getAbsolutePath()).redirectErrorStream(true));
 			BufferedOutputStream bos = new BufferedOutputStream(p.getOutputStream());
 			BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"));
 			Engine.execute(() -> {
@@ -704,7 +746,7 @@ public class ProcessUtils {
 				}
 				Engine.logEngine.info("use prefered build-tools: " + buildTools);
 			} else {
-				p = ProcessUtils.getProcessBuilder(binDir.getAbsolutePath(), Engine.isWindows() ? "sdkmanager.bat" : "sdkmanager", "--list", "--sdk_root=" + dir.getAbsolutePath()).redirectErrorStream(true).start();
+				p = startSdkManager(ProcessUtils.getProcessBuilder(binDir.getAbsolutePath(), Engine.isWindows() ? "sdkmanager.bat" : "sdkmanager", "--list", "--sdk_root=" + dir.getAbsolutePath()).redirectErrorStream(true));
 				output = IOUtils.toString(p.getInputStream(), "UTF-8");
 				code = p.waitFor();
 				Engine.logEngine.info("Android package list: " + code + "\n" + output);
@@ -715,7 +757,7 @@ public class ProcessUtils {
 				}
 				Engine.logEngine.info("build-tools: " + buildTools);
 			}
-			p = ProcessUtils.getProcessBuilder(binDir.getAbsolutePath(), Engine.isWindows() ? "sdkmanager.bat" : "sdkmanager", "--sdk_root=" + dir.getAbsolutePath(), buildTools).redirectErrorStream(true).start();
+			p = startSdkManager(ProcessUtils.getProcessBuilder(binDir.getAbsolutePath(), Engine.isWindows() ? "sdkmanager.bat" : "sdkmanager", "--sdk_root=" + dir.getAbsolutePath(), buildTools).redirectErrorStream(true));
 			output = IOUtils.toString(p.getInputStream(), "UTF-8");
 			code = p.waitFor();
 			Engine.logEngine.info("Android install build-tools: " + code + "\n" + output);
