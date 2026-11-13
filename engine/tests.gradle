@@ -560,6 +560,16 @@ tasks.register('dynamicContextTest', JavaExec) {
 }
 tasks.named('check') { dependsOn 'dynamicContextTest' }
 
+tasks.register('studioStopContextTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test (#1284): at the stop of the Studio, a request that keeps its context is aborted and waited for a bounded delay, and the free contexts are removed.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.StudioStopContextTest'
+}
+tasks.named('check') { dependsOn 'studioStopContextTest' }
+
 tasks.register('hsqldbPoolShutdownTest', JavaExec) {
 	group = 'verification'
 	description = 'Regression test: a pooled HSQLDB file database stays open between transactions and is shut down when its pool is removed or the engine stops.'
