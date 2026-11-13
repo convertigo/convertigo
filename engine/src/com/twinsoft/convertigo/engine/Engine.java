@@ -487,7 +487,9 @@ public class Engine {
 				LocalWorkDirectory.init();
 
 				// the processes a previous session of this workspace left running, when it did not stop normally
-				com.twinsoft.convertigo.engine.process.ManagedProcesses.get().open(new File(Engine.USER_WORKSPACE_PATH));
+				var managedProcesses = com.twinsoft.convertigo.engine.process.ManagedProcesses.get();
+				managedProcesses.setReaperMode(EnginePropertiesManager.getProperty(PropertyName.PROCESS_REAPER));
+				managedProcesses.open(new File(Engine.USER_WORKSPACE_PATH));
 
 				// Initializing the engine
 				Engine.theApp = new Engine();

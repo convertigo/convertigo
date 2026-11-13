@@ -34,6 +34,7 @@ public class ManagedProcessLauncher {
 	public static void main(String[] args) throws Exception {
 		File workspace = new File(args[0]);
 		ManagedProcesses service = ManagedProcesses.get();
+		service.setReaperMode(args[1]);
 		service.open(workspace);
 		String node = System.getProperty("nodeExecutable", "node");
 		for (int i = 2; i < args.length; i++) {
@@ -51,6 +52,7 @@ public class ManagedProcessLauncher {
 		}
 		// the identity of a launcher script is refreshed after 500 ms
 		Thread.sleep(700);
+		System.out.println("reaper " + service.getReaperPid());
 		System.out.println("ready " + ProcessHandle.current().pid());
 		System.out.flush();
 		// a normal stop: the end of stdin

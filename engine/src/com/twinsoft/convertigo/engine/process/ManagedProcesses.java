@@ -21,12 +21,21 @@ package com.twinsoft.convertigo.engine.process;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.MessageDigest;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -46,7 +55,12 @@ import org.apache.log4j.Logger;
  * API only;</li>
  * <li>{@link #stopAll()}, called first by Engine.stop and by a single shutdown hook, stops all of them;</li>
  * <li>{@link #open(File)}, called by Engine.start, stops the processes a previous session left running, only
- * when their PID, start instant and command match the registry.</li>
+ * when their PID, start instant and command match the registry;</li>
+ * <li>a process reaper, a small JVM started with the first recorded process, stops the recorded processes
+ * when the engine dies abruptly (see {@link ProcessReaper}); it is useless, and off by default (auto), in
+ * a container whose main process is the engine: the container stops with it;</li>
+ * <li>on Windows, the processes also join a job object that the system closes, killing them, when the JVM
+ * exits.</li>
  * </ul>
  * The service is the same for the whole JVM: {@link #get()} works before the engine starts and after it
  * stops (CLI, shutdown hook).
@@ -69,6 +83,12 @@ public final class ManagedProcesses {
 	private File workspace = null;
 	private Thread hook = null;
 	private ScheduledExecutorService scheduler = null;
+
+	private final Object reaperLock = new Object();
+	private String reaperMode = "auto";
+	private Process reaper = null;
+	private OutputStream reaperInput = null;
+	private final Set<Path> reaperRegistries = new LinkedHashSet<>();
 
 	private final ProcessRegistry.Log registryLog = new ProcessRegistry.Log() {
 
@@ -178,7 +198,9 @@ public final class ManagedProcesses {
 			builder.redirectInput(ProcessBuilder.Redirect.PIPE);
 		}
 		installHook();
-		beforeStart(registry);
+		if (isAccepting()) {
+			beforeStart(registry);
+		}
 		ManagedProcess managed;
 		synchronized (lock) {
 			if (!accepting) {
@@ -213,15 +235,178 @@ public final class ManagedProcesses {
 	}
 
 	/**
-	 * Called before a process with a registry starts.
+	 * @param mode on, off or auto (on, except in a container whose main process is the engine, which stops
+	 *             with it)
 	 */
-	private void beforeStart(ProcessRegistry registry) {
+	public void setReaperMode(String mode) {
+		synchronized (reaperLock) {
+			reaperMode = mode == null ? "auto" : mode.trim().toLowerCase(Locale.ROOT);
+		}
 	}
 
 	/**
-	 * Called once a process started, before it is recorded.
+	 * @return the PID of the process reaper, -1 when none runs
+	 */
+	public long getReaperPid() {
+		synchronized (reaperLock) {
+			return reaper != null && reaper.isAlive() ? reaper.pid() : -1;
+		}
+	}
+
+	private boolean isReaperEnabled() {
+		return switch (reaperMode) {
+		case "on", "true" -> true;
+		case "off", "false" -> false;
+		default -> !isContainerMainProcess();
+		};
+	}
+
+	/**
+	 * @return whether the engine is the main process of a container, directly or under a minimal init (tini):
+	 *         its death stops the container, with all the processes it launched
+	 */
+	static boolean isContainerMainProcess() {
+		ProcessHandle current = ProcessHandle.current();
+		if (current.pid() == 1) {
+			return true;
+		}
+		return current.parent().filter(parent -> parent.pid() == 1).map(parent -> {
+			String name = new File(parent.info().command().orElse("")).getName();
+			return Set.of("tini", "tini-static", "docker-init", "dumb-init", "catatonit").contains(name);
+		}).orElse(false);
+	}
+
+	/**
+	 * Called before a process with a registry starts: the reaper watches its registry.
+	 */
+	private void beforeStart(ProcessRegistry registry) {
+		if (registry == null) {
+			return;
+		}
+		synchronized (reaperLock) {
+			if (!isReaperEnabled()) {
+				return;
+			}
+			Path dir = registry.getDir().toAbsolutePath();
+			try {
+				if (reaper != null && reaper.isAlive() && reaperInput != null) {
+					if (reaperRegistries.add(dir)) {
+						reaperInput.write(("registry " + dir + "\n").getBytes(StandardCharsets.UTF_8));
+						reaperInput.flush();
+					}
+					return;
+				}
+				if (reaper != null) {
+					// never two reapers: the previous one leaves
+					reaper.waitFor(2, TimeUnit.SECONDS);
+				}
+				reaperRegistries.clear();
+				reaperRegistries.add(dir);
+				reaper = startReaper(dir);
+				reaperInput = reaper.getOutputStream();
+				logger.debug("Started the process reaper (PID " + reaper.pid() + ") for " + dir);
+			} catch (Exception e) {
+				reaper = null;
+				reaperInput = null;
+				logger.warn("Cannot start the process reaper: the processes of the engine will not be stopped if it dies abruptly", e);
+			}
+		}
+	}
+
+	private Process startReaper(Path dir) throws Exception {
+		Files.createDirectories(dir);
+		Path classes = copyReaperClasses(dir);
+		ProcessHandle current = ProcessHandle.current();
+		String java = new File(System.getProperty("java.home"), "bin/" + (File.separatorChar == '\\' ? "java.exe" : "java")).getAbsolutePath();
+		List<String> command = List.of(java, "-Xmx16m", "-Xss256k", "-XX:TieredStopAtLevel=1", "-XX:CICompilerCount=1",
+				"-XX:+UseSerialGC", "-XX:-UsePerfData", "-XX:MaxMetaspaceSize=32m", "-Xshare:auto",
+				"-cp", classes.toString(), ProcessReaper.class.getName(),
+				Long.toString(current.pid()), Long.toString(ProcessRegistry.startOf(current.info())), dir.toString());
+		ProcessBuilder builder = new ProcessBuilder(command);
+		builder.redirectInput(ProcessBuilder.Redirect.PIPE);
+		builder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+		builder.redirectError(ProcessBuilder.Redirect.DISCARD);
+		builder.environment().remove("JAVA_TOOL_OPTIONS");
+		builder.environment().remove("JDK_JAVA_OPTIONS");
+		return builder.start();
+	}
+
+	/**
+	 * Copies the classes of the reaper in &lt;dir&gt;/.reaper/&lt;their fingerprint&gt;: the class loader of
+	 * the engine (Tomcat, OSGi) does not give a class path a new JVM can use.
+	 */
+	static Path copyReaperClasses(Path dir) throws Exception {
+		MessageDigest digest = MessageDigest.getInstance("SHA-256");
+		Map<String, byte[]> files = new LinkedHashMap<>();
+		for (Class<?> type : ProcessReaper.CLASSES) {
+			String name = type.getName();
+			String simple = name.substring(name.lastIndexOf('.') + 1);
+			try (InputStream in = ProcessReaper.class.getResourceAsStream(simple + ".class")) {
+				if (in == null) {
+					throw new IOException("Missing class " + name);
+				}
+				byte[] bytes = in.readAllBytes();
+				files.put(name.replace('.', '/') + ".class", bytes);
+				digest.update(bytes);
+			}
+		}
+		Path root = dir.resolve(".reaper").resolve(HexFormat.of().formatHex(digest.digest()).substring(0, 16));
+		for (Map.Entry<String, byte[]> file : files.entrySet()) {
+			Path path = root.resolve(file.getKey());
+			if (!Files.isRegularFile(path) || Files.size(path) != file.getValue().length) {
+				Files.createDirectories(path.getParent());
+				Path tmp = Files.createTempFile(path.getParent(), ".class-", ".tmp");
+				try {
+					Files.write(tmp, file.getValue());
+					Files.move(tmp, path, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+				} finally {
+					Files.deleteIfExists(tmp);
+				}
+			}
+		}
+		return root;
+	}
+
+	/**
+	 * Tells the reaper to leave, once no recorded process runs: after a normal stop.
+	 */
+	private void stopReaper() {
+		synchronized (lock) {
+			if (!running.isEmpty()) {
+				return;
+			}
+		}
+		synchronized (reaperLock) {
+			if (reaper == null) {
+				return;
+			}
+			try {
+				reaperInput.write("exit\n".getBytes(StandardCharsets.UTF_8));
+				reaperInput.flush();
+				reaperInput.close();
+			} catch (IOException e) {
+				// already gone
+			}
+			try {
+				reaper.waitFor(2, TimeUnit.SECONDS);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+			reaperInput = null;
+			if (!reaper.isAlive()) {
+				reaper = null;
+			}
+		}
+	}
+
+	/**
+	 * Called once a process started, before it is recorded: on Windows, it joins the job that the system
+	 * closes, killing it, when the JVM exits.
 	 */
 	private void afterStart(ManagedProcess managed) {
+		if (WindowsJob.WINDOWS) {
+			WindowsJob.assign(managed.pid(), logger);
+		}
 	}
 
 	private File preloadDir(ProcessRegistry registry) {
@@ -273,10 +458,6 @@ public final class ManagedProcesses {
 		if (managed.registry != null) {
 			managed.registry.remove(managed.entry);
 		}
-		afterForget();
-	}
-
-	private void afterForget() {
 	}
 
 	/**
@@ -363,6 +544,7 @@ public final class ManagedProcesses {
 	}
 
 	private void afterStopAll() {
+		stopReaper();
 	}
 
 	/**

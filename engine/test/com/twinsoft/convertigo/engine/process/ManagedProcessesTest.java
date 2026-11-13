@@ -51,6 +51,8 @@ public class ManagedProcessesTest {
 		ProcessTestSupport.assumeUnix();
 		workspace = temporary.newFolder("workspace");
 		service = new ManagedProcesses();
+		// the reaper has its own tests
+		service.setReaperMode("off");
 		service.open(workspace);
 	}
 
@@ -177,7 +179,9 @@ public class ManagedProcessesTest {
 		ProcessRegistry.Entry recorded = ManagedProcesses.registry(workspace).entries().stream().filter(e -> e.getPid() == spared).findFirst().orElseThrow();
 		ProcessTestSupport.rewrite(entry, Map.of("start", Long.toString(recorded.getStart() - 1000)));
 
-		List<ProcessRegistry.Cleanup> result = new ManagedProcesses().open(workspace);
+		ManagedProcesses next = new ManagedProcesses();
+		next.setReaperMode("off");
+		List<ProcessRegistry.Cleanup> result = next.open(workspace);
 		assertEquals(2, result.size());
 		for (ProcessHandle handle : orphanTree) {
 			assertTrue(ProcessTestSupport.waitDead(handle.pid(), Duration.ofSeconds(2)));
