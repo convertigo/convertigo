@@ -37,7 +37,7 @@ public class ProcessExecStepBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[5];
+			properties = new PropertyDescriptor[6];
 
 			properties[0] = new PropertyDescriptor("commandLine", beanClass, "getCommandLine", "setCommandLine");
 			properties[0].setDisplayName(getExternalizedString("property.commandLine.display_name"));
@@ -61,6 +61,10 @@ public class ProcessExecStepBeanInfo extends MySimpleBeanInfo {
 			properties[4] = new PropertyDescriptor("commandCharset", beanClass, "getCommandCharset", "setCommandCharset");
 			properties[4].setDisplayName(getExternalizedString("property.commandCharset.display_name"));
 			properties[4].setShortDescription(getExternalizedString("property.commandCharset.short_description"));
+
+			properties[5] = new PropertyDescriptor("stopWithSequence", beanClass, "isStopWithSequence", "setStopWithSequence");
+			properties[5].setDisplayName(getExternalizedString("property.stopWithSequence.display_name"));
+			properties[5].setShortDescription(getExternalizedString("property.stopWithSequence.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

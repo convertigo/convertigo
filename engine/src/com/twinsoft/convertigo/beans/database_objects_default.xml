@@ -13739,6 +13739,9 @@
         <property name="schemaDataType">
             <java.lang.String value="xsd:string"/>
         </property>
+        <property name="stopWithSequence">
+            <java.lang.Boolean value="true"/>
+        </property>
         <property name="waitForProcessEnd">
             <java.lang.Boolean value="true"/>
         </property>

@@ -49,6 +49,10 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.process.ManagedProcess;
+import com.twinsoft.convertigo.engine.process.ManagedProcessSpec;
+import com.twinsoft.convertigo.engine.process.ManagedProcesses;
+import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class ProcessExecStep extends Step {
@@ -69,6 +73,9 @@ public class ProcessExecStep extends Step {
 
 	/** Holds value of command line output charset */
 	private String commandCharset = "UTF-8";
+
+	/** whether a process the sequence does not wait for stops at the end of the sequence */
+	private boolean stopWithSequence = true;
 
 	public ProcessExecStep() {
 		super();
@@ -117,6 +124,24 @@ public class ProcessExecStep extends Step {
 
 	public boolean isWaitForProcessEnd() {
 		return waitForProcessEnd;
+	}
+
+	public boolean isStopWithSequence() {
+		return stopWithSequence;
+	}
+
+	public void setStopWithSequence(boolean stopWithSequence) {
+		this.stopWithSequence = stopWithSequence;
+	}
+
+	@Override
+	public void preconfigure(Element element) throws Exception {
+		super.preconfigure(element);
+		String version = element.getAttribute("version");
+		// a process the sequence did not wait for went on after the sequence before 8.5.0
+		if (version != null && !version.isEmpty() && VersionUtils.compareProductVersion(version, "8.5.0") < 0) {
+			stopWithSequence = false;
+		}
 	}
 
 	public String getCommandCharset() {
@@ -221,7 +246,10 @@ public class ProcessExecStep extends Step {
 				builder.environment().putAll(envMap);
 			}
 
-			final Process process = builder.start();
+			// managed: stopped with its child processes, and with the engine
+			final ManagedProcess managed = ManagedProcesses.get().start(ManagedProcessSpec.of("process-exec:" + getProject().getName())
+					.builder(builder).property("step", getQName()));
+			final Process process = managed.getProcess();
 
 			// Create and launch process stream reader threads
 			stderrThread = new ProcessStreamReaderThread(process.getErrorStream(), errorNode);
@@ -229,21 +257,26 @@ public class ProcessExecStep extends Step {
 			stderrThread.start();
 			stdoutThread.start();
 
-			if (isWaitForProcessEnd()) {
-				// Launch a thread to handle sequence abortion
+			if (isWaitForProcessEnd() || isStopWithSequence()) {
+				// Launch a thread to stop the process with its children when the sequence ends or is aborted
 				final Sequence s = sequence;
 				Engine.execute(new Runnable() { 
 					public void run() {
 						try {
-							while (s.isRunning()) {
+							while (s.isRunning() && process.isAlive()) {
 								Thread.sleep(500);
 							}
-							process.destroy();
+							if (process.isAlive()) {
+								managed.stop();
+							}
 						} catch (Exception e) {
 							Engine.logBeans.warn("An error occured while executing process.", e);
 						}
 					}
 				});
+			}
+
+			if (isWaitForProcessEnd()) {
 
 				// Wait for process end
 				process.waitFor();
