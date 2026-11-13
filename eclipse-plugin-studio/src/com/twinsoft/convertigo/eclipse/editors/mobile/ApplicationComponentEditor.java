@@ -25,10 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.ProcessBuilder.Redirect;
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -128,6 +125,7 @@ import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.mobile.MobileEventListener;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.NetworkUtils;
+import com.twinsoft.convertigo.engine.process.ProjectProcesses;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
 
 
@@ -209,7 +207,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	private String debugUrl;
 	private String baseUrl = null;
 	private String pagePath = null;
-	private Collection<Process> processes = new LinkedList<>();
 	private File datasetDir;
 	private File devicePref;
 	private String dataset = "none";
@@ -286,11 +283,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			devicesMenu.dispose();
 		}
 		
-		for (Process p: processes) {
-			p.destroyForcibly();
-			p.destroy();
-		}
-
+		// the node processes of the project, with their trees
 		terminateNode();
 		super.dispose();
 	}
@@ -1314,7 +1307,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					}
 					pb.redirectErrorStream(true);
 					pb.directory(ionicDir);
-					Process p = pb.start();
+					Process p = ProjectProcesses.start(ProjectProcesses.INSTALL, project.getName(), pb).getProcess();
 					Engine.execute(() -> {
 						try {
 							File staging = new File(nodeModules, ".staging");
@@ -1331,7 +1324,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 							appendOutput("Something wrong during the install: " + e);
 						}
 					});
-					processes.add(p);
 					BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 					String line;
 					while ((line = br.readLine()) != null) {
@@ -1409,8 +1401,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				}
 				pb.redirectErrorStream(true);
 				pb.directory(ionicDir);
-				Process p = pb.start();
-				processes.add(p);
+				Process p = ProjectProcesses.start(MobileBuilderBuildMode.production.equals(buildMode) ? ProjectProcesses.BUILD : ProjectProcesses.SERVE,
+						project.getName(), pb).getProcess();
 				BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 				String line;
 
@@ -1645,34 +1637,16 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		}
 	}
 
+	/**
+	 * Stops the node processes the Studio started for the application of the project, with their trees: never on
+	 * the name of its folder, which a project of another workspace can have.
+	 */
 	private void terminateNode() {
-		String projectName = new File(applicationEditorInput.application.getProject().getDirPath()).getName();
-		int retry = 10;
-		try {
-			while (retry-- > 0) {
-				int code;
-				if (Engine.isWindows()) {
-					var process = new ProcessBuilder("powershell", "-Command",
-						"Get-WmiObject Win32_Process | Where-Object { $_.Name -eq 'node.exe' -and $_.CommandLine -like '*\\" + projectName + "\\_private\\*' } | ForEach-Object { $_.Terminate() }"
-					).redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start();
-					code = process.waitFor();
-				} else {
-					Process process = new ProcessBuilder("/bin/bash", "-c",
-						"ps -e" + (Engine.isLinux() ? "f" : "") + " | grep -v \"sed -n\" | sed -n -E \"s,[^0-9]*([0-9]+).*(node|npm|ng).*/"+ projectName + "/_private/.*,\\1,p\" | xargs kill"
-					).redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start();
-					code = process.waitFor();
-				}
-				if (code == 0) {
-					retry = 0;
-				}
-			}
-			synchronized (usedPort) {
-				usedPort.remove(portNode);
-				usedPort.remove(portReload);
-				usedPort.remove(portLogger);
-			}
-		} catch (Exception e) {
-			Engine.logStudio.warn("Failed to terminate the node server", e);
+		ProjectProcesses.stop(applicationEditorInput.application.getProject().getName());
+		synchronized (usedPort) {
+			usedPort.remove(portNode);
+			usedPort.remove(portReload);
+			usedPort.remove(portLogger);
 		}
 	}
 
