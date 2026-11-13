@@ -312,10 +312,11 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 	private ToolItem toolTestConnection = null;
 	private ToolItem toolItemFullResult = null;
 
-	private boolean bDebug = false;
+	// shared by the request paused at a step and by the user interface that releases it (step, run, debug off, close)
+	private volatile boolean bDebug = false;
 	private boolean bShowBlocks = false;
-	private boolean bDebugStepByStep = false;
-	private DatabaseObject debugDatabaseObject = new Project();
+	private volatile boolean bDebugStepByStep = false;
+	private volatile DatabaseObject debugDatabaseObject = new Project();
 
 	/**
 	 * This method initializes toolBar
@@ -1093,8 +1094,9 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 		// Release a transaction paused by the step by step debug mode: it holds the Studio context
 		bDebug = false;
 		bDebugStepByStep = false;
-		synchronized (debugDatabaseObject) {
-			debugDatabaseObject.notifyAll();
+		DatabaseObject paused = debugDatabaseObject;
+		synchronized (paused) {
+			paused.notifyAll();
 		}
 
 		// Remove Studio context if it still exists, then release the connector, out of the user interface thread:
@@ -1405,11 +1407,16 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 
 		if (bDebugStepByStep) {
 			try {
-				synchronized (debugDatabaseObject) {
-					SwtUtils.asyncExec(this, () -> {
-						toolItemStep.setEnabled(true);
-					});
-					debugDatabaseObject.wait();
+				DatabaseObject paused = debugDatabaseObject;
+				synchronized (paused) {
+					// the step by step may be off since the check above (editor closed, run, debug stopped): its
+					// notification is then already sent, and the transaction must not wait for another one
+					if (bDebugStepByStep) {
+						SwtUtils.asyncExec(this, () -> {
+							toolItemStep.setEnabled(true);
+						});
+						paused.wait();
+					}
 				}
 			} catch (InterruptedException e) {
 				try {

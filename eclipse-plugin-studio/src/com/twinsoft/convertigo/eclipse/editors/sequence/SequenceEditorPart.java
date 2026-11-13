@@ -142,8 +142,9 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		// Release a sequence paused by the debug mode: it holds the Studio context
 		bDebug = false;
 		bDebugStepByStep = false;
-		synchronized (debugDatabaseObject) {
-			debugDatabaseObject.notifyAll();
+		DatabaseObject paused = debugDatabaseObject;
+		synchronized (paused) {
+			paused.notifyAll();
 		}
 
 		// Remove Studio context if it still exists, out of the user interface thread: a request may hold the context
@@ -274,10 +275,11 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		createToolBar();
 	}
 
-	protected boolean bDebug = false;
+	// shared by the request paused at a step and by the user interface that releases it (step, debug off, close)
+	protected volatile boolean bDebug = false;
 	protected boolean bShowBlocks = false;
-	protected boolean bDebugStepByStep = false;
-	protected DatabaseObject debugDatabaseObject = new Project();
+	protected volatile boolean bDebugStepByStep = false;
+	protected volatile DatabaseObject debugDatabaseObject = new Project();
 
 	/**
 	 * This method initializes toolBar
@@ -923,8 +925,13 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		} catch (IOException e1) {}
 
 		try {
-			synchronized(debugDatabaseObject) {
-				debugDatabaseObject.wait();
+			DatabaseObject paused = debugDatabaseObject;
+			synchronized(paused) {
+				// the debug may be off since the check above (editor closed, debug stopped): its notification is
+				// then already sent, and the sequence must not wait for another one
+				if (bDebug) {
+					paused.wait();
+				}
 			}
 			SwtUtils.asyncExec(this, () -> {
 				toolItemStep.setEnabled(true);
