@@ -1205,5 +1205,7 @@ allprojects {
 wrapper {
 	group = 'convertigo'
 	
-	gradleVersion = '9.8.2'
+	gradleVersion = '9.9.1'
+	// official checksum of gradle-<gradleVersion>-bin.zip, from services.gradle.org/distributions
+	distributionSha256Sum = 'd8a18a7a841dd5df825d35a685fad6f2d7f12ac0c280e57b67c27b4a520ba228'
 }
