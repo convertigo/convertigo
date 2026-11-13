@@ -130,7 +130,7 @@ public class Flow extends Sequence {
 	@Override
 	public void parseInputDocument(com.twinsoft.convertigo.engine.Context requestContext) throws EngineException {
 		if (requestContext.nativeInput == null) { super.parseInputDocument(requestContext); return; }
-		this.context = requestContext;
+		bindExecutionContext(requestContext);
 		variables.clear();
 		variables.putAll(requestContext.nativeInput);
 	}

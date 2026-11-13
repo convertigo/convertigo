@@ -61,6 +61,7 @@ tasks.named('check') {
 	dependsOn 'jdbcUrlDefaultsTest'
 	dependsOn 'runtimeBytecodeTest'
 	dependsOn 'requestableTimeoutTest'
+	dependsOn 'requestableExecutionContextTest'
 	dependsOn 'timingAllocationSpanTest'
 	dependsOn 'xsltCacheTest'
 	dependsOn 'sessionSerializationTest'
@@ -127,6 +128,15 @@ tasks.register('requestableTimeoutTest', JavaExec) {
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.beans.core.RequestableTimeoutTest'
+}
+
+tasks.register('requestableExecutionContextTest', JavaExec) {
+	group = 'verification'
+	description = 'Repeated, cancelled and concurrent executions fire their events with their own context.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.beans.core.RequestableExecutionContextTest'
 }
 
 tasks.register('xsltCacheTest', JavaExec) {

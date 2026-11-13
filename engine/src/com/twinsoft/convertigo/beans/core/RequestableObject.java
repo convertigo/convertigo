@@ -233,6 +233,20 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 	public abstract void abort();
 	
 	public void parseInputDocument(Context context) throws EngineException{
+		bindExecutionContext(context);
+	}
+
+	/**
+	 * Binds the context of a new execution. From now on, the execution references belong to this execution:
+	 * a cancelled worker of a previous execution, still unwinding, must no longer release them when it ends.
+	 */
+	protected final void bindExecutionContext(Context context) {
+		var previous = this.runningThread;
+		if (previous != null) {
+			synchronized (previous) {
+				previous.clearOnCompletion = false;
+			}
+		}
 		this.context = context;
 	}
 
@@ -287,15 +301,14 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 	}
 
 	private Document runMeasured(Requester requester, Context context) throws EngineException {
-        
+        // The events of this execution are fired with its own context.
+        bindExecutionContext(context);
+        this.requester = requester;
     	fireRequestableEvent(RequestableObject.EVENT_REQUESTABLE_STARTED);
         long traceStart = com.twinsoft.convertigo.engine.util.TimingTrace.start();
         boolean inline = false;
         
         try {
-            this.requester = requester;
-            this.context = context;
-            
             this.score = 0;
             
             context.cacheControl = this.isClientCachable() ? "true":"false";
@@ -452,6 +465,8 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
                 clearExecutionReferences();
             } else {
                 synchronized (worker) {
+                    // Only a cancelled worker still uses the references: it releases them when it ends,
+                    // unless a new execution binds this requestable first.
                     if (worker.isAlive() && !worker.completed) {
                         worker.clearOnCompletion = true;
                     } else {
@@ -1117,7 +1132,9 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 
         private long engineId;
         // Guarded by this thread's monitor: cancellation must let the worker unwind first.
+        // completed: this worker no longer uses the requestable's execution references.
         private boolean completed;
+        // Set by a caller that returned before its cancelled worker ended, reset by a new execution.
         private boolean clearOnCompletion;
         
         public org.mozilla.javascript.Context javascriptContext = null;
@@ -1142,12 +1159,22 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 			} finally {
 				Log4jHelper.mdcClear();
 				synchronized (this) {
-					completed = true;
-					if (clearOnCompletion && RequestableObject.this.runningThread == this) {
-						clearExecutionReferences();
-					}
+					// A worker that failed before its final stage.
+					if (!completed) releaseExecution();
 				}
 			}
+		}
+
+		/**
+		 * Under this worker's monitor, once it no longer uses the requestable's execution references: its caller,
+		 * still waiting or not returned yet, releases them; a caller that returned on cancellation left them to it.
+		 */
+		private void releaseExecution() {
+			completed = true;
+			if (clearOnCompletion && RequestableObject.this.runningThread == this) {
+				clearExecutionReferences();
+			}
+			clearOnCompletion = false;
 		}
 
 		/** the requestable in the thread of its caller (native.inline_calls), the log context of the caller kept */
@@ -1284,6 +1311,9 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 				if (timing != null) timing.close();
 
                 synchronized(this) {
+                    // Before waking the caller: a repeated call must not find these references released
+                    // by this worker once it has started its own execution.
+                    releaseExecution();
                     // Use worker-owned state: the caller may already have cleared its fields.
                     if (bContinue) {
 	    				Engine.logContext.debug("(RequestableObject) Notifying the calling thread '" + callingThread.getName() + "' because of normal request termination");
