@@ -45,6 +45,9 @@ import com.twinsoft.convertigo.beans.mobileplatforms.IOs;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.admin.services.mobiles.MobileResourceHelper;
+import com.twinsoft.convertigo.engine.process.ManagedProcess;
+import com.twinsoft.convertigo.engine.process.ManagedProcessSpec;
+import com.twinsoft.convertigo.engine.process.ManagedProcesses;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -65,6 +68,8 @@ public abstract class BuildLocally {
 
 	private boolean processCanceled = false;
 	private Process process;
+	/** the running command, managed: stopped with its whole tree (cordova, gradle, ios-deploy, lldb) and with the engine */
+	private volatile ManagedProcess managedProcess;
 
 	private final static String cordovaInstallsPath = Engine.USER_WORKSPACE_PATH + File.separator + "cordovas";
 	private String cordovaBinPath;
@@ -143,7 +148,10 @@ public abstract class BuildLocally {
 
 		Engine.logEngine.info("Executing command : " + parameters + "\nEnv:" + pb.environment());
 
-		process = pb.start();
+		// a Node.js command (cordova, npm) stops when the engine is gone, its other processes with the reaper
+		managedProcess = ManagedProcesses.get().start(ManagedProcessSpec.of("local-build:" + mobilePlatform.getProject().getName())
+				.builder(pb).nodePreload(true));
+		process = managedProcess.getProcess();
 
 		boolean[] done = {false};
 
@@ -551,23 +559,20 @@ public abstract class BuildLocally {
 		}
 	}
 
+	/**
+	 * Stops the running command with its whole tree: the lldb of a "Run On Device" on iOS is part of it, and no other
+	 * process of the machine is touched. The stop goes on in the background.
+	 *
+	 * @param run whether the build runs the application on a device
+	 */
 	public void cancelBuild(boolean run) {
-		//Only for the "Run On Device" action
-		if (run) {
-			if (mobilePlatform instanceof IOs) {
-				//kill the lldb process only for ios build platform
-				try {
-					Runtime.getRuntime().exec(new String[] {"pkill", "lldb"}).waitFor();
-				} catch (Exception e) {
-					Engine.logEngine.error("Error during kill of process \"lldb\"\n" + e.getMessage(), e);
-				}
-			}
-		}
-
 		processCanceled = true;
-
-		// Others OS
-		process.destroy();
+		var current = managedProcess;
+		if (current != null) {
+			Thread stop = new Thread(current::stop, "Cancel of the local build");
+			stop.setDaemon(true);
+			stop.start();
+		}
 	}
 
 	public Status installCordova() {
