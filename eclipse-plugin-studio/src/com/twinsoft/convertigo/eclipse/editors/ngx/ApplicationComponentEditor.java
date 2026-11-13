@@ -167,10 +167,10 @@ import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.mobile.MobileEventListener;
-import com.twinsoft.convertigo.engine.util.FileUtils;
-import com.twinsoft.convertigo.engine.util.NetworkUtils;
 import com.twinsoft.convertigo.engine.process.ManagedProcess;
 import com.twinsoft.convertigo.engine.process.ProjectProcesses;
+import com.twinsoft.convertigo.engine.util.FileUtils;
+import com.twinsoft.convertigo.engine.util.NetworkUtils;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
 
 
@@ -406,8 +406,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			devicesMenu.dispose();
 		}
 
-		// the node processes of the project, with their trees
-		terminateNode(false);
+		// the node processes of the project, with their trees, out of the UI thread
+		Engine.execute(() -> terminateNode(false));
 		super.dispose();
 	}
 

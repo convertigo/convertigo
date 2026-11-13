@@ -283,8 +283,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			devicesMenu.dispose();
 		}
 		
-		// the node processes of the project, with their trees
-		terminateNode();
+		// the node processes of the project, with their trees, out of the UI thread
+		Engine.execute(() -> terminateNode());
 		super.dispose();
 	}
 
