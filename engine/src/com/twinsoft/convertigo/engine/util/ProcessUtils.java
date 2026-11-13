@@ -70,7 +70,7 @@ import com.twinsoft.convertigo.engine.LocalWorkDirectory;
 import com.twinsoft.convertigo.engine.proxy.ntlm.NtlmConnectProxyBridge;
 
 public class ProcessUtils {
-	private static String defaultNodeVersion = "v26.13.0";
+	private static String defaultNodeVersion = "v26.13.1";
 	private static File defaultNodeDir;
 
 	public static String getDefaultNodeVersion() {
