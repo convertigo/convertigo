@@ -61,6 +61,7 @@ public class GatewayServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 	private static final Pattern pKey = Pattern.compile("^/(.*?)(?:/|$)");
 	private static final Pattern pDevPort = Pattern.compile(".*/DisplayObjects/dev(\\d+)/");
 	private static final Pattern pDevProject = Pattern.compile("/projects/([^/]+)/DisplayObjects/dev\\d+/");
+	private static final Pattern pDevRoot = Pattern.compile("(.*/DisplayObjects/dev\\d+/)(?:index\\.html)?");
 	private static final String SUBPROTOCOLS = "subprotocols";
 	private static final String WSTARGET = "wstarget";
 
@@ -120,6 +121,9 @@ public class GatewayServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 			}
 			targetHost = new HttpHost("127.0.0.1", devPort, "http");
 			websocketUri = uri;
+			if ("GET".equals(servletRequest.getMethod()) || "HEAD".equals(servletRequest.getMethod())) {
+				targetUri = developmentTarget(targetUri);
+			}
 		}
 		
 		if ("websocket".equals(HeaderName.Upgrade.getHeader(servletRequest))) {
@@ -150,6 +154,18 @@ public class GatewayServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 			servletRequest.setAttribute(ATTR_TARGET_HOST, targetHost);
 			super.service(servletRequest, servletResponse);
 		}
+	}
+
+	/**
+	 * The development server of an NGX application serves at its root, and as its index.html, the FlashUpdate page
+	 * of the project template, which, out of a mobile application, sends the browser to index.html, itself, every
+	 * second. The application is asked for there instead, as at a path of its routes: the browser keeps its
+	 * address, where the application opens its root page.
+	 * @return the path to ask the development server for
+	 */
+	static String developmentTarget(String uri) {
+		var root = pDevRoot.matcher(uri);
+		return root.matches() ? root.group(1) + "__c8o_application" : uri;
 	}
 
 	/**

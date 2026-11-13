@@ -639,6 +639,61 @@
 		}
 	});
 
+	/** the style hiding the error the development server shows over the application, which a banner tells */
+	const OVERLAY_STYLE_ID = '_c8o_compile_overlay_style';
+	/** the error of the last compilation of the development server, as it shows it over the application */
+	let compileError = $state(/** @type {{ message: string, file: string } | null} */ (null));
+	/** @type {MutationObserver | null} */
+	let overlayObserver = null;
+
+	/**
+	 * A compilation that fails shows its error over the whole application, as an agent changes it, until the next
+	 * one: the error shows as a banner instead, its details on demand.
+	 * @param {Document} doc
+	 */
+	function watchCompileOverlay(doc) {
+		overlayObserver?.disconnect();
+		overlayObserver = null;
+		compileError = null;
+		if (previewMode !== 'development' || !doc.head || !doc.body) {
+			return;
+		}
+		if (!doc.getElementById(OVERLAY_STYLE_ID)) {
+			const style = doc.createElement('style');
+			style.id = OVERLAY_STYLE_ID;
+			style.textContent =
+				'html:not([data-c8o-compile-details]) vite-error-overlay { display: none !important; }';
+			doc.head.appendChild(style);
+		}
+		const read = () => {
+			const overlay = doc.querySelector('vite-error-overlay');
+			const root = overlay?.shadowRoot;
+			const text = (/** @type {string} */ selector) =>
+				String(root?.querySelector(selector)?.textContent ?? '').trim();
+			compileError = overlay
+				? {
+						message: text('.message-body').split('\n')[0] || 'The application does not compile',
+						file: text('.file')
+					}
+				: null;
+			if (!overlay) {
+				doc.documentElement.removeAttribute('data-c8o-compile-details');
+			}
+		};
+		overlayObserver = new MutationObserver(read);
+		overlayObserver.observe(doc.body, { childList: true });
+		read();
+	}
+
+	/** the error of the development server shows over the application, until closed */
+	function showCompileDetails() {
+		try {
+			iframe?.contentDocument?.documentElement.setAttribute('data-c8o-compile-details', '');
+		} catch (error) {
+			console.warn('Unable to show the error of the compilation', error);
+		}
+	}
+
 	/**
 	 * Follows the document the preview loaded when it shows an NGX application.
 	 */
@@ -657,6 +712,7 @@
 		if (!doc) {
 			return;
 		}
+		watchCompileOverlay(doc);
 		// the page of the application leaves: its style edits are applied, the next one starts with the dataset
 		const win = iframe?.contentWindow;
 		win?.addEventListener('pagehide', () => leavePreviewPage(win));
@@ -1065,6 +1121,8 @@
 		node.addEventListener('load', attachNgxDocument);
 		return () => {
 			node.removeEventListener('load', attachNgxDocument);
+			overlayObserver?.disconnect();
+			overlayObserver = null;
 			ngxAuthoring?.destroy();
 			ngxAuthoring = null;
 			if (iframe === node) {
@@ -1569,6 +1627,29 @@
 					{/if}
 				</div>
 			{/if}
+			{#if compileError}
+				<div class="studio-preview__compile-error" role="alert" transition:fade={{ duration: 150 }}>
+					<Ico
+						icon="mdi:alert-circle-outline"
+						size={4}
+						class="studio-preview__compile-error-icon"
+					/>
+					<div class="studio-preview__compile-error-text">
+						<span title={compileError.message}>{compileError.message}</span>
+						{#if compileError.file}
+							<span class="studio-preview__compile-error-file" title={compileError.file}
+								>{compileError.file}</span
+							>
+						{/if}
+					</div>
+					<button
+						type="button"
+						class={labeledButtonClasses}
+						title="Show the error of the compilation over the application, as the development server shows it"
+						onclick={showCompileDetails}>Details</button
+					>
+				</div>
+			{/if}
 			{#if devStarting}
 				<StudioEmptyState
 					message={`The development server of ${projectName} starts…`}
@@ -1576,37 +1657,37 @@
 					class="studio-preview__empty"
 				/>
 			{:else}
-			<div class="studio-preview__center">
-				<div
-					class={[
-						'studio-preview__scaled-box',
-						isResponsivePreview && 'studio-preview__scaled-box--fluid'
-					]}
-				>
+				<div class="studio-preview__center">
 					<div
 						class={[
-							'studio-preview__stage',
-							isResponsivePreview && 'studio-preview__stage--responsive',
-							isFramedDevice && 'studio-preview__stage--framed',
-							!isResponsivePreview && !isFramedDevice && 'studio-preview__stage--viewport'
+							'studio-preview__scaled-box',
+							isResponsivePreview && 'studio-preview__scaled-box--fluid'
 						]}
 					>
-						<iframe
-							{@attach registerIframe}
-							class={['studio-preview__frame', isFramedDevice && 'studio-preview__frame--framed']}
-							title={`${projectName} frontend`}
-							src={frameUrl}
-						></iframe>
-						{#if isFramedDevice}
-							<picture class="studio-preview__bezel" aria-hidden="true">
-								<source srcset={bezelImage(selectedDevice.id)} type="image/webp" />
+						<div
+							class={[
+								'studio-preview__stage',
+								isResponsivePreview && 'studio-preview__stage--responsive',
+								isFramedDevice && 'studio-preview__stage--framed',
+								!isResponsivePreview && !isFramedDevice && 'studio-preview__stage--viewport'
+							]}
+						>
+							<iframe
+								{@attach registerIframe}
+								class={['studio-preview__frame', isFramedDevice && 'studio-preview__frame--framed']}
+								title={`${projectName} frontend`}
+								src={frameUrl}
+							></iframe>
+							{#if isFramedDevice}
+								<picture class="studio-preview__bezel" aria-hidden="true">
+									<source srcset={bezelImage(selectedDevice.id)} type="image/webp" />
 
-								<img src={bezelImage(selectedDevice.id)} alt="" loading="lazy" />
-							</picture>
-						{/if}
+									<img src={bezelImage(selectedDevice.id)} alt="" loading="lazy" />
+								</picture>
+							{/if}
+						</div>
 					</div>
 				</div>
-			</div>
 			{/if}
 		</MaxRectangle>
 	{:else if noFrontend}
@@ -1680,6 +1761,49 @@
 		height: 2px;
 		background: var(--color-primary-500);
 		transition: width 0.2s ease;
+	}
+
+	/* the error of the compilation, at the bottom of the application rather than over it */
+	.studio-preview__compile-error {
+		position: absolute;
+		z-index: 5;
+		right: 1rem;
+		bottom: 0.75rem;
+		left: 1rem;
+		display: flex;
+		width: fit-content;
+		max-width: calc(100% - 2rem);
+		align-items: center;
+		gap: 0.6rem;
+		border: 1px solid color-mix(in oklab, var(--color-error-500) 45%, transparent);
+		border-radius: 0.6rem;
+		background: color-mix(in oklab, var(--studio-panel-bg) 94%, transparent);
+		box-shadow: 0 4px 16px light-dark(rgb(0 0 0 / 0.12), rgb(0 0 0 / 0.45));
+		color: var(--studio-text);
+		margin-inline: auto;
+		padding: 0.4rem 0.5rem 0.4rem 0.75rem;
+		font-size: 0.75rem;
+	}
+
+	.studio-preview__compile-error :global(.studio-preview__compile-error-icon) {
+		flex: none;
+		color: var(--color-error-600-400);
+	}
+
+	.studio-preview__compile-error-text {
+		display: grid;
+		min-width: 0;
+	}
+
+	.studio-preview__compile-error-text > span {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.studio-preview__compile-error-file {
+		color: var(--studio-text-idle);
+		font-family: ui-monospace, monospace;
 	}
 
 	@keyframes studio-preview-spin {

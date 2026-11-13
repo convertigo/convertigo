@@ -152,12 +152,13 @@ tasks.register('attachmentStreamingTest', JavaExec) {
 
 tasks.register('ngxBuildSettingsTest', JavaExec) {
 	group = 'verification'
-	description = 'NGX application asset self-copy prevention, cross-project preservation and development build state.'
+	description = 'NGX application asset self-copy prevention, cross-project preservation, development build state and the gateway of the development server.'
 	dependsOn testClasses
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.mobile.NgxBuildSettingsTest',
-		'com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.WsBuilderDevBuildStateTest'
+		'com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.WsBuilderDevBuildStateTest',
+		'com.twinsoft.convertigo.engine.servlets.GatewayServletTest'
 }
 
 tasks.register('invalidRequestSessionTest', JavaExec) {

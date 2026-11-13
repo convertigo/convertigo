@@ -52,4 +52,19 @@ public class GatewayServletTest {
 		assertTrue(GatewayServlet.refusedUntilListening(new HttpHost("127.0.0.1", port, "http"), response));
 		assertEquals(List.of(HttpServletResponse.SC_SERVICE_UNAVAILABLE), errors);
 	}
+
+	@Test
+	public void theRootOfADevelopmentServerServesTheApplicationRatherThanFlashUpdate() {
+		// FlashUpdate, at the root and as index.html, sends a browser to index.html, itself, every second
+		var base = "/convertigo/projects/Crm/DisplayObjects/dev47297/";
+		assertEquals(base + "__c8o_application", GatewayServlet.developmentTarget(base));
+		assertEquals(base + "__c8o_application", GatewayServlet.developmentTarget(base + "index.html"));
+		// the pages of the application and its files go as they are
+		assertEquals(base + "login", GatewayServlet.developmentTarget(base + "login"));
+		assertEquals(base + "main.js", GatewayServlet.developmentTarget(base + "main.js"));
+		assertEquals(base + "assets/index.html", GatewayServlet.developmentTarget(base + "assets/index.html"));
+		assertEquals(base + "index-fu.html", GatewayServlet.developmentTarget(base + "index-fu.html"));
+		assertEquals("/convertigo/projects/Crm/DisplayObjects/mobile/",
+				GatewayServlet.developmentTarget("/convertigo/projects/Crm/DisplayObjects/mobile/"));
+	}
 }

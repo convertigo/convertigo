@@ -111,6 +111,46 @@ public class WsBuilder extends WebSocketService {
 		java.util.function.Consumer<String> listener;
 		/** how the local build ended: success, failed or stopped */
 		volatile String result;
+		/**
+		 * the errors of the last compilation of the development server, each with the place it tells, until the next
+		 * one: the agents of the Assistant read them, as the Build view shows them, long after they were printed
+		 */
+		final java.util.List<String> errors = new java.util.concurrent.CopyOnWriteArrayList<>();
+		/** whether the next line of the output may tell the place of the last error */
+		private boolean errorPlaceNext;
+		private static final int MAX_ERRORS = 20;
+		private static final Pattern pErrorPlace = Pattern.compile("\\s*(\\S+\\.(?:ts|html|scss|css|js|mjs|json):\\d+:\\d+):?\\s*");
+
+		/**
+		 * Keeps the errors of a compilation of the development server from its output: a compilation that starts
+		 * forgets those of the previous one, one that succeeds has none.
+		 *
+		 * @param line a line of the output, cleaned
+		 * @param lower the same, normalized in lower case
+		 */
+		void trackErrors(String line, String lower) {
+			if (lower.contains("changes detected") || lower.contains("compiling...")
+					|| lower.contains("application bundle generation complete") || lower.matches(".*compiled .*successfully.*")) {
+				errors.clear();
+				errorPlaceNext = false;
+				return;
+			}
+			if (lower.startsWith("✘ [error]") || lower.startsWith("error: ") || lower.matches("^error (ts|ng)\\d+.*")) {
+				if (errors.size() < MAX_ERRORS) {
+					errors.add(line.replaceFirst("^✘ \\[ERROR\\]\\s*", "").replaceFirst("\\s*\\[plugin [^\\]]+\\]$", "").trim());
+					errorPlaceNext = true;
+				}
+				return;
+			}
+			if (errorPlaceNext) {
+				errorPlaceNext = false;
+				var place = pErrorPlace.matcher(line);
+				if (place.matches() && !errors.isEmpty()) {
+					var last = errors.size() - 1;
+					errors.set(last, place.group(1) + ": " + errors.get(last));
+				}
+			}
+		}
 
 		Build(String projectName, String endpoint, String mode, String install) {
 			this.projectName = projectName;
@@ -371,6 +411,7 @@ public class WsBuilder extends WebSocketService {
 					}
 					Engine.logStudio.info(line);
 					var lower = normalize(line).toLowerCase(Locale.ROOT);
+					trackErrors(line, lower);
 					var ended = false;
 					if (lower.contains("changes detected") || lower.contains("compiling...")) {
 						setPhase("building");
@@ -962,9 +1003,10 @@ public class WsBuilder extends WebSocketService {
 	 * @return null when no development build runs; else a JSON object: state (serving, idle), phase (installing or
 	 *         building while it works, else empty), compiled (success or failed, the last compilation of the
 	 *         development server, empty before the first one), port (of the development server), url (the path of
-	 *         the application on the development server and on the engine, empty until it is served) and localUrl
-	 *         (the application on the development server); the application is ready once compiled is success and
-	 *         phase empty
+	 *         the application on the development server and on the engine, empty until it is served), localUrl
+	 *         (the application on the development server) and errors (those of the last compilation, each as
+	 *         "file:line:column: message" when the output tells the place); the application is ready once compiled
+	 *         is success and phase empty
 	 */
 	public static String devBuildState(String projectName) {
 		Build build;
@@ -979,7 +1021,8 @@ public class WsBuilder extends WebSocketService {
 		try {
 			return new JSONObject().put("state", build.state).put("phase", StringUtils.defaultString(build.phase))
 					.put("compiled", StringUtils.defaultString(build.compiled)).put("port", port).put("url", url)
-					.put("localUrl", port > 0 && !url.isEmpty() ? "http://localhost:" + port + url : "").toString();
+					.put("localUrl", port > 0 && !url.isEmpty() ? "http://localhost:" + port + url : "")
+					.put("errors", new JSONArray(build.errors)).toString();
 		} catch (JSONException e) {
 			return null;
 		}

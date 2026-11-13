@@ -78,4 +78,38 @@ public class WsBuilderDevBuildStateTest {
 		build.stopped = true;
 		assertNull("a stopped build serves nothing", WsBuilder.devBuildState(PROJECT));
 	}
+
+	private static void output(WsBuilder.Build build, String... lines) {
+		for (var line : lines) {
+			build.trackErrors(line, line.toLowerCase(java.util.Locale.ROOT));
+		}
+	}
+
+	@Test
+	public void theErrorsOfTheLastCompilationAreKeptWithTheirPlaceUntilTheNextOne() throws Exception {
+		var build = register("dev");
+		build.state = "serving";
+		build.compiled = "failed";
+		// the output of an Angular development server, as printed for an application built by an agent
+		output(build, "✔ Changes detected. Rebuilding...",
+				"Application bundle generation failed. [0.482 seconds] - 2026-11-12T17:24:01.930Z",
+				"✘ [ERROR] TS2304: Cannot find name 'id'. [plugin angular-compiler]",
+				"    src/app/pages/companydetail/companydetail.ts:317:107:",
+				"      317 │ ... 'PushPageAction', data: {id: id}, page: 'CompanyForm'}, vars:...",
+				"          ╵                                  ~~",
+				"✘ [ERROR] NG5002: Parser Error: Expected identifier for property access at the end of the expression",
+				"    src/app/pages/dashboard/dashboard.html:97:0:",
+				"      97 │ {{(stage?.&quot;$&quot; + value ?? '')}}",
+				"  Error occurs in the template of component Dashboard.");
+		var errors = new JSONObject(WsBuilder.devBuildState(PROJECT)).getJSONArray("errors");
+		assertEquals(2, errors.length());
+		assertEquals("src/app/pages/companydetail/companydetail.ts:317:107: TS2304: Cannot find name 'id'.", errors.getString(0));
+		assertEquals("src/app/pages/dashboard/dashboard.html:97:0: NG5002: Parser Error: Expected identifier for property access at the end of the expression",
+				errors.getString(1));
+
+		output(build, "✔ Changes detected. Rebuilding...");
+		assertEquals("a new compilation forgets them", 0, new JSONObject(WsBuilder.devBuildState(PROJECT)).getJSONArray("errors").length());
+		output(build, "✘ [ERROR] TS2304: Cannot find name 'row'. [plugin angular-compiler]", "Application bundle generation complete. [0.4 seconds]");
+		assertEquals("a compilation that succeeds has none", 0, new JSONObject(WsBuilder.devBuildState(PROJECT)).getJSONArray("errors").length());
+	}
 }
