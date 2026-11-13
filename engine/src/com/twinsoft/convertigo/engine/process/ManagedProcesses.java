@@ -222,7 +222,12 @@ public final class ManagedProcesses {
 			try {
 				managed.registry = registry;
 				managed.entry = registry.record(spec.function, managed.toHandle(), properties);
-				scheduleRefresh(managed);
+				if (managed.isStopRequested() && !managed.isAlive()) {
+					// stopped while it was recorded
+					registry.remove(managed.entry);
+				} else {
+					scheduleRefresh(managed);
+				}
 			} catch (IOException e) {
 				logger.warn("Cannot record the process " + managed.describe() + " in " + registry.getDir() + ": " + e);
 			}
@@ -543,7 +548,28 @@ public final class ManagedProcesses {
 		return survivors;
 	}
 
+	/**
+	 * Once no process runs: the reaper leaves, the thread of the registry and the shutdown hook are released (a
+	 * web application stopped by its server must not leave them behind).
+	 */
 	private void afterStopAll() {
+		synchronized (lock) {
+			if (!running.isEmpty()) {
+				return;
+			}
+			if (scheduler != null) {
+				scheduler.shutdownNow();
+				scheduler = null;
+			}
+			if (hook != null && !shutdown) {
+				try {
+					Runtime.getRuntime().removeShutdownHook(hook);
+				} catch (IllegalStateException e) {
+					// the JVM exits
+				}
+				hook = null;
+			}
+		}
 		stopReaper();
 	}
 
