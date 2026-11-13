@@ -7,6 +7,7 @@
 	import { onMount, tick, untrack } from 'svelte';
 	import { persistedState } from 'svelte-persisted-state';
 	import { SvelteSet } from 'svelte/reactivity';
+	import { agentTreeChildren } from './agentFollow.svelte.js';
 	import { closedProjects, loadTreeRoot, refreshClosedProjects } from './closedProjects.svelte.js';
 	import { debugSession } from './debugSession.svelte.js';
 	import {
@@ -119,7 +120,11 @@
 	let tagsDialog;
 	const { checkChildren, checkNodes, checkPath } = createProjectTree({
 		equivalentIds: equivalentDboObjectIds,
-		parameters: () => ({ tagsGrouped })
+		parameters: () => ({ tagsGrouped }),
+		// what appears in or vanishes from a branch read again tells what an agent of the Assistant changed
+		onChildren: (id, previous, children) => {
+			if (!tagsGrouped) agentTreeChildren(id, previous, children);
+		}
 	});
 	/** @type {Record<string, any>} */
 	const rootNodeCache = {};

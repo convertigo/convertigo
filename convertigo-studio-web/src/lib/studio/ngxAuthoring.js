@@ -45,8 +45,10 @@ export function componentOf(target, event) {
  */
 export function elementsOf(doc, classes) {
 	for (const name of classes ?? []) {
+		// a page the application left stays in its document, hidden: its components are not shown
 		const elements = [...doc.getElementsByClassName(name)].filter(
-			(element) => element.getAttribute(OVERLAY_ATTRIBUTE) == null
+			(element) =>
+				element.getAttribute(OVERLAY_ATTRIBUTE) == null && !element.closest?.('.ion-page-hidden')
 		);
 		if (elements.length) {
 			return elements;
@@ -436,6 +438,23 @@ export function attachNgxAuthoring(doc, handlers) {
 	const timer = win?.setInterval(schedule, 400);
 
 	return {
+		/**
+		 * The highlight of the selected component pulses, as an agent of the Assistant has just changed it.
+		 */
+		pulse() {
+			win?.requestAnimationFrame(() => {
+				render();
+				for (const div of selectedOverlays) {
+					div.animate?.(
+						[
+							{ boxShadow: '0 0 0 0 rgba(224, 68, 62, 0.6)' },
+							{ boxShadow: '0 0 0 14px rgba(224, 68, 62, 0)' }
+						],
+						{ duration: 900, iterations: 2, easing: 'ease-out' }
+					);
+				}
+			});
+		},
 		/**
 		 * @param {string[]} classes the classes of the selected component then of its parents
 		 * @returns {boolean} whether the preview shows the component

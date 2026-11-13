@@ -1,7 +1,9 @@
 import { call } from '#lib/utils/service.js';
 
 /**
- * @typedef {{ equivalentIds?: (id: string | undefined) => string[], parameters?: () => Record<string, any> }} ProjectTreeOptions
+ * @typedef {{ equivalentIds?: (id: string | undefined) => string[], parameters?: () => Record<string, any>,
+ *  onChildren?: (id: string, previous: any, children: any[]) => void }} ProjectTreeOptions onChildren: the children
+ *  of a node read, with the ones it had, not an array for a node read first
  */
 
 /** The marks of a tree node that studio.treeview.Get writes only when the object has them */
@@ -107,7 +109,9 @@ function applyProjectTreeChildren(node, children, options = {}) {
 	if (!node || !Array.isArray(children)) {
 		return false;
 	}
-	node.children = normalizeProjectTreeChildren(children, node.children, options);
+	const previous = node.children;
+	node.children = normalizeProjectTreeChildren(children, previous, options);
+	options.onChildren?.(node.id, previous, node.children);
 	return true;
 }
 

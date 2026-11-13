@@ -1727,7 +1727,9 @@ for (const [production, served] of /** @type {const} */ ([
 				await route.fallback();
 				return;
 			}
-			await route.fulfill({ json: { menu: { items: [{ id: 'frontend.execute', label: 'Execute' }] } } });
+			await route.fulfill({
+				json: { menu: { items: [{ id: 'frontend.execute', label: 'Execute' }] } }
+			});
 		});
 		/** @type {string[]} */
 		const actions = [];
@@ -1761,7 +1763,9 @@ for (const [production, served] of /** @type {const} */ ([
 			// once served
 			await expect.poll(() => actions.includes('build_dev')).toBe(true);
 			await expect(dev).toHaveAttribute('aria-checked', 'true');
-			await expect(page.getByText(`The development server of ${projectName} starts…`)).toBeVisible();
+			await expect(
+				page.getByText(`The development server of ${projectName} starts…`)
+			).toBeVisible();
 			await expect(page.getByRole('textbox', { name: 'Address of the page' })).toHaveValue('');
 			const url = `/convertigo/projects/${projectName}/DisplayObjects/dev40000/`;
 			builder?.send(JSON.stringify({ type: 'state', value: 'dev:serving' }));
@@ -1794,7 +1798,12 @@ test('studio tree shows a project an agent creates through the MCP', async ({ pa
 			topic: 'projects.changed',
 			timestamp: 2,
 			instance: 'studio-test',
-			payload: { project: 'AgentApp', qname: 'AgentApp', scope: 'project', reason: 'project.exported' }
+			payload: {
+				project: 'AgentApp',
+				qname: 'AgentApp',
+				scope: 'project',
+				reason: 'project.exported'
+			}
 		};
 		await route.fulfill({
 			status: 200,
@@ -1859,6 +1868,327 @@ test('studio follows a Flow bootstrap to the new project, exact source and dev v
 	await expect(
 		page.frameLocator('iframe[title="BootstrappedFlowApp frontend"]').getByText('Dev preview')
 	).toBeVisible();
+});
+
+/** @param {Record<string, unknown>} payload */
+function studioReveal(payload) {
+	return {
+		topic: 'studio.reveal',
+		payload: { kind: 'object', sequence: '', page: '', application: '', ...payload }
+	};
+}
+
+test('studio follows the objects an agent reveals in the Vibe profile, in the tree and the Flow', async ({
+	page
+}) => {
+	await mockStudioServices(page, { assistant: true });
+	const events = await routeAdminEvents(page);
+	await page.goto('/studio/');
+	await page.getByRole('radio', { name: 'Vibe' }).click();
+	const tree = page.getByRole('tree', { name: 'Projects' });
+	await expect(tree.locator(`[data-node-id="${projectName}"]`).first()).toBeVisible();
+	await expect(page.getByRole('tab', { name: 'Flow', exact: true })).toHaveCount(0);
+	// the user talks to the agent: the focus is in the frame of the Assistant
+	const assistant = page.locator('iframe[title="Convertigo Assistant"]');
+	await expect(assistant).toBeVisible();
+	await assistant.focus();
+	await page.waitForTimeout(4_200);
+
+	// a burst of changes of the agent: the last one shows
+	events.send(
+		studioReveal({ project: projectName, id: sequenceId, kind: 'sequence', sequence: sequenceId }),
+		studioReveal({
+			project: projectName,
+			id: initStepId,
+			kind: 'sequence.child',
+			sequence: sequenceId
+		})
+	);
+	await expect(page.locator('[role="treeitem"][aria-selected="true"]')).toContainText('Init');
+	await expect(page).toHaveURL(/TestSequence/);
+	await expect(page.getByRole('tab', { name: 'Flow', exact: true })).toHaveAttribute(
+		'aria-selected',
+		'true'
+	);
+	await expect(flowNodeName(page, 'Init')).toBeVisible();
+	expect(await page.evaluate(() => document.activeElement?.tagName)).toBe('IFRAME');
+});
+
+test('studio lists what the agent does, pauses while the user works and resumes on demand', async ({
+	page
+}) => {
+	await mockStudioServices(page, { assistant: true });
+	const events = await routeAdminEvents(page);
+	await page.goto('/studio/');
+	await page.getByRole('radio', { name: 'Vibe' }).click();
+	const tree = page.getByRole('tree', { name: 'Projects' });
+	await expect(tree.locator(`[data-node-id="${projectName}"]`).first()).toBeVisible();
+	const assistant = page.locator('iframe[title="Convertigo Assistant"]');
+	await expect(assistant).toBeVisible();
+	await assistant.focus();
+	await page.waitForTimeout(4_200);
+
+	events.send(
+		studioReveal({ project: projectName, id: sequenceId, kind: 'sequence', sequence: sequenceId })
+	);
+	const chip = page.locator('[data-agent-follow]');
+	await expect(chip).toContainText(sequenceName);
+	await expect(page.locator('[role="treeitem"][aria-selected="true"]')).toContainText(sequenceName);
+	// the object the agent touched is marked in the tree
+	await expect(
+		tree.locator(`[data-row-id="${sequenceId}"] .studio-tree-node__agent-mark--self`)
+	).toBeVisible();
+
+	// the user works in the Studio while the agent works: following pauses and offers to resume
+	await tree.locator(`[data-node-id="${projectName}"]`).first().click();
+	await expect(chip).toContainText('Paused while you work');
+	events.send(
+		studioReveal({
+			project: projectName,
+			id: initStepId,
+			kind: 'sequence.child',
+			sequence: sequenceId,
+			change: 'created',
+			summary: 'Added the step Init'
+		})
+	);
+	await expect(chip).toContainText('1 new');
+	await page.waitForTimeout(2_000);
+	// the selection stays where the user left it
+	const path = page.getByRole('navigation', { name: 'Selection path' });
+	await expect(path).toContainText(sequenceName);
+	await expect(path).not.toContainText('Init');
+
+	// the feed lists the actions, the last first, with the change the MCP told
+	await chip.getByRole('button', { name: 'Agent activity' }).click();
+	const feed = page.getByRole('dialog', { name: 'Agent activity' });
+	await expect(feed.locator('li')).toHaveCount(2);
+	await expect(feed.locator('li').first()).toContainText('Created step Init');
+	await expect(feed.locator('li').first()).toContainText('Added the step Init');
+	await page.keyboard.press('Escape');
+	await expect(feed).toHaveCount(0);
+
+	await chip.getByRole('button', { name: 'Resume' }).click();
+	await expect(chip).not.toContainText('Paused');
+	await expect(page.locator('[role="treeitem"][aria-selected="true"]')).toContainText('Init');
+	await expect(flowNodeName(page, 'Init')).toBeVisible();
+
+	// an entry clicked shows its object
+	await chip.getByRole('button', { name: 'Agent activity' }).click();
+	await feed.locator('li').last().getByRole('button').click();
+	await expect(page.locator('[role="treeitem"][aria-selected="true"]')).toHaveAttribute(
+		'data-row-id',
+		sequenceId
+	);
+});
+
+test('studio follows an agent in another profile only when its preference asks', async ({
+	page
+}) => {
+	await mockStudioServices(page, { assistant: true });
+	const events = await routeAdminEvents(page);
+	await page.goto('/studio/');
+	await expect(page.getByRole('radio', { name: 'Backend' })).toHaveAttribute(
+		'aria-checked',
+		'true'
+	);
+	const tree = page.getByRole('tree', { name: 'Projects' });
+	await expect(tree.locator(`[data-node-id="${projectName}"]`).first()).toBeVisible();
+	const reveal = studioReveal({
+		project: projectName,
+		id: initStepId,
+		kind: 'sequence.child',
+		sequence: sequenceId
+	});
+	events.send(reveal);
+	await page.waitForTimeout(1_500);
+	// the project the Studio selected at start stays selected
+	await expect(page.locator('[role="treeitem"][aria-selected="true"]')).toHaveAttribute(
+		'data-row-id',
+		projectName
+	);
+
+	await page.getByRole('button', { name: 'Studio preferences' }).click();
+	const dialog = page.getByRole('dialog', { name: 'Studio preferences' });
+	await dialog.getByLabel('Follow the agent of the Assistant').selectOption('always');
+	await dialog.getByRole('button', { name: 'Apply' }).click();
+	await expect(dialog).toHaveCount(0);
+
+	events.send(reveal);
+	// the user has just clicked: the reveal waits for the user to stop
+	await page.waitForTimeout(1_500);
+	// the project the Studio selected at start stays selected
+	await expect(page.locator('[role="treeitem"][aria-selected="true"]')).toHaveAttribute(
+		'data-row-id',
+		projectName
+	);
+	await expect(page.locator('[role="treeitem"][aria-selected="true"]')).toContainText('Init', {
+		timeout: 8_000
+	});
+	await expect(page.getByRole('tab', { name: 'Flow', exact: true })).toHaveAttribute(
+		'aria-selected',
+		'true'
+	);
+	await expect(flowNodeName(page, 'Init')).toBeVisible();
+});
+
+test('studio keeps a reveal of the agent while a dialog waits for the user', async ({ page }) => {
+	await mockStudioServices(page, { assistant: true });
+	const events = await routeAdminEvents(page);
+	await page.goto('/studio/');
+	await page.getByRole('radio', { name: 'Vibe' }).click();
+	await page.getByRole('button', { name: 'Studio preferences' }).click();
+	const dialog = page.getByRole('dialog', { name: 'Studio preferences' });
+	await expect(dialog).toBeVisible();
+	await page.waitForTimeout(4_200);
+
+	events.send(
+		studioReveal({ project: projectName, id: sequenceId, kind: 'sequence', sequence: sequenceId })
+	);
+	await page.waitForTimeout(1_500);
+	// the project the Studio selected at start stays selected
+	await expect(page.locator('[role="treeitem"][aria-selected="true"]')).toHaveAttribute(
+		'data-row-id',
+		projectName
+	);
+
+	await dialog.getByRole('button', { name: 'Cancel' }).click();
+	await expect(dialog).toHaveCount(0);
+	await expect(page.locator('[role="treeitem"][aria-selected="true"]')).toContainText(
+		sequenceName,
+		{ timeout: 8_000 }
+	);
+});
+
+test('studio shows the NGX page an agent reveals in the preview of its application', async ({
+	page
+}) => {
+	const state = createStudioState();
+	await mockStudioServices(page, { state, assistant: true });
+	const events = await routeAdminEvents(page);
+	const mobileId = `${projectName}.MobileApplication`;
+	const applicationId = `${mobileId}.Application`;
+	const pageId = `${applicationId}.pg:Checkout`;
+	/** @type {Record<string, any[]>} */
+	const ngxChildren = {
+		[mobileId]: [
+			treeNode(
+				applicationId,
+				'Application',
+				'com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent',
+				{ children: true }
+			)
+		],
+		[applicationId]: [folderNode(`${applicationId}:pg`, 'Pages')],
+		[`${applicationId}:pg`]: [
+			treeNode(pageId, 'Checkout', 'com.twinsoft.convertigo.beans.ngx.components.PageComponent')
+		]
+	};
+	/** @param {string} id @param {boolean} flow */
+	const children = (id, flow) =>
+		id === projectName
+			? [
+					...treeviewChildren(id, flow, state),
+					treeNode(
+						mobileId,
+						'MobileApplication',
+						'com.twinsoft.convertigo.beans.core.MobileApplication',
+						{
+							children: true
+						}
+					)
+				]
+			: (ngxChildren[id] ?? treeviewChildren(id, flow, state));
+	await page.route('**/admin/services/studio.treeview.Get**', async (route) => {
+		const params = new URLSearchParams(route.request().postData() ?? '');
+		if (state.closedProjects && !params.has('id') && !params.has('ids')) {
+			await route.fallback();
+			return;
+		}
+		const flow = params.get('flow') === 'true';
+		const ids = JSON.parse(params.get('ids') ?? '[]');
+		await route.fulfill({
+			headers: { 'x-xsrf-token': 'studio-test-token' },
+			json: ids.length
+				? Object.fromEntries(ids.map((/** @type {string} */ id) => [id, children(id, flow)]))
+				: { children: children(params.get('id') ?? projectName, flow) }
+		});
+	});
+	/** @type {string[]} */
+	const references = [];
+	await page.route('**/admin/services/studio.ngxbuilder.Authoring**', async (route) => {
+		const params = new URLSearchParams(route.request().postData() ?? '');
+		references.push(`${params.get('action')}:${params.get('id')}`);
+		await route.fulfill({
+			headers: { 'x-xsrf-token': 'studio-test-token' },
+			json: { classes: ['class1'], segment: 'checkout' }
+		});
+	});
+	// the project has an NGX application, which its builder serves
+	await page.route('**/admin/services/studio.treeview.ContextMenu**', async (route) => {
+		const params = new URLSearchParams(route.request().postData() ?? '');
+		if (params.get('id') !== projectName) {
+			await route.fallback();
+			return;
+		}
+		await route.fulfill({
+			json: { menu: { items: [{ id: 'frontend.execute', label: 'Execute' }] } }
+		});
+	});
+	/** @type {string[]} */
+	const builderActions = [];
+	/** @type {import('@playwright/test').WebSocketRoute | undefined} */
+	let builder;
+	await page.routeWebSocket(/studio\.ngxbuilder\.WsBuilder/, (ws) => {
+		builder = ws;
+		ws.onMessage((message) => {
+			const { action } = JSON.parse(String(message));
+			builderActions.push(action);
+			if (action === 'attach') {
+				for (const [type, value] of [
+					['state', 'auto:none'],
+					['production', 'built'],
+					['state', 'dev:idle'],
+					['state', 'local:idle']
+				]) {
+					ws.send(JSON.stringify({ type, value }));
+				}
+			}
+		});
+	});
+	await page.goto('/studio/');
+	await page.getByRole('radio', { name: 'Vibe' }).click();
+	await expect(page.getByRole('tree', { name: 'Projects' })).toBeVisible();
+	// the Vibe profile shows the development server of the application of the selected project, if it runs
+	await expect.poll(() => builderActions).toContain('attach');
+	// then the agent starts it, through the MCP: the Build view follows it, the preview stays on the built application
+	const devUrl = `/convertigo/projects/${projectName}/DisplayObjects/dev40000/`;
+	builder?.send(JSON.stringify({ type: 'state', value: 'dev:serving' }));
+	builder?.send(JSON.stringify({ type: 'load', value: devUrl }));
+	const preview = page.locator(`iframe[title="${projectName} frontend"]`);
+	await page.waitForTimeout(4_200);
+	await expect(preview).not.toHaveAttribute('src', /dev40000/);
+
+	events.send(
+		studioReveal({
+			project: projectName,
+			id: pageId,
+			kind: 'ngx.page',
+			page: pageId,
+			application: applicationId
+		})
+	);
+	await expect(page.locator('[role="treeitem"][aria-selected="true"]')).toContainText('Checkout');
+	await expect(page.getByRole('tab', { name: 'Frontend', exact: true })).toHaveAttribute(
+		'aria-selected',
+		'true'
+	);
+	// the preview shows the development server the agent started, without starting another one
+	await expect(preview).toHaveAttribute('src', /dev40000/);
+	await expect(page.getByRole('radio', { name: 'Dev' })).toHaveAttribute('aria-checked', 'true');
+	expect(builderActions).not.toContain('build_dev');
+	// the preview finds the page, and opens it, as the application editor of the Eclipse Studio
+	await expect.poll(() => references).toContain(`reference:${pageId}`);
 });
 
 test('studio frontend profile documents Flow properties from their authoring contract', async ({
@@ -3761,6 +4091,53 @@ async function expectTreeNodeExpanded(page, nodeId) {
 	const toggle = page.locator(`button.studio-tree-node__toggle-button[data-node-id="${nodeId}"]`);
 	await expect(toggle).toBeVisible();
 	await expect(toggle).toHaveClass(/studio-tree-node__toggle-button--open/);
+}
+
+/**
+ * Serves the Admin events of the engine when a test sends them, as the engine publishes them while the Studio runs.
+ * @param {import('@playwright/test').Page} page
+ */
+async function routeAdminEvents(page) {
+	/** @type {any[][]} */
+	const queue = [];
+	/** @type {((events: any[]) => void)[]} */
+	const waiting = [];
+	await page.route('**/admin/services/events.Subscribe**', async (route) => {
+		/** @type {any[]} */
+		const events = await new Promise((resolve) => {
+			const batch = queue.shift();
+			if (batch) resolve(batch);
+			else waiting.push(resolve);
+		});
+		await route
+			.fulfill({
+				status: 200,
+				headers: {
+					'cache-control': 'no-cache',
+					'content-type': 'text/event-stream;charset=UTF-8'
+				},
+				// the stream ends with the events, and the Studio connects again at once for the next ones
+				body: `retry: 100\n\n${events
+					.map((event) => `id: ${event.id}\ndata: ${JSON.stringify(event)}\n\n`)
+					.join('')}`
+			})
+			.catch(() => {});
+	});
+	let serial = 0;
+	return {
+		/** @param {{ topic: string, payload: Record<string, unknown> }[]} events */
+		send(...events) {
+			const batch = events.map((event) => ({
+				id: `test-event-${++serial}`,
+				timestamp: Date.now(),
+				instance: 'studio-test',
+				...event
+			}));
+			const resolve = waiting.shift();
+			if (resolve) resolve(batch);
+			else queue.push(batch);
+		}
+	};
 }
 
 /**

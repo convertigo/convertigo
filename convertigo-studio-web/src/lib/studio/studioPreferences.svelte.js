@@ -24,7 +24,12 @@ const defaults = {
 	 */
 	assistantUrl: '',
 	/** @type {'stable' | 'preview'} the releases of the local Assistant the Studio installs */
-	assistantChannel: 'stable'
+	assistantChannel: 'stable',
+	/**
+	 * @type {'vibe' | 'always' | 'never'} when the Studio shows the objects an agent of the Assistant reveals (its
+	 * Reveal mode on): in the Vibe profile, in every profile, or never
+	 */
+	followAgent: 'vibe'
 };
 
 /**

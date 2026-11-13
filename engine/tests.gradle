@@ -82,6 +82,7 @@ tasks.named('check') {
 	dependsOn 'optionalDefaultsTest'
 	dependsOn 'adminInstanceRoutingTest'
 	dependsOn 'requestableStepCloneTest'
+	dependsOn 'studioRevealTest'
 	dependsOn 'requestableObjectCloneTest'
 	dependsOn 'designDocumentReduceTest'
 	dependsOn 'redisSentinelConfigurationTest'
@@ -243,6 +244,15 @@ tasks.register('requestableStepCloneTest', JavaExec) {
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.beans.core.RequestableStepCloneTest'
+}
+
+tasks.register('studioRevealTest', JavaExec) {
+	group = 'verification'
+	description = 'The objects an agent reveals reach the web Studios following it, with what they need to show them.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.studio.StudioRevealTest'
 }
 
 tasks.register('requestableObjectCloneTest', JavaExec) {

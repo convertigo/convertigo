@@ -2,6 +2,7 @@
 	import LightSwitch from '#lib/common/components/LightSwitch.svelte';
 	import Ico from '#lib/utils/Ico.svelte';
 	import { resolve } from '#lib/utils/route.js';
+	import StudioAgentFollow from './StudioAgentFollow.svelte';
 	import StudioIconButton from './StudioIconButton.svelte';
 
 	/** @type {{
@@ -83,6 +84,8 @@
 	</nav>
 
 	<div class="studio-topbar__actions layout-x-low">
+		<!-- what the agent of the Assistant does, which the Studio follows -->
+		<StudioAgentFollow />
 		<a
 			class="studio-topbar__star layout-x-low"
 			href="https://github.com/convertigo/convertigo"

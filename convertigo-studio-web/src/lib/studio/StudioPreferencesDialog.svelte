@@ -24,6 +24,11 @@
 	let assistantChannel = $state(
 		studioPreferences.assistantChannel === 'preview' ? 'preview' : 'stable'
 	);
+	let followAgent = $state(
+		['always', 'never'].includes(String(studioPreferences.followAgent))
+			? studioPreferences.followAgent
+			: 'vibe'
+	);
 
 	/** the proxy of the engine, in its own dialog */
 	let proxyOpen = $state(false);
@@ -42,7 +47,8 @@
 			marketplaceUrl: marketplaceUrl.trim() || DEFAULT_MARKETPLACE_URL,
 			projectReferences,
 			assistantUrl: assistantUrl.trim(),
-			assistantChannel: assistantChannel === 'preview' ? 'preview' : 'stable'
+			assistantChannel: assistantChannel === 'preview' ? 'preview' : 'stable',
+			followAgent: followAgent === 'always' || followAgent === 'never' ? followAgent : 'vibe'
 		});
 		if (experimentalFeatures !== (studioPreferences.experimentalFeatures === true)) {
 			void setExperimentalFeatures(experimentalFeatures);
@@ -118,6 +124,18 @@
 						<option value="stable">Stable</option>
 						<option value="preview">Preview (pre-releases)</option>
 					</select>
+				</label>
+				<label class="studio-dialog__field">
+					<span>Follow the agent of the Assistant</span>
+					<select class="input-common" bind:value={followAgent}>
+						<option value="vibe">In the Vibe profile</option>
+						<option value="always">In every profile</option>
+						<option value="never">Never</option>
+					</select>
+					<small
+						>With the Reveal mode of the Assistant on, the objects its agent creates or changes are
+						selected in the tree, with the Flow of their sequence or the preview of their page.</small
+					>
 				</label>
 				<label class="studio-dialog__field">
 					<span>Assistant URL</span>
@@ -264,7 +282,8 @@
 		gap: 0.6rem;
 	}
 
-	.studio-dialog__row small {
+	.studio-dialog__row small,
+	.studio-dialog__field > small {
 		color: var(--studio-text-idle);
 		font-size: 0.72rem;
 	}

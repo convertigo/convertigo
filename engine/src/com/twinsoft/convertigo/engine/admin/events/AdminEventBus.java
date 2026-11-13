@@ -98,6 +98,19 @@ public final class AdminEventBus {
 		return subscription;
 	}
 
+	/**
+	 * @return whether a subscriber of this instance receives the events of the topic, as a web Studio following them
+	 */
+	public static boolean hasSubscribers(String topic) {
+		var normalizedTopic = normalizeTopic(topic);
+		for (var subscription : subscriptions) {
+			if (!subscription.closed.get() && matches(subscription.filters, normalizedTopic)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	static boolean matches(Collection<String> filters, String topic) {
 		if (filters == null || filters.isEmpty()) {
 			return true;

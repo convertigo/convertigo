@@ -1,5 +1,6 @@
 <script>
 	import { Handle, Position } from '@xyflow/svelte';
+	import { agentHighlightOf, playAgentLight } from '#lib/studio/agentFollow.svelte.js';
 	import { objectCanRename, objectRenameValue } from '#lib/studio/dnd.js';
 	import AutoSvg from '#lib/utils/AutoSvg.svelte';
 	import { draggedData } from '#lib/utils/dndStore.js';
@@ -14,10 +15,26 @@
 		dropZoneTone,
 		isIfStep
 	} from './flowStepLabels';
+	import { untrack } from 'svelte';
 	import { inputHandleId, outputHandleId } from './xyflow';
 
 	/** @type {{ data: import('./types').FlowStepNodeData }} */
 	let { data } = $props();
+	/** @type {HTMLElement | undefined} */
+	let blockElement = $state();
+	/** the change an agent of the Assistant has just made to the block, lit a moment */
+	let agentLight = $derived(
+		data.isFlowTerminal ? undefined : agentHighlightOf(String(data.originalId || data.id || ''))
+	);
+	let agentLitSerial = 0;
+	$effect(() => {
+		const light = agentLight;
+		const element = blockElement;
+		if (light && element && light.serial !== agentLitSerial) {
+			agentLitSerial = light.serial;
+			untrack(() => playAgentLight(element, light.change, 'block'));
+		}
+	});
 
 	let sideInputCount = $derived(Math.max(0, data.inputs - data.bottomInputs));
 	let sideOutputCount = $derived(Math.max(0, data.outputs - data.bottomOutputs));
@@ -314,6 +331,7 @@
 </script>
 
 <div
+	bind:this={blockElement}
 	class="flow-step-node"
 	class:flow-step-node--terminal={data.isFlowTerminal}
 	class:flow-step-node--request={data.terminalKind === 'request'}

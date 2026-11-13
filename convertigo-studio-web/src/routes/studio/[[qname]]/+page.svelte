@@ -97,6 +97,14 @@
 	import StudioPropertiesPanel from '#lib/studio/StudioPropertiesPanel.svelte';
 	import StudioReferencesPanel from '#lib/studio/StudioReferencesPanel.svelte';
 	import StudioRegistrationDialog from '#lib/studio/StudioRegistrationDialog.svelte';
+	import { followView } from '#lib/studio/agentActivity.js';
+	import { connectAgentFollow } from '#lib/studio/agentFollow.svelte.js';
+	import {
+		followsAgent,
+		isEditableElement,
+		STUDIO_REVEAL_TOPIC,
+		studioRevealTarget
+	} from '#lib/studio/studioReveal.js';
 	import StudioSapDesignDialog from '#lib/studio/StudioSapDesignDialog.svelte';
 	import StudioSchemaPanel from '#lib/studio/StudioSchemaPanel.svelte';
 	import StudioSearchPanel from '#lib/studio/StudioSearchPanel.svelte';
@@ -139,7 +147,7 @@
 	import { browser } from '$app/env';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { onMount, untrack } from 'svelte';
+	import { onMount, tick, untrack } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { get } from 'svelte/store';
 
@@ -508,7 +516,11 @@
 	let frontendThemeContext = $derived(
 		frontendTheme.projectName === applicationProjectName ? frontendTheme.context : null
 	);
-	let showFlowOverview = $derived(showStudioWork && flowReady);
+	// the Flow of the selected sequence, in the Backend profile or wherever the Flow view is laid out, as when the
+	// Studio follows an agent of the Assistant in the Vibe profile
+	let showFlowOverview = $derived(flowReady && (showStudioWork || Boolean(dockOpen.flow)));
+	/** whether the Studio shows the objects an agent of the Assistant reveals, as it creates or changes them */
+	let followingAgent = $derived(followsAgent(studioPreferences.followAgent, profile));
 	let showPalette = $derived(showStudioWork || profile === 'frontend');
 	let sideViews = $derived([
 		...(showPalette ? [{ id: 'palette', label: 'Palette', icon: 'mdi:palette-outline' }] : []),
@@ -684,11 +696,34 @@
 		};
 		window.addEventListener('convertigo:ws-import', onWsImport);
 		const unsubscribeAdminEvents = subscribeAdminEvents(
-			['projects.changed', 'admin.resync.required', 'flow.browser.open', 'flow.source.changed'],
+			[
+				'projects.changed',
+				'admin.resync.required',
+				'flow.browser.open',
+				'flow.source.changed',
+				STUDIO_REVEAL_TOPIC
+			],
 			handleAdminEvent
 		);
+		// the user working in the Studio, whom the reveals of an agent wait for; the Assistant and the preview are
+		// frames of their own, whose events do not come here
+		/** @param {Event} event */
+		const onUserActivity = (event) => {
+			if (event.type === 'pointerdown') userPointerHeld = true;
+			else if (event.type === 'pointerup' || event.type === 'pointercancel')
+				userPointerHeld = false;
+			agentReveal.activity(event);
+		};
+		const userActivityEvents = ['pointerdown', 'pointerup', 'pointercancel', 'keydown', 'wheel'];
+		for (const type of userActivityEvents) {
+			window.addEventListener(type, onUserActivity, { capture: true, passive: true });
+		}
 		return () => {
 			window.removeEventListener('convertigo:ws-import', onWsImport);
+			for (const type of userActivityEvents) {
+				window.removeEventListener(type, onUserActivity, { capture: true });
+			}
+			agentReveal.dispose();
 			unsubscribeAdminEvents();
 			clearTimeout(projectChangeRefreshTimer);
 			clearTimeout(otherProjectRefreshTimer);
@@ -837,6 +872,11 @@
 		if (!event) {
 			return;
 		}
+		const revealTarget = studioRevealTarget(event);
+		if (revealTarget) {
+			agentReveal.receive(revealTarget);
+			return;
+		}
 		const browserPreview = flowBrowserPreview(event);
 		if (browserPreview) {
 			frontendPreview = { ...browserPreview, url: studioPreviewUrl(browserPreview.url) };
@@ -890,6 +930,104 @@
 			return;
 		}
 		projectChangeRefreshTimer = setTimeout(flushProjectChangeRefresh, 120);
+	}
+
+	/** whether a button of the pointer is held in the Studio, as for a drag */
+	let userPointerHeld = false;
+	/**
+	 * The objects an agent of the Assistant reveals: its activity feed and the objects lit at once, the views going to
+	 * them at a pace the user can follow, pausing while the user works in the Studio
+	 */
+	const agentReveal = connectAgentFollow({
+		apply: (target) => applyAgentReveal(target),
+		isBusy: () => studioUserBusy(),
+		readTree: (parameters) => call('studio.treeview.Get', parameters)
+	});
+
+	$effect(() => {
+		// the reveals waiting are forgotten once the Studio stops following the agent
+		agentReveal.setEnabled(followingAgent);
+		// the selected project, the context of the Assistant, read for what the agent creates in it
+		if (followingAgent) agentReveal.prepare(selectedProjectName);
+	});
+
+	/**
+	 * @returns {boolean} whether the user works in the Studio, which the reveals of an agent do not disturb: a
+	 *          field typed in, a button of the pointer held, a dialog waiting for an answer
+	 */
+	function studioUserBusy() {
+		if (userPointerHeld) {
+			return true;
+		}
+		if (isEditableElement(document.activeElement)) {
+			return true;
+		}
+		// a closed dialog may stay in the page, hidden
+		return Array.from(
+			document.querySelectorAll('.studio-dialog, [role="dialog"][aria-modal="true"]')
+		).some((dialog) => dialog.getClientRects().length > 0);
+	}
+
+	/**
+	 * Shows an object an agent of the Assistant creates or changes, as the reveal mode of the Assistant shows it in
+	 * the Project Explorer of the Eclipse Studio: selected in the tree, opened down to it, in the Flow of its sequence
+	 * or the preview of its NGX application on its page. The focus stays where the user left it, as in the chat.
+	 * @param {import('#lib/studio/studioReveal.js').StudioRevealTarget} target
+	 */
+	async function applyAgentReveal(target) {
+		if (!followingAgent) {
+			return;
+		}
+		const { projectName, id } = target;
+		// a project the agent has just created: the tree lists it first
+		if (!(Projects.projects ?? []).some((project) => project?.name === projectName)) {
+			await Projects.refresh();
+		}
+		const focused = document.activeElement;
+		// the view of the kind of the object, as a perspective of the Eclipse Studio
+		const view = followView(target);
+		if (view === 'frontend') {
+			showApplication(projectName);
+		}
+		selectedId = id;
+		// the branches down to the object, which the agent may have just created, are read again, as the sequences of
+		// its project and its properties
+		refreshStudioViews();
+		propertiesRefreshSerial += 1;
+		void refreshStudioProject(id);
+		if (view) {
+			dock?.show(view);
+		}
+		if (view === 'frontend') {
+			followApplicationPreview(projectName, id, target.kind === 'ngx.application');
+		}
+		await tick();
+		if (
+			focused instanceof HTMLElement &&
+			focused !== document.body &&
+			focused.isConnected &&
+			document.activeElement !== focused
+		) {
+			focused.focus({ preventScroll: true });
+		}
+	}
+
+	/**
+	 * The preview of an NGX application an agent works on shows its development server, the one the agent starts
+	 * or the one running, as the Vibe profile shows it once the application is chosen.
+	 * @param {string} projectName
+	 * @param {string} selection
+	 * @param {boolean} attach whether the development server is shown again, even when the preview shows it
+	 */
+	function followApplicationPreview(projectName, selection, attach) {
+		if (!reconciledFrontendProjects.has(projectName)) {
+			reconciledFrontendProjects.add(projectName);
+			void reconcileFrontendPreview(projectName, selection);
+			attach = true;
+		}
+		if ((attach || frontendPreviewMode !== 'development') && !builderServeRequest) {
+			builderServeRequest = { at: Date.now(), attach: true };
+		}
 	}
 
 	/**
@@ -1424,9 +1562,10 @@
 	}
 
 	$effect(() => {
-		// the selected component of an NGX application shows in its preview, as in the Eclipse Studio
+		// the selected component of an NGX application shows in its preview, as in the Eclipse Studio, wherever the
+		// preview is laid out, as in the Vibe profile where it follows the agent
 		const id =
-			profile === 'frontend' &&
+			(profile === 'frontend' || Boolean(dockOpen.frontend)) &&
 			parseSelection(selectedId).projectName === applicationProjectName &&
 			/\.(pg|mn|sp):/.test(selectedId)
 				? selectedId

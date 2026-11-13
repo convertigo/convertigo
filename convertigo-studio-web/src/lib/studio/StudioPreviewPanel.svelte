@@ -8,6 +8,7 @@
 	import { call, getFrontendUrl, toaster } from '#lib/utils/service.js';
 	import { tick, untrack } from 'svelte';
 	import { fade } from 'svelte/transition';
+	import { takeAgentPulse } from './agentFollow.svelte.js';
 	import { captureElement } from './elementCapture';
 	import {
 		authoringActionDoneMessage,
@@ -616,6 +617,27 @@
 	}
 	/** the segment of the page the preview was sent to, for a component it did not show */
 	let ngxNavigatedFor = '';
+	/** the selected component the preview has shown, whose page it no longer opens by itself */
+	let ngxShownFor = '';
+	/** the compilations of the development server, after which a component never shown is looked for again */
+	let ngxCompiledSerial = $state(0);
+	let ngxCompiledSeen = untrack(() => activity?.serial ?? 0);
+	$effect(() => {
+		// a new page, as an agent adds one, is only served once compiled: its component, not found before, is
+		// looked for again, and its page opened then
+		const serial = activity?.serial ?? 0;
+		if (serial !== ngxCompiledSeen) {
+			ngxCompiledSeen = serial;
+			if (activity?.result === 'success') {
+				untrack(() => {
+					if (ngxReference && ngxShownFor !== ngxReference.id) {
+						ngxNavigatedFor = '';
+						ngxCompiledSerial += 1;
+					}
+				});
+			}
+		}
+	});
 
 	/**
 	 * Follows the document the preview loaded when it shows an NGX application.
@@ -683,6 +705,7 @@
 		const authoring = ngxAuthoring;
 		const reference = ngxReference;
 		const hidden = ngxHighlightHidden;
+		void ngxCompiledSerial;
 		if (!authoring) {
 			return;
 		}
@@ -690,6 +713,10 @@
 			const shown = authoring.highlight(hidden ? [] : (reference?.classes ?? []));
 			if (hidden) {
 				return;
+			}
+			if (shown && reference) {
+				ngxShownFor = reference.id;
+				if (takeAgentPulse(reference.id)) authoring.pulse();
 			}
 			if (shown || !reference?.segment || ngxNavigatedFor === reference.id) {
 				return;
@@ -700,9 +727,13 @@
 				if (
 					ngxAuthoring !== authoring ||
 					ngxReference !== reference ||
-					ngxNavigatedFor === reference.id ||
-					authoring.highlight(reference.classes)
+					ngxNavigatedFor === reference.id
 				) {
+					return;
+				}
+				if (authoring.highlight(reference.classes)) {
+					ngxShownFor = reference.id;
+					if (takeAgentPulse(reference.id)) authoring.pulse();
 					return;
 				}
 				ngxNavigatedFor = reference.id;

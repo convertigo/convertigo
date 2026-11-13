@@ -5,6 +5,12 @@
 	import Ico from '#lib/utils/Ico.svelte';
 	import { call, getUrl, removeDbo, renameDbo } from '#lib/utils/service.js';
 	import { tick, untrack } from 'svelte';
+	import {
+		agentGhostsOf,
+		agentHighlightOf,
+		agentMarkOf,
+		playAgentLight
+	} from './agentFollow.svelte.js';
 	import { debugSession } from './debugSession.svelte.js';
 	import {
 		canDropDbo,
@@ -226,6 +232,21 @@
 		return node?.count ?? children.length;
 	});
 	let selected = $derived(Boolean(node?.id && isEquivalentNodeId(node.id, selectedId)));
+	/** the change an agent of the Assistant has just made to the object, lit a moment */
+	let agentLight = $derived(node?.tagGroup ? undefined : agentHighlightOf(node?.id ?? ''));
+	/** whether the agent touched the object, or one in its closed branch */
+	let agentMark = $derived(node?.tagGroup ? '' : agentMarkOf(node?.id ?? '', expanded));
+	/** the objects the agent has just removed from the branch, shown a moment where they were */
+	let agentGhosts = $derived(node?.tagGroup ? [] : agentGhostsOf(node?.id ?? ''));
+	let agentLitSerial = 0;
+	$effect(() => {
+		const light = agentLight;
+		const row = rowElement;
+		if (light && row && light.serial !== agentLitSerial) {
+			agentLitSerial = light.serial;
+			untrack(() => playAgentLight(row, light.change, 'row'));
+		}
+	});
 	let debugPaused = $derived(
 		Boolean(
 			debugSession.state?.stopped &&
@@ -1572,6 +1593,14 @@
 						<span class="studio-tree-node__diff-dot" title="Holds changes since {treeDiff.ref}"
 						></span>
 					{/if}
+					{#if agentMark}
+						<span
+							class={['studio-tree-node__agent-mark', `studio-tree-node__agent-mark--${agentMark}`]}
+							title={agentMark === 'self'
+								? 'Changed by the agent of the Assistant'
+								: 'Holds objects the agent of the Assistant changed'}
+						></span>
+					{/if}
 					{#each nativeJsonMarks as mark (mark)}
 						<span
 							class="studio-tree-node__native"
@@ -1664,7 +1693,7 @@
 			{/if}
 		</div>
 
-		{#if expanded && (children.length || ghosts.length || mergeGhosts.length)}
+		{#if expanded && (children.length || ghosts.length || mergeGhosts.length || agentGhosts.length)}
 			<div
 				class="studio-tree-node__children"
 				role="group"
@@ -1750,6 +1779,32 @@
 						</span>
 					</div>
 				{/each}
+				{#each agentGhosts as ghost (ghost.serial)}
+					<div
+						class="studio-tree-node__row studio-tree-node__row--ghost studio-tree-node__row--agent-removed"
+						role="treeitem"
+						aria-selected="false"
+						style:padding-left={`${(depth + 1) * 0.62 + 0.14}rem`}
+						title="{ghost.name}, removed by the agent of the Assistant"
+					>
+						<span class="studio-tree-node__toggle"></span>
+						<span class="studio-tree-node__content studio-tree-node__content--ghost">
+							<span class="studio-tree-node__icon">
+								{#if ghost.icon.includes('?')}
+									<AutoSvg
+										class="h-4 w-4"
+										fill="currentColor"
+										src="{getUrl()}{ghost.icon}"
+										alt=""
+									/>
+								{:else}
+									<Ico icon="mdi:delete-outline" size={4} />
+								{/if}
+							</span>
+							<span class="studio-tree-node__label">{ghost.name}</span>
+						</span>
+					</div>
+				{/each}
 				{#each ghosts as ghost (ghost.id)}
 					<div
 						class="studio-tree-node__row studio-tree-node__row--ghost"
@@ -1775,6 +1830,57 @@
 {/if}
 
 <style>
+	/* an object an agent of the Assistant touched, and a closed branch holding one */
+	.studio-tree-node__agent-mark {
+		display: inline-block;
+		width: 0.42rem;
+		height: 0.42rem;
+		flex: none;
+		margin-left: 0.3rem;
+		border-radius: 999px;
+		background: light-dark(#6d4ed6, #a891ff);
+	}
+
+	.studio-tree-node__agent-mark--inside {
+		border: 1.5px solid light-dark(#6d4ed6, #a891ff);
+		background: transparent;
+	}
+
+	/* an object the agent removed, shown a moment where it was */
+	.studio-tree-node__row--agent-removed {
+		overflow: hidden;
+		max-height: 1.7rem;
+		animation: studio-tree-node-agent-removed 2.6s ease-in forwards;
+	}
+
+	.studio-tree-node__row--agent-removed .studio-tree-node__label {
+		color: light-dark(#dc2626, #f87171);
+		text-decoration: line-through;
+	}
+
+	@keyframes studio-tree-node-agent-removed {
+		0% {
+			background: rgba(239, 68, 68, 0.22);
+			box-shadow: inset 3px 0 0 rgb(239, 68, 68);
+		}
+		55% {
+			max-height: 1.7rem;
+			opacity: 0.85;
+		}
+		100% {
+			max-height: 0;
+			opacity: 0;
+			background: transparent;
+			box-shadow: inset 3px 0 0 transparent;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.studio-tree-node__row--agent-removed {
+			animation-timing-function: steps(1, end);
+		}
+	}
+
 	.studio-tree-node__row--paused {
 		box-shadow: inset 3px 0 #d97706;
 	}

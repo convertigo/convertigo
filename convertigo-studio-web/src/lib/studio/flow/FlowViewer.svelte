@@ -20,6 +20,7 @@
 	import { getSourcePickerDragPayload } from '#lib/studio/sourcePickerDnd.js';
 	import AutoPlaceholder from '#lib/utils/AutoPlaceholder.svelte';
 	import { draggedData } from '#lib/utils/dndStore.js';
+	import { agentFollow, flashAgentObject } from '#lib/studio/agentFollow.svelte.js';
 	import { removeDbo, renameDbo } from '#lib/utils/service.js';
 	import { untrack } from 'svelte';
 	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
@@ -101,6 +102,10 @@
 	let canvasElement = $state(null);
 	let flowViewport = $state({ x: 32, y: 88, zoom: 0.82 });
 	let loading = $state(false);
+	/** the flow shown is read again, as an agent changes it: it stays shown meanwhile */
+	let reloading = $state(false);
+	/** the frame of the viewport moving to the blocks it shows */
+	let viewportFrame = 0;
 	let error = $state('');
 	let loadSerial = 0;
 	let fitSerial = 0;
@@ -225,6 +230,7 @@
 		const previousFlow = flow;
 		const previousCollapsedSubstepParents = new SvelteSet(collapsedSubstepParents);
 		const shouldPreserveCollapseState = loadedFlowKey === flowKey;
+		reloading = Boolean(previousFlow) && shouldPreserveCollapseState;
 		loading = true;
 		error = '';
 		try {
@@ -235,6 +241,9 @@
 				return;
 			}
 			flow = nextFlow;
+			if (shouldPreserveCollapseState && previousFlow) {
+				lightAgentBlocks(previousFlow, nextFlow);
+			}
 			const nextCollapsedSubstepParents = shouldPreserveCollapseState
 				? reconcileCollapsedSubsteps(nextFlow, previousFlow, previousCollapsedSubstepParents)
 				: initialCollapsedSubsteps(nextFlow);
@@ -260,6 +269,25 @@
 		} finally {
 			if (serial === loadSerial) {
 				loading = false;
+				reloading = false;
+			}
+		}
+	}
+
+	/**
+	 * The blocks an agent of the Assistant has just added to the flow shown appear lit.
+	 * @param {import('./types').Flow} previousFlow
+	 * @param {import('./types').Flow} nextFlow
+	 */
+	function lightAgentBlocks(previousFlow, nextFlow) {
+		if (!agentFollow.enabled || !agentFollow.working) {
+			return;
+		}
+		const known = new Set(previousFlow.nodes.map((node) => node.id));
+		for (const node of nextFlow.nodes) {
+			if (!known.has(node.id) && !node.data?.placeholder) {
+				const originalId = node.data?.originalId;
+				flashAgentObject(typeof originalId === 'string' ? originalId : node.id, 'created');
 			}
 		}
 	}
@@ -1510,19 +1538,53 @@
 		const maxX = Math.max(...xs);
 		const minY = Math.min(...ys);
 		const maxY = Math.max(...ys);
-		flowViewport = getViewportForBounds(
-			{
-				x: minX,
-				y: minY,
-				width: maxX - minX + flowNodeSize.width,
-				height: maxY - minY + flowNodeSize.height
-			},
-			fitWidth,
-			fitHeight,
-			0.15,
-			nodeIds?.size ? 0.82 : 0.92,
-			nodeIds?.size ? 0.24 : 0.18
+		moveViewport(
+			getViewportForBounds(
+				{
+					x: minX,
+					y: minY,
+					width: maxX - minX + flowNodeSize.width,
+					height: maxY - minY + flowNodeSize.height
+				},
+				fitWidth,
+				fitHeight,
+				0.15,
+				nodeIds?.size ? 0.82 : 0.92,
+				nodeIds?.size ? 0.24 : 0.18
+			)
 		);
+	}
+
+	/**
+	 * Moves the viewport, smoothly as the flow follows an agent of the Assistant changing it.
+	 * @param {{ x: number, y: number, zoom: number }} target
+	 */
+	function moveViewport(target) {
+		cancelAnimationFrame(viewportFrame);
+		const smooth =
+			agentFollow.enabled &&
+			agentFollow.working &&
+			!matchMedia('(prefers-reduced-motion: reduce)').matches;
+		if (!smooth) {
+			flowViewport = target;
+			return;
+		}
+		const from = { ...flowViewport };
+		const start = performance.now();
+		/** @param {number} time */
+		const step = (time) => {
+			const progress = Math.min(1, (time - start) / 420);
+			const eased = 1 - (1 - progress) ** 3;
+			flowViewport = {
+				x: from.x + (target.x - from.x) * eased,
+				y: from.y + (target.y - from.y) * eased,
+				zoom: from.zoom + (target.zoom - from.zoom) * eased
+			};
+			if (progress < 1) {
+				viewportFrame = requestAnimationFrame(step);
+			}
+		};
+		viewportFrame = requestAnimationFrame(step);
 	}
 </script>
 
@@ -1562,7 +1624,7 @@
 			ondragleave={handleFlowDragLeave}
 			ondrop={handleFlowDrop}
 		>
-			{#if loading}
+			{#if loading && !reloading}
 				<div class="flow-dashboard__center">
 					<AutoPlaceholder class="w-72" loading={true} />
 					<AutoPlaceholder class="h-4 w-48" loading={true} />
