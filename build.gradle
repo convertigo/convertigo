@@ -143,11 +143,6 @@ task updateVersion(dependsOn: [':engine:updateProductVersion', 'writeManifest', 
 	description = 'Run this task after a Convertigo version change.'
 }
 
-configurations.all {
-	// Check for updates every build
-	resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
-}
-
 eclipse {
 	project {
 		comment = 'Main project to develop the Convertigo platform'
@@ -155,6 +150,11 @@ eclipse {
 }
 
 allprojects {
+	configurations.all {
+		// Check for SNAPSHOT updates on every build, in every project
+		resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+	}
+
 	apply plugin: 'io.github.ben-manes.versions'
 	apply plugin: 'org.owasp.dependencycheck'
 	dependencyCheck {
