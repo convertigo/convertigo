@@ -1,6 +1,11 @@
 // Convertigo Studio: an Electron window on the web Studio, served by a Convertigo engine that the
 // application starts on a free port, with its own workspace, and stops when it quits. The Studio opens
 // authenticated, with a secret the application gives the engine.
+// The same application is the browser the agents of the Assistant drive, in a process of its own (agentBrowser.js).
+if (process.argv.includes('--convertigo-agent-browser')) {
+	require('./agentBrowser.js');
+	return;
+}
 const { app, BrowserWindow, Menu, dialog, ipcMain, session, shell } = require('electron');
 const { spawn, spawnSync } = require('node:child_process');
 const crypto = require('node:crypto');
@@ -46,9 +51,15 @@ let mainWindow = null;
 let shutdownPort = 0;
 /** @type {BrowserWindow | null} the license, until the Studio window opens */
 let licenseWindow = null;
+/** the remote debugging port of the browser of the agents, which the engine gives them */
+let agentBrowserPort = 0;
+/** @type {import('node:child_process').ChildProcess | null} */
+let agentBrowser = null;
+/** the times the browser of the agents stopped by itself, which starts again a few times only */
+let agentBrowserExits = /** @type {number[]} */ ([]);
 
 /**
- * @returns {{ workspace?: string, recent?: string[], askAtStartup?: boolean, licenseAccepted?: boolean, ports?: Record<string, number>, updateCheckedAt?: number }}
+ * @returns {{ workspace?: string, recent?: string[], askAtStartup?: boolean, licenseAccepted?: boolean, ports?: Record<string, number>, updateCheckedAt?: number, agentBrowser?: boolean }}
  */
 function readSettings() {
 	try {
@@ -215,6 +226,10 @@ function startEngine(port) {
 			'-Dconvertigo.engine.web_studio=enabled',
 			'-Dconvertigo.engine.server_build=studio',
 			'-Dconvertigo.engine.javascript.debugger=true',
+			// the remote debugging port of the browser the agents of the Assistant drive (agentBrowser.js), on the
+			// loopback, as the one of the browser of a project in the Eclipse Studio: nothing listens to it while
+			// that browser does not run
+			...(agentBrowserPort ? [`-Dconvertigo.studio.cdp.port=${agentBrowserPort}`] : []),
 			'--enable-native-access=ALL-UNNAMED',
 			'--add-opens',
 			'java.base/java.lang=ALL-UNNAMED',
@@ -502,7 +517,58 @@ function stopWorkspaceNodes() {
 	stopWorkspacePouchDB();
 }
 
+/**
+ * The browser of the agents runs while the Studio serves a workspace with the agent stack of the Assistant (its
+ * MCP, which drives it), unless the user turned it off: it starts once the stack is installed, and stops with the
+ * engine.
+ */
+function syncAgentBrowser() {
+	const wanted =
+		settings.agentBrowser !== false &&
+		agentBrowserPort > 0 &&
+		engine != null &&
+		!quitting &&
+		!switching &&
+		fs.existsSync(path.join(workspaceDir, 'projects', 'lib_ConvertigoMCP'));
+	if (!wanted) {
+		stopAgentBrowser();
+		return;
+	}
+	const now = Date.now();
+	agentBrowserExits = agentBrowserExits.filter((at) => now - at < 60_000);
+	if (agentBrowser || agentBrowserExits.length >= 3) {
+		return;
+	}
+	const env = {
+		...process.env,
+		CONVERTIGO_AGENT_BROWSER_PORT: String(agentBrowserPort),
+		CONVERTIGO_STUDIO_ENGINE_PORT: String(enginePort),
+		CONVERTIGO_STUDIO_AUTH_TOKEN: authToken,
+		CONVERTIGO_STUDIO_DATA: dataDir,
+		CONVERTIGO_STUDIO_PID: String(process.pid)
+	};
+	delete env.ELECTRON_RUN_AS_NODE;
+	const child = spawn(process.execPath, [...(app.isPackaged ? [] : [app.getAppPath()]), '--convertigo-agent-browser'], {
+		stdio: 'ignore',
+		env
+	});
+	agentBrowser = child;
+	child.on('exit', () => {
+		if (agentBrowser === child) {
+			agentBrowser = null;
+			agentBrowserExits.push(Date.now());
+		}
+	});
+}
+
+function stopAgentBrowser() {
+	const running = agentBrowser;
+	agentBrowser = null;
+	running?.kill();
+}
+
 function stopEngine() {
+	stopAgentBrowser();
 	const running = engine;
 	if (!running) {
 		return Promise.resolve();
@@ -577,11 +643,13 @@ async function switchWorkspace(dir) {
 		await window.loadURL(splashPage());
 		enginePort = await workspacePort();
 		shutdownPort = await freePort(enginePort + 1000);
+		agentBrowserPort = await freePort(enginePort + 2000);
 		saveSettings();
 		startEngine(enginePort);
 	} finally {
 		switching = false;
 	}
+	syncAgentBrowser();
 	await openStudio(window);
 }
 
@@ -646,6 +714,19 @@ function setMenu() {
 					{
 						label: isMac ? 'Show Workspace in Finder' : 'Show Workspace Folder',
 						click: () => void shell.openPath(workspaceDir)
+					},
+					{ type: 'separator' },
+					{
+						// the browser the agents of the Assistant drive, on the loopback, to check what they build
+						label: 'Agent Browser',
+						toolTip: 'A browser the agents of the Assistant drive to check the applications they build',
+						type: 'checkbox',
+						checked: settings.agentBrowser !== false,
+						click: (item) => {
+							settings.agentBrowser = item.checked;
+							saveSettings();
+							syncAgentBrowser();
+						}
 					},
 					{ type: 'separator' },
 					close,
@@ -853,8 +934,12 @@ app.whenReady().then(async () => {
 		}
 		enginePort = await workspacePort();
 		shutdownPort = await freePort(enginePort + 1000);
+		agentBrowserPort = await freePort(enginePort + 2000);
 		saveSettings();
 		startEngine(enginePort);
+		// the browser of the agents follows the agent stack of the workspace, installed meanwhile too
+		syncAgentBrowser();
+		setInterval(syncAgentBrowser, 10_000);
 		await createWindow();
 		licenseWindow?.destroy();
 		licenseWindow = null;
@@ -876,6 +961,8 @@ app.on('second-instance', () => {
 });
 
 app.on('window-all-closed', () => app.quit());
+
+app.on('will-quit', () => stopAgentBrowser());
 
 // the engine stops with the application, saving its sessions
 app.on('before-quit', (event) => {

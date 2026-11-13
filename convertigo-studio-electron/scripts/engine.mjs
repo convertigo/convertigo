@@ -4,6 +4,7 @@
 //
 // Usage: node scripts/engine.mjs [--war <convertigo war>]
 // The war defaults to the one `./gradlew :engine:war` writes in engine/build/libs.
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
@@ -35,6 +36,29 @@ const TOMCAT_JARS = [
 	'org.apache.tomcat:tomcat-juli'
 ];
 
+const javac = process.env.JAVA_HOME
+	? path.join(process.env.JAVA_HOME, 'bin', process.platform === 'win32' ? 'javac.exe' : 'javac')
+	: 'javac';
+/**
+ * @param {string} command
+ * @returns {number} the major version of the javac, 0 when it does not run
+ */
+function javacMajor(command) {
+	try {
+		const output = execFileSync(command, ['-version'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+		return Number(/javac (\d+)/.exec(output)?.[1] ?? 0);
+	} catch (error) {
+		return Number(/javac (\d+)/.exec(String(error?.stderr ?? ''))?.[1] ?? 0);
+	}
+}
+// DevEngine compiles for Java 21: checked before the engine, which a running Studio may use, is removed
+const javacVersion = javacMajor(javac);
+if (javacVersion < 21) {
+	throw new Error(
+		`${javac} ${javacVersion ? `is the one of Java ${javacVersion}` : 'does not run'}: DevEngine needs a JDK 21 or later, as JAVA_HOME (JDK 25 builds the engine)`
+	);
+}
+
 fs.rmSync(engineDir, { recursive: true, force: true });
 
 console.log(`Exploding ${war}`);
@@ -51,9 +75,6 @@ for (const coordinates of TOMCAT_JARS) {
 	fs.copyFileSync(cached, path.join(libDir, name));
 }
 
-const javac = process.env.JAVA_HOME
-	? path.join(process.env.JAVA_HOME, 'bin', process.platform === 'win32' ? 'javac.exe' : 'javac')
-	: 'javac';
 const classpath = fs
 	.readdirSync(libDir)
 	.map((name) => path.join(libDir, name))

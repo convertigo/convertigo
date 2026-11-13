@@ -10,6 +10,12 @@ runtime and stops when it quits.
   workspace choice and switch, the menus, the unsaved-changes prompt and the DevTools bridge.
 - `preload.js` exposes `window.convertigoStudio` to the Studio page, and `window.java` to the
   Marketplace frame, as the Eclipse Studio does.
+- `agentBrowser.js` is the browser the agents of the Assistant drive to check the applications they
+  build, as the browser of a project in the Eclipse Studio: the application started again in a process
+  of its own, while the workspace has the agent stack (`lib_ConvertigoMCP`) and File > Agent Browser
+  is checked. Its remote debugging port listens on the loopback only, the engine gets it as
+  `-Dconvertigo.studio.cdp.port`, and it shows a single page, authenticated as the Studio, never the
+  Studio itself. `Target.createTarget` is not supported: the agents drive that page.
 - `engine/DevEngine.java` serves the exploded engine war in an embedded Tomcat.
 
 ## Prerequisites
