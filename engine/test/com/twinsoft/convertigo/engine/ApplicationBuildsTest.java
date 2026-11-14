@@ -100,6 +100,12 @@ public class ApplicationBuildsTest {
 		Files.createDirectories(mobile.toPath());
 		Files.writeString(new File(mobile, "index.html").toPath(), "This is an unbuilt application");
 		try {
+			ApplicationBuilds.setState("App", ApplicationBuilds.State.notAllowed);
+			assertNotNull("not built by this server, without build: the page", ApplicationBuilds.statusPage("App", projectDir));
+			Files.writeString(new File(mobile, "env.json").toPath(), "{\"appGenerationTime\": 1791450000000}");
+			assertNull("built since, as by the Build of a Studio: the application", ApplicationBuilds.statusPage("App", projectDir));
+			FileUtils.deleteQuietly(new File(mobile, "env.json"));
+
 			ApplicationBuilds.setState("App", ApplicationBuilds.State.pending);
 			assertNotNull("waiting, without build: the page", ApplicationBuilds.statusPage("App", projectDir));
 

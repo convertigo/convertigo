@@ -149,8 +149,9 @@ public final class ApplicationBuilds {
 		if (state == null || state == State.built) {
 			return null;
 		}
-		if ((state == State.pending || state == State.elsewhere) && looksBuilt(projectDir)) {
-			// an application is there, whatever the queue thinks
+		if ((state == State.pending || state == State.elsewhere || state == State.notAllowed) && looksBuilt(projectDir)) {
+			// an application is there, whatever the queue thinks: built since, as by the Build of a Studio, which this
+			// server does not do itself
 			return null;
 		}
 		if (state == State.elsewhere && !new File(projectDir, "DisplayObjects/" + LOCK).exists()) {
