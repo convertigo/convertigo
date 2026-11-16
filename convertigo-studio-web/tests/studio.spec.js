@@ -48,6 +48,107 @@ test('admin shows and refreshes a project migration save warning as text', async
 	).toBeVisible();
 });
 
+test('admin refreshes discovery after an instance disappears and keeps an active session', async ({
+	page
+}) => {
+	const state = await mockAdminInstances(page);
+	await page.goto('/admin/projects/');
+	const selector = page.getByRole('combobox');
+	await expect(selector).toHaveValue('pod-a');
+	await selector.selectOption('pod-b');
+	state.removed = true;
+	await page.getByRole('link', { name: 'Symbols', exact: true }).click();
+	await expect(page.getByText('Instance pod-b unreachable', { exact: true })).toBeVisible();
+	await expect(page).toHaveURL(/\/admin\/symbols\/$/);
+	await expect(selector).toHaveValue('pod-b');
+	await expect(selector.locator('option')).toContainText(['pod-a', 'pod-c', 'pod-b']);
+	expect(state.discoveryHeaders.every((header) => header == null)).toBe(true);
+	expect(state.discoveryHeaders.length).toBeGreaterThanOrEqual(2);
+	await page.getByRole('button', { name: 'Use pod-a', exact: true }).click();
+	await expect(selector).toHaveValue('pod-a');
+	await expect(page.getByText('Instance pod-b unreachable', { exact: true })).toHaveCount(0);
+});
+
+test('admin logs out and logs back in without routing to the removed instance', async ({
+	page
+}) => {
+	const state = await mockAdminInstances(page);
+	await page.goto('/admin/projects/');
+	await expect(page.getByRole('combobox')).toHaveValue('pod-a');
+	await page.getByRole('combobox').selectOption('pod-b');
+	state.removed = true;
+	await page.getByRole('link', { name: 'Logout admin', exact: true }).click();
+	await expect(page).toHaveURL(/\/login\//);
+	await page.getByLabel('Username', { exact: true }).fill('synthetic-admin');
+	await page.getByLabel('Password', { exact: true }).fill('synthetic-test-value');
+	await page.getByRole('button', { name: 'Login', exact: true }).click();
+	await expect(page).toHaveURL(/\/admin\//);
+	await expect(page.getByRole('combobox')).toHaveValue('pod-a');
+	expect(state.authenticationHeaders).toEqual([undefined, undefined]);
+	expect(state.authenticated).toBe(true);
+});
+
+async function mockAdminInstances(page) {
+	await mockStudioServices(page);
+	const state = {
+		removed: false,
+		authenticated: true,
+		discoveryHeaders: [],
+		authenticationHeaders: []
+	};
+	await page.route('**/admin/services/**', async (route) => {
+		const request = route.request();
+		const service = serviceName(request.url());
+		const target = request.headers()['x-c8o-instance'];
+		if (
+			!['engine.ListInstances', 'engine.CheckAuthentication', 'engine.Authenticate'].includes(
+				service
+			)
+		) {
+			await route.fallback();
+			return;
+		}
+		if (state.removed && target === 'pod-b') {
+			await route.fulfill({
+				status: 502,
+				headers: { 'X-C8O-Instance-Unreachable': 'pod-b', 'X-C8O-Instance-Local': 'pod-a' },
+				body: ''
+			});
+			return;
+		}
+		let body;
+		if (service === 'engine.ListInstances') {
+			state.discoveryHeaders.push(target);
+			body = {
+				storeMode: 'redis',
+				instances: (state.removed ? ['pod-a', 'pod-c'] : ['pod-a', 'pod-b']).map((instanceId) => ({
+					instanceId
+				}))
+			};
+		} else {
+			if (service === 'engine.Authenticate') {
+				state.authenticationHeaders.push(target);
+				state.authenticated =
+					new URLSearchParams(request.postData() ?? '').get('authType') === 'login';
+			}
+			body = {
+				admin: {
+					authenticated: state.authenticated,
+					user: state.authenticated ? 'admin' : '',
+					roles: { role: state.authenticated ? [{ name: 'WEB_ADMIN' }] : [] }
+				}
+			};
+		}
+		await route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			headers: { 'X-C8O-Instance': target ?? 'pod-a' },
+			body: JSON.stringify(body)
+		});
+	});
+	return state;
+}
+
 test('studio opens a selected backend object with tree, execution and flow synchronized', async ({
 	page
 }) => {

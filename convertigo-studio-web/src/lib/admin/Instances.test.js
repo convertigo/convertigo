@@ -106,4 +106,45 @@ describe('Instance selection', () => {
 		expect(Instances.current).toBe('pod-a');
 		expect(Instances.unreachable).toBe(null);
 	});
+	it('resets routing, discovery and the outage when a session ends', () => {
+		const revision = Instances.revision;
+		Instances.reset();
+		const headers = {};
+		Instances.apply(headers);
+		expect(headers).toEqual({});
+		expect(Instances.current).toBe('');
+		expect(Instances.options).toEqual([]);
+		expect(Instances.storeMode).toBe('');
+		expect(Instances.unreachable).toBe(null);
+		expect(Instances.revision).toBeGreaterThan(revision);
+	});
+
+	it('discovers instances without forwarding to the removed target', async () => {
+		vi.mocked(call).mockResolvedValueOnce({
+			storeMode: 'redis',
+			instances: [{ instanceId: 'pod-c' }]
+		});
+		await Instances.refresh(true);
+		expect(call).toHaveBeenLastCalledWith('engine.ListInstances', {}, { localInstance: true });
+		expect(Instances.options).toEqual(['pod-c', 'pod-b']);
+	});
+
+	it('ignores discovery and routing responses from a previous session', async () => {
+		const revision = Instances.revision;
+		let resolve;
+		vi.mocked(call).mockImplementationOnce(
+			() =>
+				new Promise((done) => {
+					resolve = done;
+				})
+		);
+		const refreshing = Instances.refresh(true);
+		Instances.reset();
+		resolve({ storeMode: 'redis', instances: [{ instanceId: 'old-pod' }] });
+		await refreshing;
+		Instances.update(response({ 'X-C8O-Instance': 'old-pod' }), revision);
+		expect(Instances.current).toBe('');
+		expect(Instances.options).toEqual([]);
+		expect(Instances.loading).toBe(false);
+	});
 });

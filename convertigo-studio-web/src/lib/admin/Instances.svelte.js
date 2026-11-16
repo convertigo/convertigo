@@ -18,6 +18,8 @@ let state = $state({
 	unreachable: null
 });
 
+let discoveryGeneration = 0;
+
 function normalizeInstance(value) {
 	if (typeof value !== 'string') return '';
 	const trimmed = value.trim();
@@ -62,13 +64,24 @@ export default {
 		return state.unreachable;
 	},
 
+	reset() {
+		discoveryGeneration += 1;
+		state.storeMode = '';
+		state.instances = [];
+		state.loading = false;
+		state.current = '';
+		state.unreachable = null;
+		state.revision += 1;
+	},
+
 	apply(headers) {
 		if (state.current) headers[INSTANCE_HEADER] = state.current;
 	},
 	/** @returns {boolean} true when the response reports that the chosen instance is unreachable */
-	update(response) {
+	update(response, requestRevision = state.revision) {
 		const headers = response?.headers;
 		const unreachable = normalizeInstance(headers?.get?.(UNREACHABLE_HEADER));
+		if (requestRevision !== state.revision) return Boolean(unreachable);
 		if (unreachable) {
 			// An in-flight request for the previous selection must not restore its banner.
 			if (state.current && unreachable !== state.current) return true;
@@ -92,15 +105,17 @@ export default {
 	async refresh(force = false) {
 		if (state.loading) return;
 		if (!force && (state.storeMode || state.instances.length)) return;
+		const generation = discoveryGeneration;
 		state.loading = true;
 		try {
-			const res = await call('engine.ListInstances');
+			const res = await call('engine.ListInstances', {}, { localInstance: true });
+			if (generation !== discoveryGeneration) return;
 			if (res?.error || typeof res?.storeMode !== 'string' || !Array.isArray(res?.instances))
 				return;
 			state.storeMode = res.storeMode;
 			state.instances = res.instances;
 		} finally {
-			state.loading = false;
+			if (generation === discoveryGeneration) state.loading = false;
 		}
 	}
 };

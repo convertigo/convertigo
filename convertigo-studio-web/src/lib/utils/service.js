@@ -28,6 +28,7 @@ const adminInstance = browser
 /**
  * @typedef {{
  * 	adminInstance?: string,
+ * 	localInstance?: boolean,
  * 	silentStatuses?: number[],
  * 	silentNetworkAfterMs?: number,
  * 	silentError?: (error: string, response: any) => boolean
@@ -103,7 +104,8 @@ export async function call(service, data = {}, options = {}) {
 			'Admin-Instance': options.adminInstance ?? adminInstance,
 			'x-xsrf-token': localStorage.getItem('x-xsrf-token') ?? 'Fetch'
 		};
-		Instances.apply(headers);
+		const instanceRevision = Instances.revision;
+		if (!options.localInstance) Instances.apply(headers);
 		if (data instanceof FormData) {
 			let files = new FormData();
 			for (const [entryKey, value] of data.entries()) {
@@ -142,7 +144,9 @@ export async function call(service, data = {}, options = {}) {
 		});
 		responseStatus = res.status;
 		responseStatusText = res.statusText;
-		if (Instances.update(res)) {
+		const wasUnreachable = Instances.unreachable;
+		if (!options.localInstance && Instances.update(res, instanceRevision)) {
+			if (!wasUnreachable && Instances.unreachable) void Instances.refresh(true);
 			// this server answered: only the instance chosen in the console is unreachable from it
 			markServerReachable();
 			return {
@@ -179,7 +183,6 @@ export async function call(service, data = {}, options = {}) {
 		if (xsrf != null) {
 			localStorage.setItem('x-xsrf-token', xsrf);
 		}
-		Instances.update(res);
 
 		const disposition = /filename=("|')?(.*)\1/.exec(res.headers.get('content-disposition') ?? '');
 		if (disposition) {
