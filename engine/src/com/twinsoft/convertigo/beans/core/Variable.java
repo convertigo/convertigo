@@ -224,7 +224,7 @@ public abstract class Variable extends DatabaseObject implements IMultiValued, I
 	@Override
 	public boolean isTraceableProperty(String propertyName) {
 		if (propertyName.equals("value"))
-			return !Visibility.Logs.isMasked(getVisibility());
+			return !Visibility.Logs.isMasked(this);
 		return super.isTraceableProperty(propertyName);
 	}
 

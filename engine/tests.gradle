@@ -672,3 +672,15 @@ tasks.register('projectMigrationSaveTest', JavaExec) {
 	args 'com.twinsoft.convertigo.engine.ProjectMigrationSaveTest'
 }
 tasks.named('check') { dependsOn 'projectMigrationSaveTest' }
+
+
+tasks.register('requestBodyLoggingTest', JavaExec) {
+	group = 'verification'
+	description = 'Declared body visibility and literal hidden-value replacement preserve request data.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.RequestBodyLoggingTest',
+		'com.twinsoft.convertigo.engine.VisibilityLogDefaultsTest'
+}
+tasks.named('check') { dependsOn 'requestBodyLoggingTest' }

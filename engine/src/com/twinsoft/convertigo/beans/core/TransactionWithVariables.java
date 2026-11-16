@@ -450,20 +450,20 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		// Transaction parameter
 		variableValue = variables.get(parameterName);
 		if (variableValue != null)
-			Engine.logBeans.trace("(TransactionWithVariables) parameter value: " + Visibility.Logs.printValue(variableVisibility,variableValue));
+			Engine.logBeans.trace("(TransactionWithVariables) parameter value: " + Visibility.Logs.printValue(parameterName,variableVisibility,variableValue));
 
 		// Otherwise context parameter
 		if (variableValue == null && context != null) {
 			variableValue = (context.get(parameterName) == null ? null : context.get(parameterName));
 			if (variableValue != null)
-				Engine.logBeans.trace("(TransactionWithVariables) context value: " + Visibility.Logs.printValue(variableVisibility,variableValue));
+				Engine.logBeans.trace("(TransactionWithVariables) context value: " + Visibility.Logs.printValue(parameterName,variableVisibility,variableValue));
 		}
 
 		// Otherwise default transaction parameter value
 		if (variableValue == null) {
 			variableValue = getVariableValue(parameterName);
 			if (variableValue != null)
-				Engine.logBeans.trace("(TransactionWithVariables) default value: " + Visibility.Logs.printValue(variableVisibility,variableValue));
+				Engine.logBeans.trace("(TransactionWithVariables) default value: " + Visibility.Logs.printValue(parameterName,variableVisibility,variableValue));
 		}
 
 		if (variableValue == null) {
@@ -511,7 +511,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 			RequestableVariable variable = (RequestableVariable)getVariable(requestedVariableName);
 			if (variable != null) {
 				value = variable.getValueOrNull();// new 5.0.3 (may return null)
-				valueToPrint = Visibility.Logs.printValue(variable.getVisibility(), value);
+				valueToPrint = Visibility.Logs.printValue(variable, value);
 				if (Engine.logBeans.isDebugEnabled()) {
 					if ((value != null) && (value instanceof String))
 						Engine.logBeans.debug("Default value: " + requestedVariableName + " = \"" + valueToPrint + "\"");
@@ -736,7 +736,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 			variableValue = getVariableValue(variableName);
 			jsObject = ((variableValue == null) ? null:org.mozilla.javascript.Context.toObject(variableValue, scope));
 			scope.put(variableName, scope, jsObject);
-			variableValueToPrint = Visibility.Logs.printValue(variableVisibility,variableValue);
+			variableValueToPrint = Visibility.Logs.printValue(variableName,variableVisibility,variableValue);
 			if ((variableValue != null) && (variableValue instanceof String))
 				Engine.logBeans.debug("(TransactionWithVariables) Declared but not provided transaction variable " + variableName + "=\"" + variableValueToPrint + "\" added to the scripting scope");
 			else
@@ -749,7 +749,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 			variableValue = getVariableValue(variableName2);
 			jsObject = ((variableValue == null) ? null:org.mozilla.javascript.Context.toObject(variableValue, scope));
 			scope.put(variableName2, scope, jsObject);
-			variableValueToPrint = Visibility.Logs.printValue(variableVisibility,variableValue);
+			variableValueToPrint = Visibility.Logs.printValue(variableName2,variableVisibility,variableValue);
 			if ((variableValue != null) && (variableValue instanceof String))
 				Engine.logBeans.debug("(TransactionWithVariables) Provided transaction variable " + variableName2 + "=\"" + variableValueToPrint + "\" added (or overridden) to the scripting scope");
 			else

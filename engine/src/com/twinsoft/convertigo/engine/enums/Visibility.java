@@ -19,19 +19,31 @@
 
 package com.twinsoft.convertigo.engine.enums;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.soap.MessageFactory;
 import javax.xml.soap.SOAPBody;
+import javax.xml.soap.SOAPConstants;
 import javax.xml.soap.SOAPElement;
-import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPMessage;
-import javax.xml.soap.SOAPPart;
 
 import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.NativeJavaArray;
@@ -109,184 +121,167 @@ public enum Visibility {
 	public Object replaceValues(List<String> hiddenValues, Object object) {
 		if (object == null) return null;
 		if (hiddenValues == null) return object;
-		if (hiddenValues.isEmpty()) return object;
-
 		try {
+			if (hiddenValues.isEmpty()) return object;
 			// Case of postQuery from XML requestTemplate
 			if (object instanceof String) {
-				String toPrint = String.valueOf(object);
-				for (String value: hiddenValues) {
-					if (value != null && !value.equals(""))
-						toPrint = toPrint.replaceAll(value, STRING_MASK);
-				}
-				return toPrint;
+				String literals = hiddenValues.stream().filter(value -> value != null && !value.isEmpty())
+						.distinct().sorted(Comparator.comparingInt(String::length).reversed())
+						.map(Pattern::quote).collect(Collectors.joining("|"));
+				if (literals.isEmpty()) return object;
+				// Match once against the original text, so masking a literal '*' never expands previous masks.
+				return Pattern.compile(literals).matcher((String) object)
+						.replaceAll(Matcher.quoteReplacement(STRING_MASK));
 			}
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+			return STRING_MASK;
+		}
 		return object;
+	}
+
+	/** Logs also hide raw request parameters and credential names without changing their stored visibility. */
+	public boolean isMasked(String name, int visibility) {
+		return isMasked(visibility) || (this == Logs && isSensitiveLogName(name));
+	}
+
+	public boolean isMasked(Variable variable) {
+		if (variable == null) return false;
+		if (isMasked(variable.getVisibility())) return true;
+		return this == Logs && getVariableKeyNames(variable).stream().anyMatch(Visibility::isSensitiveLogName);
+	}
+
+	private static boolean isSensitiveLogName(String name) {
+		if (name == null) return false;
+		String normalized = name.toLowerCase(Locale.ROOT);
+		if (normalized.equals("__body") || normalized.startsWith("__header_")) return true;
+		normalized = normalized.replace("_", "").replace("-", "");
+		return normalized.contains("password") || normalized.contains("passphrase") || normalized.contains("passwd") || normalized.contains("pwd")
+				|| normalized.contains("secret") || normalized.contains("token") || normalized.contains("apikey")
+				|| normalized.contains("credential") || normalized.contains("authorization")
+				|| normalized.contains("privatekey") || normalized.contains("accesskey")
+				|| normalized.contains("signingkey") || normalized.contains("encryptionkey")
+				|| normalized.contains("clientkey");
+	}
+
+	public String printValue(String name, int visibility, Object value) {
+		return this == Logs && isSensitiveLogName(name) ? logMask(name, value) : printValue(visibility, value);
+	}
+
+	public String printValue(Variable variable, Object value) {
+		return this == Logs && isMasked(variable) ? logMask(variable.getName(), value)
+				: printValue(variable.getVisibility(), value);
+	}
+
+	private String logMask(String name, Object value) {
+		if (this == Logs && name != null && (name.equalsIgnoreCase("__body")
+				|| name.toLowerCase(Locale.ROOT).startsWith("__header_")) && value instanceof CharSequence text) {
+			return STRING_MASK + " (" + text.length() + " characters)";
+		}
+		return STRING_MASK;
 	}
 
 	public Object replaceVariables(List<? extends Variable> variableList, Object object) {
 		if (object == null) return null;
-		if (variableList == null) return object;
-
-		try {
-			// Case of queryString | postQuery : variable_name=variable_value&variable_name=variable_value
-			if (object instanceof String) {
-				String toPrint = String.valueOf(object);
-				for (Variable variable: variableList) {
-					if (variable != null && isMasked(variable.getVisibility())) {
-						for (String key : getVariableKeyNames(variable))
-							toPrint = toPrint.replaceAll(key+"=[^\\&]*", key+"=\""+ STRING_MASK +"\"");
-					}
-				}
-				return toPrint;
-			}
-			// Case of soapEnvelope (jmc 25/05/2012)
-			if (object instanceof HttpServletRequest) {				
-				SOAPMessage requestMessage = (SOAPMessage)((HttpServletRequest)object).getAttribute(WebServiceServlet.REQUEST_MESSAGE_ATTRIBUTE);				
-
-				SOAPPart sp = requestMessage.getSOAPPart();
-				SOAPEnvelope se = sp.getEnvelope();
-				SOAPBody sb = se.getBody();
-
-				SOAPElement method, parameter;
-				Iterator<?> iterator = sb.getChildElements();
-				Object element;
-
-				while (iterator.hasNext()) {
-					element = iterator.next();
-					if (element instanceof SOAPElement) {
-						method = (SOAPElement) element;
-						Iterator<?> iterator2 = method.getChildElements();
-						String parameterName, parameterValue;
-
-						while (iterator2.hasNext()) {
-							element = iterator2.next();
-							if (element instanceof SOAPElement) {
-								parameter = (SOAPElement) element;
-								parameterName = parameter.getElementName().getLocalName();
-								parameterValue = parameter.getValue();
-								if (parameterValue == null) parameterValue = "";
-								for (Variable variable: variableList) {
-									if (variable != null && isMasked(variable.getVisibility())) {
-										for (String key : getVariableKeyNames(variable)) {
-											if (parameterName.equals(key) ) {
-
-												//We delete parent node and re-create to permit to remove all child nodes
-												if (parameter.hasChildNodes()) {
-													SOAPElement parent = parameter.getParentElement();
-													parent.removeChild(parameter);
-													parameter = parent.addChildElement(parameterName);
-												} 
-
-												parameter.setValue(STRING_MASK);
-
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-
-				return SOAPUtils.toString(requestMessage, ((HttpServletRequest)object).getCharacterEncoding());
-			}
-
-			// Case of variables Map : {variable_name,variable_value}
-			if (object instanceof Map<?, ?>) {
-				Map<String, Object> toPrint = GenericUtils.cast(GenericUtils.clone(object));
-				for (Variable variable: variableList) {
-					if (variable != null && isMasked(variable.getVisibility())) {
-						for (String key : getVariableKeyNames(variable)) {
-							if (toPrint.get(key) != null)
-								toPrint.put(key, STRING_MASK);
-						}
-					}
-				}
-				return toPrint;
-			}
-			// Case of Document : inputDocument | XSL requestTemplate
-			if (object instanceof Document) {
-				Document toPrint = XMLUtils.createDom("java");
-				toPrint.appendChild(toPrint.importNode(((Document)object).getDocumentElement(), true));
-
-				boolean anyMasked = false;
-				for (Variable variable: variableList) {
-					anyMasked |= variable != null && isMasked(variable.getVisibility());
-				}
-				if (!anyMasked) {
-					return toPrint;
-				}
-
-				// the elements with a name attribute, in document order (.//*[@name]), copied before the masking
-				// changes the tree; DOM walks instead of XPath, which builds a new XPath context for each call
-				List<Element> variableNodeList = new ArrayList<Element>();
-				NodeList allElements = toPrint.getElementsByTagName("*");
-				for (int i = 0; i < allElements.getLength(); i++) {
-					Element element = (Element) allElements.item(i);
-					if (element.hasAttribute("name")) {
-						variableNodeList.add(element);
-					}
-				}
-
-				Element variableElement;
-				NodeList valueNodeList;
-				Attr valueAttrNode;
-				String variableName;
-				Node node;
-				//Permit to identify if we have an input document or a XSL requestTemplate (/input/transaction-variables)
-
-				boolean isInputDoc = false;
-				Element root = toPrint.getDocumentElement();
-				if (root != null && root.getNodeName().equals("input")) {
-					for (Node child = root.getFirstChild(); child != null && !isInputDoc; child = child.getNextSibling()) {
-						isInputDoc = child.getNodeType() == Node.ELEMENT_NODE && child.getNodeName().equals("transaction-variables");
-					}
-				}
-
-				for (int i=0; i<variableNodeList.size(); i++) {
-					variableElement = variableNodeList.get(i);
-					variableName = variableElement.getAttribute("name");
-					if (variableElement.getParentNode().getNodeName().equals("transaction-headers")) {
-						variableName = "__header_" + variableName;
-					}
-					valueAttrNode = variableElement.getAttributeNode("value");
-					valueNodeList = variableElement.getChildNodes();
-					for (Variable variable: variableList) {
-						if (variable != null && isMasked(variable.getVisibility())) {
-							for (String key : getVariableKeyNames(variable)) {
-								if (variableName.equals(key)) {
-									// inputDocument with attribute value
-									if (valueAttrNode != null) {
-										valueAttrNode.setNodeValue(STRING_MASK);
-									}
-									// inputDocument without attribute value but with child nodes | XSL requestTemplate
-									else if (valueNodeList != null) {
-										if (isInputDoc) {
-											//Loop we permit to remove all childs
-											for (Node child; (child = variableElement.getFirstChild()) != null; variableElement.removeChild(child));
-											variableElement.setTextContent(STRING_MASK);
-										} else {
-											for (int j=0; j<valueNodeList.getLength(); j++) {
-												node = valueNodeList.item(j);
-												if (node.getNodeType() == Node.ELEMENT_NODE && 
-														((Element)node).getNodeName().equals("value")) {
-													((Element)node).setTextContent(STRING_MASK);
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-				return toPrint;
-			}
+		if (variableList == null) {
+			if (this != Logs) return object;
+			variableList = List.of();
 		}
-		catch (Exception e) {}
+		try {
+			Set<String> maskedNames = new HashSet<>();
+			for (Variable variable : variableList) {
+				if (isMasked(variable)) maskedNames.addAll(getVariableKeyNames(variable));
+			}
+			if (object instanceof String text) {
+				String[] parameters = text.split("&", -1);
+				for (int i = 0; i < parameters.length; i++) {
+					int separator = parameters[i].indexOf('=');
+					if (separator < 0) continue;
+					String key = parameters[i].substring(0, separator);
+					String name = URLDecoder.decode(key, StandardCharsets.UTF_8);
+					if (maskedNames.contains(name) || isMasked(name, 0)) {
+						parameters[i] = key + "=\"" + logMask(name, parameters[i].substring(separator + 1)) + "\"";
+					}
+				}
+				return String.join("&", parameters);
+			}
+			if (object instanceof HttpServletRequest request) {
+				SOAPMessage source = (SOAPMessage) request.getAttribute(WebServiceServlet.REQUEST_MESSAGE_ATTRIBUTE);
+				// SOAP masking must not edit the request used by the transaction.
+				var bytes = new ByteArrayOutputStream();
+				source.writeTo(bytes);
+				SOAPMessage copy = MessageFactory.newInstance(SOAPConstants.DYNAMIC_SOAP_PROTOCOL)
+						.createMessage(source.getMimeHeaders(), new ByteArrayInputStream(bytes.toByteArray()));
+				SOAPBody body = copy.getSOAPBody();
+				for (Iterator<?> methods = body.getChildElements(); methods.hasNext();) {
+					Object method = methods.next();
+					if (!(method instanceof SOAPElement operation)) continue;
+					for (Iterator<?> parameters = operation.getChildElements(); parameters.hasNext();) {
+						Object parameter = parameters.next();
+						if (!(parameter instanceof SOAPElement element)) continue;
+						String name = element.getLocalName();
+						if (maskedNames.contains(name) || isMasked(name, 0)) {
+							element.setTextContent(logMask(name, element.getTextContent()));
+						}
+					}
+				}
+				return SOAPUtils.toString(copy, request.getCharacterEncoding());
+			}
+			if (object instanceof Map<?, ?>) {
+				Map<String, Object> source = GenericUtils.cast(object);
+				Map<String, Object> copy = new LinkedHashMap<>(source);
+				for (String name : copy.keySet()) {
+					if ((maskedNames.contains(name) || isMasked(name, 0)) && copy.get(name) != null) {
+						copy.put(name, logMask(name, copy.get(name)));
+					}
+				}
+				return copy;
+			}
+			if (object instanceof Document source) {
+				Document copy = XMLUtils.createDom("java");
+				copy.appendChild(copy.importNode(source.getDocumentElement(), true));
+				if (this != Logs && maskedNames.isEmpty()) return copy;
+				List<Element> named = new ArrayList<>();
+				NodeList elements = copy.getElementsByTagName("*");
+				for (int i = 0; i < elements.getLength(); i++) {
+					Element element = (Element) elements.item(i);
+					if (element.hasAttribute("name")) named.add(element);
+				}
+				boolean input = copy.getDocumentElement().getNodeName().equals("input")
+						&& copy.getElementsByTagName("transaction-variables").getLength() > 0;
+				for (Element element : named) {
+					if (element.getParentNode() == null) continue;
+					String name = element.getAttribute("name");
+					if (element.getParentNode().getNodeName().equals("transaction-headers")) name = "__header_" + name;
+					if (!maskedNames.contains(name) && !isMasked(name, 0)) continue;
+					Attr value = element.getAttributeNode("value");
+					if (value != null) value.setValue(logMask(name, value.getValue()));
+					if (this == Logs || input) {
+						if (value == null || element.hasChildNodes()) {
+							String mask = logMask(name, element.getTextContent());
+							element.setTextContent(mask);
+						}
+					} else {
+						for (Node child = element.getFirstChild(); child != null; child = child.getNextSibling()) {
+							if (child instanceof Element item && item.getNodeName().equals("value")) item.setTextContent(STRING_MASK);
+						}
+					}
+				}
+				return copy;
+			}
+		} catch (Exception e) {
+			// Never return the original values when preparing their log representation fails.
+			if (object instanceof Document) {
+				try {
+					Document masked = XMLUtils.createDom("java");
+					Element root = masked.createElement("masked");
+					root.setTextContent(STRING_MASK);
+					masked.appendChild(root);
+					return masked;
+				} catch (Exception ignored) { return null; }
+			}
+			return object instanceof Map<?, ?> ? Map.of("masked", STRING_MASK) : STRING_MASK;
+		}
 		return object;
 	}
 

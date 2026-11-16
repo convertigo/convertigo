@@ -142,7 +142,7 @@ public class TestCase extends DatabaseObject implements IVariableContainer, ICon
 		TestCaseVariable testCaseVariable = (TestCaseVariable)getVariable(requestedVariableName);
 		if (testCaseVariable != null) {
 			value = testCaseVariable.getValueOrNull();
-			valueToPrint = Visibility.Logs.printValue(testCaseVariable.getVisibility(), value);
+			valueToPrint = Visibility.Logs.printValue(testCaseVariable, value);
 			if (Engine.logBeans.isDebugEnabled()) {
 				if ((value != null) && (value instanceof String))
 					Engine.logBeans.debug("Default value: " + requestedVariableName + " = \"" + valueToPrint + "\"");

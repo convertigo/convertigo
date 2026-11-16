@@ -377,7 +377,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 		StepVariable stepVariable = (StepVariable)getVariable(requestedVariableName);
 		if (stepVariable != null) {
 			value = stepVariable.getValueOrNull();
-			valueToPrint = Visibility.Logs.printValue(stepVariable.getVisibility(), value);
+			valueToPrint = Visibility.Logs.printValue(stepVariable, value);
 			if (Engine.logBeans.isDebugEnabled()) {
 				if ((value != null) && (value instanceof String))
 					Engine.logBeans.debug("Default value: " + requestedVariableName + " = \"" + valueToPrint + "\"");
@@ -659,7 +659,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 				}
 				
 				if (variableValue != null) {
-					Engine.logBeans.trace("(RequestableStep) found value from source: " + Visibility.Logs.printValue(variableVisibility,variableValue));
+					Engine.logBeans.trace("(RequestableStep) found value from source: " + Visibility.Logs.printValue(stepVariable,variableValue));
 				}
 				
 				// Otherwise Scope parameter
@@ -668,7 +668,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 					while ((variableValue == null) && (searchScope != null)) {
 						variableValue = searchScope.get(variableName,searchScope);
 						
-						Engine.logBeans.trace("(RequestableStep) found value from scope: " + Visibility.Logs.printValue(variableVisibility,variableValue));
+						Engine.logBeans.trace("(RequestableStep) found value from scope: " + Visibility.Logs.printValue(stepVariable,variableValue));
 						if (variableValue instanceof Undefined) {
 							variableValue = null;
 						} else if (variableValue instanceof UniqueTag && ((UniqueTag) variableValue).equals(UniqueTag.NOT_FOUND)) { 
@@ -686,14 +686,14 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 				if (variableValue == null) {
 					variableValue = (sequence.context.get(variableName) == null ? null : sequence.context.get(variableName));
 					if (variableValue != null)
-						Engine.logBeans.trace("(RequestableStep) found value from context: " + Visibility.Logs.printValue(variableVisibility,variableValue));
+						Engine.logBeans.trace("(RequestableStep) found value from context: " + Visibility.Logs.printValue(stepVariable,variableValue));
 				}
 				
 				// Otherwise sequence step default value
 				if (variableValue == null) {
 					variableValue = getVariableValue(variableName);
 					if (variableValue != null)
-						Engine.logBeans.trace("(RequestableStep) found default value from step: " + Visibility.Logs.printValue(variableVisibility,variableValue));
+						Engine.logBeans.trace("(RequestableStep) found default value from step: " + Visibility.Logs.printValue(stepVariable,variableValue));
 				}
 				
 				// otherwise value not found
