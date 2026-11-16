@@ -1,5 +1,11 @@
 # Changelog
 
+## 8.4.8
+
+#### Bug Fixes:
+
+- [#1294](https://github.com/convertigo/convertigo/issues/1294) [Engine] Fixed, billing initializes with a custom cryptographic passphrase; these servers now apply the same analytics and server monitoring settings as other servers, while existing passphrases and stored values are preserved
+
 ## 8.4.7
 
 #### Improvements:

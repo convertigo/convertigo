@@ -684,3 +684,21 @@ tasks.register('requestBodyLoggingTest', JavaExec) {
 		'com.twinsoft.convertigo.engine.VisibilityLogDefaultsTest'
 }
 tasks.named('check') { dependsOn 'requestBodyLoggingTest' }
+
+// Each passphrase must be configured before BillingManager's static initialization.
+['default', 'custom'].each { mode ->
+	tasks.register("billingPassphrase${mode.capitalize()}Test", JavaExec) {
+		group = 'verification'
+		description = "Billing initialization and analytics settings with the ${mode} passphrase, without network requests."
+		dependsOn sessionTestClasses
+		classpath = sourceSets.sessionTest.runtimeClasspath
+		mainClass = 'com.twinsoft.convertigo.engine.BillingPassphraseTest'
+		args mode
+	}
+}
+tasks.register('billingPassphraseTest') {
+	group = 'verification'
+	description = 'Billing settings in fresh JVMs with default and custom cryptographic passphrases.'
+	dependsOn 'billingPassphraseDefaultTest', 'billingPassphraseCustomTest'
+}
+tasks.named('check') { dependsOn 'billingPassphraseTest' }
