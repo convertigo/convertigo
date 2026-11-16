@@ -899,7 +899,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		// Export project
 		String exportedProjectFileName = Engine.projectFile(projectName).getAbsolutePath();
 		Engine.logDatabaseObjectManager.info("Saving project \"" + projectName + "\" to: " + exportedProjectFileName);
-		CarUtils.exportProject(project, exportedProjectFileName);
+		project.migrationSaveError = CarUtils.exportProjectWithWarning(project, exportedProjectFileName);
 		if (exportedProjectFileName.endsWith(".xml")) {
 			File yaml = new File(new File(exportedProjectFileName).getParentFile(), "c8oProject.yaml");
 			Engine.logDatabaseObjectManager
@@ -1445,7 +1445,13 @@ public class DatabaseObjectsManager implements AbstractManager {
 				// TODO: Migration to 4.0.1 (parent bean handles children order
 				// (priorities))!!
 				if (VersionUtils.compare(version[0], "4.0.1") >= 0) {
-					exportProject(project);
+					try {
+						exportProject(project);
+					} catch (EngineException e) {
+						project.migrationSaveError = CarUtils.exportErrorMessage(e);
+						Engine.logDatabaseObjectManager.error("Project \"" + projectName
+								+ "\" is loaded, but its migrated version could not be saved", e);
+					}
 				} else {
 					Engine.logDatabaseObjectManager.error("Project \"" + projectName
 							+ "\" has been partially migrated. It may not work properly. Please import it trought the Studio and export/upload it again.");
@@ -1468,12 +1474,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 			Engine.logDatabaseObjectManager.info("Project \"" + projectName + "\" imported!");
 
 			if (!Engine.isCliMode()) {
-				Project p = project;
 				Engine.logDatabaseObjectManager
 				.debug("Syncing FullSync DesignDocument for the projet loaded from: " + importFile);
-				Engine.execute(() -> {
-					CouchDbManager.syncDocument(p);
-				});
+				synchronizeFullSyncDocuments(project);
 			}
 
 			return project;
@@ -1490,6 +1493,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 				}
 			}
 		}
+	}
+
+	protected void synchronizeFullSyncDocuments(Project project) {
+		Engine.execute(() -> CouchDbManager.syncDocument(project));
 	}
 
 	private Element performXmlMigration(Document document) throws EngineException {

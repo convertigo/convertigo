@@ -17,6 +17,37 @@ const sequenceName = 'TestSequence';
 const sequenceId = `${projectName}.sq:${sequenceName}`;
 const initStepId = `${sequenceId}.st:Init`;
 
+test('admin shows and refreshes a project migration save warning as text', async ({ page }) => {
+	await mockStudioServices(page);
+	let warning = 'AccessDeniedException: <project-file>';
+	await page.route('**/admin/services/projects.List*', async (route) => {
+		await route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({
+				admin: {
+					projects: {
+						project: [{ name: projectName, comment: '', ref: [], migrationSaveError: warning }]
+					}
+				}
+			})
+		});
+	});
+	await page.goto('/admin/projects/');
+	const alert = page.getByRole('alert').filter({ hasText: projectName });
+	await expect(alert).toContainText('its migrated version could not be saved');
+	await expect(alert).toContainText(warning);
+	await expect(alert.locator('project-file')).toHaveCount(0);
+	warning = '';
+	await page.getByRole('button', { name: 'Reload project', exact: true }).click();
+	await expect(alert).toHaveCount(0);
+	await expect(
+		page
+			.getByRole('row')
+			.filter({ has: page.getByRole('cell', { name: projectName, exact: true }) })
+	).toBeVisible();
+});
+
 test('studio opens a selected backend object with tree, execution and flow synchronized', async ({
 	page
 }) => {

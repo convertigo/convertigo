@@ -172,7 +172,23 @@ public class CarUtils {
 		exportProject(project, fileName, true);
 	}
 	
-	private static void exportProject(Project project, String fileName, boolean includeTestCases) throws EngineException {
+	/** Saves a canonical project and reports a YAML failure when the XML fallback succeeds. */
+	public static String exportProjectWithWarning(Project project, String fileName) throws EngineException {
+		return exportProject(project, fileName, true);
+	}
+
+	/** A bounded diagnostic without serialized property values or a stack trace. */
+	public static String exportErrorMessage(Throwable error) {
+		Throwable root = org.apache.commons.lang3.exception.ExceptionUtils.getRootCause(error);
+		root = root == null ? error : root;
+		String message = root.getClass().getSimpleName();
+		if (root instanceof java.nio.file.FileSystemException || root instanceof java.io.FileNotFoundException) {
+			message += ": " + root.getMessage();
+		}
+		return org.apache.commons.lang3.StringUtils.abbreviate(message, 1024);
+	}
+
+	private static String exportProject(Project project, String fileName, boolean includeTestCases) throws EngineException {
 		Document document = exportProject(project, includeTestCases);
 		try {
 			exportYAMLProject(project, fileName, document);
@@ -181,7 +197,9 @@ public class CarUtils {
 			Engine.theApp.showErrorMessage("Failed to fully export the project as YAML to '" + fileName + "'.\nExporting in the XML '" + xmlFilename + "' instead.\nXML can be imported after fixing errors below.\n" + e.getMessage());
 			Engine.logEngine.error("(CarUtils) Failed to fully export the project as YAML to '" + fileName + "', exporting in the XML '" + xmlFilename + "' instead. XML can be imported after fixing errors below.", e);
 			exportXMLProject(new File(new File(fileName).getParentFile(), xmlFilename).getAbsolutePath(), document);
+			return exportErrorMessage(e);
 		}
+		return null;
 	}
 	
 	private static void exportYAMLProject(Project project, String fileName, Document document) throws Exception {

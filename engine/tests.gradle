@@ -662,3 +662,13 @@ tasks.register('xmlProjectLibrariesTest', JavaExec) {
 	args 'com.twinsoft.convertigo.engine.util.XMLUtilsProjectLibrariesTest'
 }
 tasks.named('check') { dependsOn 'xmlProjectLibrariesTest' }
+
+tasks.register('projectMigrationSaveTest', JavaExec) {
+	group = 'verification'
+	description = 'Migrated project import and FullSync initialization survive a project save failure.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.ProjectMigrationSaveTest'
+}
+tasks.named('check') { dependsOn 'projectMigrationSaveTest' }

@@ -103,6 +103,9 @@ public class List extends XmlService{
 
 				Element projectElement = document.createElement("project");
 				projectElement.setAttribute("name", projectName);
+				if (project.migrationSaveError != null) {
+					projectElement.setAttribute("migrationSaveError", project.migrationSaveError);
+				}
 				projectElement.setAttribute("comment", comment);
 				projectElement.setAttribute("version", version);
 				projectElement.setAttribute("exported", exported);

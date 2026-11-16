@@ -122,6 +122,10 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	 */
 	public boolean undefinedGlobalSymbols = false;
 
+	/** In-memory diagnostic for an automatic migration save, never part of the project format. */
+	public transient volatile String migrationSaveError;
+
+
 	public Set<Pair<String, String>> defaultSymbols;
 
 	/**
