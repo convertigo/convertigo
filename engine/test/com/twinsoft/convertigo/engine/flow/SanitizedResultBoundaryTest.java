@@ -82,10 +82,17 @@ public class SanitizedResultBoundaryTest {
 			} else assertEquals(source, copy(source, false).toString(), copy(source, true).toString());
 		}
 	}
-	@Test public void unsupportedHostObjectsRemainRejectedByThePolicy() throws Exception {
+	@Test public void hostObjectsAreWrittenAsTextByBothPaths() throws Exception {
+		// The provider policy writes a Java object as a text leaf; it holds no handle.
+		var source = "({a:new java.io.File('fixture')})";
+		var detached = copy(source, false);
+		assertEquals("fixture", detached.getString("a"));
+		assertEquals(detached.toString(), copy(source, true).toString());
+		assertNull(Context.getCurrentContext());
+		// A handle next to a Java object is still rejected.
 		for (boolean fused : new boolean[] {false,true}) {
-			try { copy("({a:new java.io.File('fixture')})", fused); fail("host policy must reject"); }
-			catch (org.mozilla.javascript.RhinoException expected) { }
+			try { copy("({a:new java.io.File('fixture'),b:{__flowHandle:true,__flowHandleType:'file'}})", fused); fail("handle escaped"); }
+			catch (JavaScriptException expected) { assertEquals("RUNTIME_HANDLE_IN_RESULT", Context.toString(ScriptableObject.getProperty((Scriptable) expected.getValue(), "code"))); }
 			assertNull(Context.getCurrentContext());
 		}
 	}
