@@ -45,8 +45,8 @@ public class ExportGenericViewTest {
 			var flow = new Flow();
 			flow.setName("Slow");
 			project.add(flow);
-			// a certain header is written as the runtime would have synchronized it
-			flow.setFlowSource("const _flow = { accessibility: 'Private', authenticatedContextRequired: true };\n" + "x += 1;\n".repeat(100_000));
+			// a certain header is written as the runtime would have synchronized it (Public differs from the Private default)
+			flow.setFlowSource("const _flow = { accessibility: 'Public', authenticatedContextRequired: true };\n" + "x += 1;\n".repeat(100_000));
 			// an uncertain header is shown closed in a view, but the archive keeps the stored property
 			var uncertain = new Flow();
 			uncertain.setName("Uncertain");
@@ -99,7 +99,7 @@ public class ExportGenericViewTest {
 			assertNotNull("archive has c8oProject.yaml", yaml);
 			assertTrue("project YAML does not reference the Flow", yaml.contains("sequences/Slow.yaml"));
 			assertNotNull("Flow YAML missing from archive", flowYaml);
-			assertTrue("declared accessibility missing from archive: " + flowYaml, flowYaml.contains("accessibility: Private"));
+			assertTrue("declared accessibility missing from archive: " + flowYaml, flowYaml.contains("accessibility: Public"));
 			assertTrue("declared authentication missing from archive: " + flowYaml, flowYaml.contains("authenticatedContextRequired: true"));
 			assertNotNull("uncertain Flow YAML missing from archive", uncertainYaml);
 			assertTrue("stored accessibility missing from archive: " + uncertainYaml, uncertainYaml.contains("accessibility: Hidden"));

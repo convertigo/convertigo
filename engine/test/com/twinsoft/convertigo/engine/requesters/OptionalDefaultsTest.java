@@ -407,6 +407,21 @@ public class OptionalDefaultsTest {
 			assertEquals(200, client.send(java.net.http.HttpRequest.newBuilder(url).GET().build(),
 					java.net.http.HttpResponse.BodyHandlers.discarding()).statusCode());
 			assertTrue("HTTP after symbolsCheck must synchronize", com.twinsoft.convertigo.engine.flow.FlowEngineBridge.syncInputsAttempts() > calls);
+			// without a stored value (no accessibility line in the YAML), a Flow whose declared contract cannot be read stays private
+			var stored = com.twinsoft.convertigo.beans.core.RequestableObject.class.getDeclaredField("accessibility");
+			stored.setAccessible(true);
+			assertEquals(Accessibility.Private, stored.get(new Flow()));
+			try (var defaults = com.twinsoft.convertigo.beans.BeansDefaultValues.class.getResourceAsStream("/com/twinsoft/convertigo/beans/database_objects_default.xml")) {
+				var xml = new String(defaults.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+				assertTrue("a YAML without accessibility line loads the Private default", java.util.regex.Pattern.compile(
+						"classname=\"com\\.twinsoft\\.convertigo\\.beans\\.flow\\.Flow\"[^>]*>\\s*<property name=\"accessibility\">\\s*<java\\.lang\\.String value=\"Private\"/>").matcher(xml).find());
+			}
+			assertEquals(Accessibility.Private, stored.get(flow));
+			flow.setFlowSource("const _flow = { accessibility: 'Private', authenticatedContextRequired: 'maybe' };\nfunction Flow({result}) { return result; }\n");
+			calls = com.twinsoft.convertigo.engine.flow.FlowEngineBridge.syncInputsAttempts();
+			assertEquals(403, client.send(java.net.http.HttpRequest.newBuilder(url).GET().build(),
+					java.net.http.HttpResponse.BodyHandlers.discarding()).statusCode());
+			assertTrue("the refused request must have tried to synchronize", com.twinsoft.convertigo.engine.flow.FlowEngineBridge.syncInputsAttempts() > calls);
 		} finally {
 			release.countDown();
 			if (worker.isAlive()) worker.join(5000);

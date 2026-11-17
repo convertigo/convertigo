@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
     <sequence classname="com.twinsoft.convertigo.beans.flow.Flow" priority="0" version="   8   5   0">
         <property name="accessibility">
-            <java.lang.String value="Public"/>
+            <java.lang.String value="Private"/>
         </property>
         <property name="addStatistics">
             <java.lang.Boolean value="false"/>

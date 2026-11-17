@@ -31,9 +31,13 @@ public class FlowGenericViewTest {
 		var longSource = "const _flow = { accessibility: 'Private', authenticatedContextRequired: true };\n"
 				+ "x += 1;\n".repeat(100_000);
 		var slow = flow(longSource);
+		slow.setAccessibility(Accessibility.Hidden);
 		var unreadable = flow("const _flow = { accessibility: compute() };\n");
 		var plain = flow("function Flow() { return 1; }\n");
 		var commented = flow("// const _flow = { accessibility: 'Private' };\nfunction Flow() { return 1; }\n");
+		// stored values that differ from the Private default show that the view reads them
+		plain.setAccessibility(Accessibility.Public);
+		commented.setAccessibility(Accessibility.Public);
 		long started = System.nanoTime();
 		long calls = FlowEngineBridge.syncInputsAttempts();
 		long runtimeCalls = FlowBridgeProbe.calls();
@@ -61,7 +65,7 @@ public class FlowGenericViewTest {
 		assertFalse(FlowGenericView.active());
 		var accessibility = RequestableObject.class.getDeclaredField("accessibility");
 		accessibility.setAccessible(true);
-		assertEquals(Accessibility.Public, accessibility.get(slow));
+		assertEquals(Accessibility.Hidden, accessibility.get(slow));
 	}
 
 	@Test public void scopesDoNotEscapeToAnotherThreadOrAfterAnException() throws Exception {

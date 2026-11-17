@@ -108,6 +108,8 @@ public class Flow extends Sequence {
 
 	public Flow() {
 		super();
+		// callable from outside only when declared so
+		setAccessibility(Accessibility.Private);
 	}
 
 	/** Plans are prepared on first use in the runtime pool, never during project import. */
