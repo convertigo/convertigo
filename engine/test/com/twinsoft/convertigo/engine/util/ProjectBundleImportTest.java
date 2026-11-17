@@ -119,6 +119,20 @@ public class ProjectBundleImportTest {
 		assertEmpty(root);
 	}
 
+	@Test public void omitsPrivateStateWithPortableCaseVariantsAndReleasesExtractedContent() throws Exception {
+		var root = folder.newFolder().toPath();
+		var upload = zip(Map.of("Folder/c8oProject.yaml", yaml("Folder", "1", null),
+				"Folder/_Private/a.txt", text("private"), "Folder/_DATA/b.txt", text("data")));
+		try (var prepared = ProjectBundleImport.prepare(List.of(upload), root, Limits.defaults())) {
+			try (var car = new ZipFile(prepared.archive("Folder").toFile())) {
+				assertFalse(car.stream().anyMatch(entry -> entry.getName().toLowerCase(java.util.Locale.ROOT).contains("/_private/")
+						|| entry.getName().toLowerCase(java.util.Locale.ROOT).contains("/_data/")));
+			}
+			try (var files = Files.walk(root)) { assertFalse(files.anyMatch(path -> path.getFileName().toString().startsWith("content-"))); }
+		}
+		assertEmpty(root);
+	}
+
 	private Path car(String name, String version, String dependency) throws Exception {
 		return zip(Map.of(name + "/c8oProject.yaml", yaml(name, version, dependency), name + "/asset.txt", text("asset")));
 	}

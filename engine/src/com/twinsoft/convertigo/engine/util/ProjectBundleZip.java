@@ -162,7 +162,8 @@ public final class ProjectBundleZip {
 				validateName(name);
 				if (!names.add(name)) throw new IOException("Duplicate archive entry");
 				registerPath(name, directory, paths, types);
-				int mode = (int) (u32(header, 38) >>> 16);
+				int platform = Byte.toUnsignedInt(header[5]);
+				int mode = platform == 3 ? (int) (u32(header, 38) >>> 16) : 0;
 				int kind = mode & 0170000;
 				if (kind != 0 && kind != (directory ? 0040000 : 0100000)) throw new IOException("Unsupported archive entry attributes");
 				long expanded = u32(header, 24), compressed = u32(header, 20), local = u32(header, 42);

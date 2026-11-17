@@ -18,6 +18,9 @@ projectBundle {
 }
 ```
 
+Choose an output outside project sources or under their `build` directory.
+The completed bundle is checked with the shared importer before replacing the output.
+
 Run `./gradlew projectBundle`. The task saves the current project first, as the
 `car` task does. Selected projects and included references must be available to
 the engine used by the build. Dependency selection follows declared project

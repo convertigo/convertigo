@@ -53,7 +53,7 @@ public class ProjectBundleZipTest {
 			switch (change) {
 			case 0: bytes[30] = 'b'; break;
 			case 1: bytes[6] ^= 8; break;
-			case 2: put32(bytes, central + 38, 0120777 << 16); break;
+			case 2: bytes[central + 5] = 3; put32(bytes, central + 38, 0120777 << 16); break;
 			case 3: bytes[central + 8] |= 1; bytes[6] |= 1; break;
 			}
 			Files.write(archive, bytes);
@@ -140,6 +140,19 @@ public class ProjectBundleZipTest {
 		var target = folder.newFolder().toPath();
 		prepare(archive, target, new Budget(Limits.defaults()));
 		assertArrayEquals(content, Files.readAllBytes(target.resolve("a.txt")));
+	}
+
+	@Test public void acceptsWindowsEntryAttributesWithoutTreatingThemAsUnixModes() throws Exception {
+		var archive = archive("a.txt", "Windows file");
+		var bytes = Files.readAllBytes(archive);
+		int central = signature(bytes, 0x02014b50);
+		bytes[central + 5] = 0;
+		put32(bytes, central + 38, (0120777 << 16) | 32);
+		Files.write(archive, bytes);
+		var target = folder.newFolder().toPath();
+		prepare(archive, target, new Budget(Limits.defaults()));
+		assertEquals("Windows file", Files.readString(target.resolve("a.txt")));
+		assertFalse(Files.isSymbolicLink(target.resolve("a.txt")));
 	}
 
 	private static void prepare(Path archive, Path target, Budget budget) throws IOException {

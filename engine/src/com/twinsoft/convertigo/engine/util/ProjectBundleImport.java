@@ -99,7 +99,10 @@ public final class ProjectBundleImport implements AutoCloseable {
 		}
 		boolean single = rootDescriptor != null || singlePrefix != null;
 		if (!single && !allowBundle) throw new IOException("An internal archive must contain a project; nested bundles are not supported");
-		if (!single) validateBundleLayout(names, directories);
+		if (!single) {
+			validateBundleLayout(names, directories);
+			for (var entry : entries) if (entry.name().equals("bundle.json") && entry.size() > (1L << 20)) throw new IOException("The bundle manifest is too large");
+		}
 		var extracted = Files.createTempDirectory(staging, "content-");
 		String prefix = singlePrefix == null ? "" : singlePrefix;
 		Set<String> projectRoots = single ? Set.of(prefix) : directories.stream().map(name -> name + "/").collect(java.util.stream.Collectors.toSet());
@@ -119,14 +122,20 @@ public final class ProjectBundleImport implements AutoCloseable {
 				addProject(extracted.resolve(directory), extracted.resolve(descriptor(names, projectPrefix)));
 			}
 			for (var name : names) {
-				if (!name.contains("/") && !name.equals("bundle.json")) read(extracted.resolve(name), false);
+				if (!name.contains("/") && !name.equals("bundle.json")) {
+					read(extracted.resolve(name), false);
+					Files.delete(extracted.resolve(name));
+				}
 			}
 			if (names.contains("bundle.json")) {
 				var scope = new TreeSet<>(archives.keySet());
 				scope.removeAll(previousNames);
-				manifests.add(new Manifest(extracted.resolve("bundle.json"), Set.copyOf(scope)));
+				var manifest = Files.createTempFile(staging, "manifest-", ".json");
+				Files.copy(extracted.resolve("bundle.json"), manifest, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+				manifests.add(new Manifest(manifest, Set.copyOf(scope)));
 			}
 		}
+		org.apache.commons.io.FileUtils.deleteDirectory(extracted.toFile());
 	}
 
 	private static void validateBundleLayout(Set<String> names, Set<String> directories) throws IOException {
@@ -158,6 +167,13 @@ public final class ProjectBundleImport implements AutoCloseable {
 		var info = ProjectBundleDescriptor.read(descriptor);
 		if (archives.containsKey(info.name())) throw new IOException("The bundle contains duplicate project names or versions: " + info.name());
 		// Only validated files are re-archived; deployment never sees the original ZIP view.
+		long required = 64L << 20;
+		try (var files = Files.walk(directory)) {
+			for (var file : files.filter(path -> Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)).toList()) {
+				required += Files.size(file) + 1024;
+			}
+		}
+		if (Files.getFileStore(staging).getUsableSpace() < required) throw new IOException("Insufficient space to prepare the project archive");
 		var archive = staging.resolve(info.name() + ".car");
 		try (var zip = new ZipOutputStream(Files.newOutputStream(archive, java.nio.file.StandardOpenOption.CREATE_NEW));
 				var files = Files.walk(directory)) {
@@ -175,6 +191,7 @@ public final class ProjectBundleImport implements AutoCloseable {
 		}
 		descriptions.add(info);
 		archives.put(info.name(), archive);
+		org.apache.commons.io.FileUtils.deleteDirectory(directory.toFile());
 	}
 
 	private void checkManifests() throws Exception {
@@ -204,6 +221,7 @@ public final class ProjectBundleImport implements AutoCloseable {
 	}
 
 	private static boolean privatePath(String path) {
+		path = java.text.Normalizer.normalize(path, java.text.Normalizer.Form.NFC).toLowerCase(java.util.Locale.ROOT);
 		return path.equals("_private") || path.startsWith("_private/") || path.equals("_data") || path.startsWith("_data/");
 	}
 

@@ -137,6 +137,36 @@ public class ProjectBundleTest {
 		}
 	}
 
+	@Test public void checksSourcePathsBeforeReplacingAnExistingBundle() throws Exception {
+		String previous = Engine.PROJECTS_PATH;
+		Engine.logEngine = org.apache.log4j.Logger.getLogger("bundle-source-test");
+		var root = folder.newFolder("source-projects").toPath();
+		Engine.PROJECTS_PATH = root.toString();
+		try {
+			var app = project(root, "App", "1", null);
+			var output = folder.getRoot().toPath().resolve("portable.zip");
+			ProjectBundle.export(output, List.of("App"), false, ArchiveExportOption.all, name -> app);
+			var before = Files.readAllBytes(output);
+			if (java.io.File.separatorChar != '\\') {
+				Files.writeString(root.resolve("App/unsupported?.txt"), "asset");
+				assertThrows(IOException.class, () -> ProjectBundle.export(output, List.of("App"), false, ArchiveExportOption.all, name -> app));
+				assertArrayEquals(before, Files.readAllBytes(output));
+				Files.delete(root.resolve("App/unsupported?.txt"));
+			}
+			var sourceDestination = root.resolve("App/application.zip");
+			assertThrows(IOException.class, () -> ProjectBundle.export(sourceDestination, List.of("App"), false, ArchiveExportOption.all, name -> app));
+			assertFalse(Files.exists(sourceDestination));
+			var buildDestination = root.resolve("App/build/application.zip");
+			ProjectBundle.export(buildDestination, List.of("App"), false, ArchiveExportOption.all, name -> app);
+			try (var prepared = ProjectBundleImport.prepare(List.of(buildDestination), folder.getRoot().toPath(), ProjectBundleZip.Limits.defaults());
+					var car = new ZipFile(prepared.archive("App").toFile())) {
+				assertFalse(car.stream().anyMatch(entry -> entry.getName().startsWith("App/build/")));
+			}
+		} finally {
+			Engine.PROJECTS_PATH = previous;
+		}
+	}
+
 	private static Project project(Path root, String name, String version, String dependency) throws Exception {
 		var project = new Project();
 		project.setName(name);

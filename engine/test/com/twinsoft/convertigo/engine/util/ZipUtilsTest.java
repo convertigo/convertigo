@@ -24,6 +24,24 @@ public class ZipUtilsTest {
 	public TemporaryFolder folder = new TemporaryFolder();
 
 	@Test
+	public void preservesProjectStateForCaseVariantsOfExcludedFolders() throws Exception {
+		Engine.logEngine = Logger.getLogger("zip-test");
+		var archive = folder.newFile("variants.car").toPath();
+		var target = folder.newFolder("variants-target").toPath();
+		try (var zip = new ZipOutputStream(Files.newOutputStream(archive))) {
+			for (String name : new String[] {"Demo/_Private/new.txt", "Demo/_DATA/new.txt", "Demo/normal.txt"}) {
+				zip.putNextEntry(new ZipEntry(name));
+				zip.write(new byte[] {1});
+				zip.closeEntry();
+			}
+		}
+		ZipUtils.expandZip(archive.toString(), target.toString(), "Demo");
+		assertFalse(Files.exists(target.resolve("_Private")));
+		assertFalse(Files.exists(target.resolve("_DATA")));
+		assertTrue(Files.exists(target.resolve("normal.txt")));
+	}
+
+	@Test
 	public void flushesBinaryEntriesAcrossOutputBufferBoundaries() throws Exception {
 		Engine.logEngine = Logger.getLogger("zip-test");
 		var archive = folder.newFile("binary.car").toPath();

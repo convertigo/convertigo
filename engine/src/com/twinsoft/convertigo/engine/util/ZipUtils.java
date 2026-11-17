@@ -157,7 +157,8 @@ public class ZipUtils {
 
 							// Apply project state exclusions to the resolved path, after removing the archive prefix.
 							var relativePath = extractionRoot.relativize(targetPath);
-							var firstPart = relativePath.getName(0).toString();
+							var firstPart = java.text.Normalizer.normalize(relativePath.getName(0).toString(), java.text.Normalizer.Form.NFC)
+								.toLowerCase(java.util.Locale.ROOT);
 							if (firstPart.equals("_private") || firstPart.equals("_data")) {
 								continue;
 							}

@@ -102,8 +102,24 @@ public final class ProjectBundle {
 			Set<ArchiveExportOption> options) throws Exception {
 		var target = destination.toAbsolutePath().normalize();
 		Files.createDirectories(target.getParent());
-		var staging = Files.createTempDirectory(target.getParent(), ".project-bundle-");
+		var realTarget = target.getParent().toRealPath().resolve(target.getFileName());
+		for (var project : projects.values()) {
+			var source = project.getDirFile().getCanonicalFile().toPath();
+			if (realTarget.startsWith(source)) {
+				String top = source.relativize(realTarget).getName(0).toString();
+				if (!Set.of("build", "_private", "_data").contains(top)) {
+					throw new IOException("Choose a bundle destination outside project sources or in their build directory");
+				}
+			}
+		}
+		var staging = Files.createTempDirectory("convertigo-project-bundle-");
+		Path ready = null;
 		try {
+			for (var project : projects.values()) {
+				if (staging.toRealPath().startsWith(project.getDirFile().getCanonicalFile().toPath())) {
+					throw new IOException("The bundle temporary directory must be outside project sources");
+				}
+			}
 			var manifest = new JSONObject();
 			manifest.put("formatVersion", 1);
 			var entries = new JSONArray();
@@ -127,9 +143,24 @@ public final class ProjectBundle {
 				zip.write(manifest.toString(2).getBytes(StandardCharsets.UTF_8));
 				zip.closeEntry();
 			}
-			Files.move(output, target, StandardCopyOption.REPLACE_EXISTING);
+			try (var validation = ProjectBundleImport.prepare(java.util.List.of(output), staging, ProjectBundleZip.Limits.defaults())) {
+				if (!validation.plan().projects().equals(plan.projects())) {
+					throw new IOException("Save the selected project descriptors before creating a bundle");
+				}
+			}
+			ready = Files.createTempFile(target.getParent(), ".bundle-output-", ".zip");
+			Files.copy(output, ready, StandardCopyOption.REPLACE_EXISTING);
+			try {
+				Files.move(ready, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+			} catch (java.nio.file.AtomicMoveNotSupportedException unsupported) {
+				Files.move(ready, target, StandardCopyOption.REPLACE_EXISTING);
+			}
 		} finally {
-			org.apache.commons.io.FileUtils.deleteDirectory(staging.toFile());
+			try {
+				if (ready != null) Files.deleteIfExists(ready);
+			} finally {
+				org.apache.commons.io.FileUtils.deleteDirectory(staging.toFile());
+			}
 		}
 	}
 }
