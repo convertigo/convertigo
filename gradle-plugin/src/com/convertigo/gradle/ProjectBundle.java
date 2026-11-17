@@ -44,7 +44,7 @@ public class ProjectBundle extends ProjectCar {
 	}
 
 	@Input
-	public boolean getIncludeDependencies() {
+	public boolean isIncludeDependencies() {
 		return includeDependencies;
 	}
 
@@ -58,12 +58,12 @@ public class ProjectBundle extends ProjectCar {
 		var root = plugin.load.getConvertigoProject();
 		var names = projects.isEmpty() ? List.of(root.getName()) : List.copyOf(projects);
 		var options = new HashSet<>(ArchiveExportOption.all);
-		if (!getIncludeTestCases()) options.remove(ArchiveExportOption.includeTestCase);
-		if (!getIncludeStubs()) options.remove(ArchiveExportOption.includeStubs);
-		if (!getIncludeMobileApp()) options.remove(ArchiveExportOption.includeMobileApp);
-		if (!getIncludeMobileAppAssets()) options.remove(ArchiveExportOption.includeMobileAppAssets);
-		if (!getIncludeMobileDataset()) options.remove(ArchiveExportOption.includeMobileDataset);
-		if (!getIncludeMobilePlatformsAssets()) options.remove(ArchiveExportOption.includeMobilePlatformsAssets);
+		if (!isIncludeTestCases()) options.remove(ArchiveExportOption.includeTestCase);
+		if (!isIncludeStubs()) options.remove(ArchiveExportOption.includeStubs);
+		if (!isIncludeMobileApp()) options.remove(ArchiveExportOption.includeMobileApp);
+		if (!isIncludeMobileAppAssets()) options.remove(ArchiveExportOption.includeMobileAppAssets);
+		if (!isIncludeMobileDataset()) options.remove(ArchiveExportOption.includeMobileDataset);
+		if (!isIncludeMobilePlatformsAssets()) options.remove(ArchiveExportOption.includeMobilePlatformsAssets);
 		File output = getDestinationFile();
 		if (output == null) output = new File(getDestinationDir(), root.getName() + "-bundle.zip");
 		com.twinsoft.convertigo.engine.util.ProjectBundle.export(output.toPath(), names, includeDependencies,

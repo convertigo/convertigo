@@ -40,6 +40,8 @@ public class BooleanTaskPropertiesTest {
 	@Test
 	public void accessorsUsePrimitiveBooleans() throws Exception {
 		assertAccessors(ProjectCar.class, CAR_FLAGS);
+		assertAccessors(ProjectBundle.class, CAR_FLAGS);
+		assertAccessors(ProjectBundle.class, new String[] { "includeDependencies" });
 		assertAccessors(ProjectDeploy.class, DEPLOY_FLAGS);
 		assertAccessors(ExportDependencies.class, CAR_FLAGS);
 	}
@@ -70,6 +72,8 @@ public class BooleanTaskPropertiesTest {
 					def carFlags = ['includeTestCases', 'includeStubs', 'includeMobileApp',
 						'includeMobileAppAssets', 'includeMobileDataset', 'includeMobilePlatformsAssets']
 					checkFlags(tasks.named('car').get(), carFlags, true)
+					checkFlags(tasks.named('projectBundle').get(), carFlags, true)
+					checkFlags(tasks.named('projectBundle').get(), ['includeDependencies'], false)
 					checkFlags(tasks.named('exportDependencies').get(), carFlags, true)
 					checkFlags(tasks.named('deploy').get(), ['trustAllCertificates', 'assembleXsl'], false)
 				}
@@ -78,7 +82,8 @@ public class BooleanTaskPropertiesTest {
 		var result = GradleRunner.create()
 			.withProjectDir(projectDir.getRoot())
 			.withPluginClasspath()
-			.withArguments("checkBooleanFlags", "--offline", "--stacktrace")
+			.withArguments("checkBooleanFlags", "--offline", "--stacktrace", "--max-workers=2",
+				"-Dorg.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g")
 			.build();
 		assertEquals(TaskOutcome.SUCCESS, result.task(":checkBooleanFlags").getOutcome());
 	}
