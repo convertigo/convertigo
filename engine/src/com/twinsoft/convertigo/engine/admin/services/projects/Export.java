@@ -99,8 +99,11 @@ public class Export extends DownloadService {
 			
 		}
 		
-		// build a new CAR file from project directory
-		f = CarUtils.makeArchive(projectName, exportOptions);
+		// build a new CAR file from project directory; loading the project stays outside the generic view
+		var project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
+		try (var view = com.twinsoft.convertigo.engine.flow.FlowGenericView.open()) {
+			f = CarUtils.makeArchive(project, exportOptions);
+		}
 	
 		// upload CAR file to admin
 		HeaderName.ContentLength.setHeader(response, "" + f.length());

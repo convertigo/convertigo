@@ -39,6 +39,7 @@ import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.sequences.GenericSequence;
+import com.twinsoft.convertigo.beans.flow.Flow;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager;
@@ -320,6 +321,98 @@ public class OptionalDefaultsTest {
 			message = refusal(requester::checkSecuredConnection);
 			assertEquals("Unable to execute the requested requestable: a secured connection is needed.", message);
 			assertFalse(message, message.contains(requestable.getName()));
+		}
+	}
+
+	@Test
+	public void httpRuntimeRemainsSeparateFromSymbolsView() throws Exception {
+		Engine.authenticatedSessionManager = new AuthenticatedSessionManager();
+		org.junit.Assume.assumeTrue("FLOW_ENGINE_RESOURCE_ROOT is required", System.getenv("FLOW_ENGINE_RESOURCE_ROOT") != null && java.nio.file.Files.isDirectory(java.nio.file.Path.of(System.getenv("FLOW_ENGINE_RESOURCE_ROOT"))));
+		var entered = new java.util.concurrent.CountDownLatch(1);
+		var release = new java.util.concurrent.CountDownLatch(1);
+		var project = new Project() {
+			@Override public List<com.twinsoft.convertigo.beans.core.Sequence> getSequencesList() {
+				if ("symbols-view".equals(Thread.currentThread().getName())) {
+					entered.countDown();
+					try { release.await(); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+				}
+				return super.getSequencesList();
+			}
+		};
+		project.setName("GenericAccess");
+		var flow = new Flow();
+		flow.setName("Guarded");
+		project.add(flow);
+		flow.setFlowSource("const _flow = { accessibility: 'Public' };\n_flow.accessibility = 'Private';\nfunction Flow({result}) { return result; }\n");
+		var library = new Project() {
+			@Override public String getDirPath() {
+				return java.nio.file.Path.of(System.getenv("FLOW_ENGINE_RESOURCE_ROOT")).getParent().toString();
+			}
+		};
+		library.setName("lib_flow_engine");
+		projects.put(library.getName(), library);
+		var manager = Engine.theApp.databaseObjectsManager;
+		var projectsField = DatabaseObjectsManager.class.getDeclaredField("projects");
+		projectsField.setAccessible(true);
+		projectsField.set(manager, new HashMap<>(Map.of(project.getName(), project, library.getName(), library)));
+		try (var view = com.twinsoft.convertigo.engine.flow.FlowGenericView.open()) {
+			assertEquals(Accessibility.Private, flow.getAccessibility());
+			assertTrue(flow.getAuthenticatedContextRequired());
+		}
+		var tomcat = new org.apache.catalina.startup.Tomcat();
+		var baseDir = java.nio.file.Files.createTempDirectory("flow-http-view");
+		tomcat.setBaseDir(baseDir.toString());
+		tomcat.setPort(0);
+		tomcat.getConnector().setProperty("address", "127.0.0.1");
+		var webapp = tomcat.addContext("", baseDir.toString());
+		org.apache.catalina.startup.Tomcat.addServlet(webapp, "flow", new jakarta.servlet.http.HttpServlet() {
+			private static final long serialVersionUID = 1L;
+			@Override protected void doGet(HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
+				try {
+					var context = sessionContext(project);
+					var requester = servletRequester(project);
+					requester.inputData = request;
+					requester.initContext(context);
+					requester.context = context;
+					context.loadSequence();
+					requester.checkAccessibility();
+					response.setStatus(200);
+				} catch (RequestableUnavailableException refused) {
+					response.sendError(403);
+				} catch (Exception failure) {
+					response.sendError(500, failure.toString());
+				}
+			}
+		});
+		webapp.addServletMappingDecoded("/flow", "flow");
+		var worker = new Thread(manager::symbolsCheck, "symbols-view");
+		try {
+			tomcat.start();
+			var url = java.net.URI.create("http://127.0.0.1:" + tomcat.getConnector().getLocalPort() + "/flow?__sequence=Guarded");
+			var client = java.net.http.HttpClient.newHttpClient();
+			worker.start();
+			assertTrue(entered.await(5, java.util.concurrent.TimeUnit.SECONDS));
+			long calls = com.twinsoft.convertigo.engine.flow.FlowEngineBridge.syncInputsAttempts();
+			assertEquals(200, client.send(java.net.http.HttpRequest.newBuilder(url).GET().build(),
+					java.net.http.HttpResponse.BodyHandlers.discarding()).statusCode());
+			assertTrue("HTTP must synchronize through the runtime", com.twinsoft.convertigo.engine.flow.FlowEngineBridge.syncInputsAttempts() > calls);
+			release.countDown();
+			worker.join(5000);
+			assertFalse(com.twinsoft.convertigo.engine.flow.FlowGenericView.active());
+			calls = com.twinsoft.convertigo.engine.flow.FlowEngineBridge.syncInputsAttempts();
+			manager.symbolsCheck();
+			assertEquals(calls, com.twinsoft.convertigo.engine.flow.FlowEngineBridge.syncInputsAttempts());
+			flow.setFlowSource(flow.getFlowSource() + "// next revision\n");
+			calls = com.twinsoft.convertigo.engine.flow.FlowEngineBridge.syncInputsAttempts();
+			assertEquals(200, client.send(java.net.http.HttpRequest.newBuilder(url).GET().build(),
+					java.net.http.HttpResponse.BodyHandlers.discarding()).statusCode());
+			assertTrue("HTTP after symbolsCheck must synchronize", com.twinsoft.convertigo.engine.flow.FlowEngineBridge.syncInputsAttempts() > calls);
+		} finally {
+			release.countDown();
+			if (worker.isAlive()) worker.join(5000);
+			tomcat.stop();
+			tomcat.destroy();
+			org.apache.commons.io.FileUtils.deleteQuietly(baseDir.toFile());
 		}
 	}
 

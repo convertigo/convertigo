@@ -12,6 +12,7 @@ public final class FlowTagContribution {
 
 	public static void register(TagContributions contributions) throws IOException {
 		contributions.register("flow", context -> {
+			if (FlowGenericView.active()) return null;
 			if (context.scope() != TagManager.Scope.projectObjects || context.project() == null
 					|| context.project().getFlowEngine() == null) return null;
 			try {

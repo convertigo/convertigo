@@ -73,6 +73,9 @@ import com.twinsoft.convertigo.engine.util.RhinoBytecodeCache;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
 
 public class FlowEngineBridge {
+	private static final AtomicLong syncInputsAttempts = new AtomicLong();
+	/** Counts calls before runtime lookup, including failures and cache hits. */
+	public static long syncInputsAttempts() { return syncInputsAttempts.get(); }
 
 	public static final String DEFAULT_ENGINE_QNAME = "lib_flow_engine.Engine";
 
@@ -795,6 +798,7 @@ public class FlowEngineBridge {
 	}
 
 	public JSONObject syncInputs(Flow flow) throws EngineException {
+		syncInputsAttempts.incrementAndGet();
 		try {
 			var engineQName = effectiveEngineQName(flow);
 			var request = baseRequest(engineQName, flow == null ? "" : flow.getFlowSource(), flow == null ? "" : flow.getQName(), null)

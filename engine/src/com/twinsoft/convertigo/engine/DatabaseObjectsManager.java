@@ -2393,6 +2393,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 
 	public void symbolsCheck() {
+		try (var view = com.twinsoft.convertigo.engine.flow.FlowGenericView.open()) {
 		for (Project project : new ArrayList<>(projects.values())) {
 			ProjectLoadingData data = getProjectLoadingData();
 			data.projectName = project.getName();
@@ -2414,6 +2415,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			}
 			project.undefinedGlobalSymbols = data.undefinedGlobalSymbol;
 			project.defaultSymbols = data.defaultSymbols;
+		}
 		}
 	}
 

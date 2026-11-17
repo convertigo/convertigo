@@ -31,6 +31,7 @@ import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
+import com.twinsoft.convertigo.beans.flow.Flow;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.SessionKey;
@@ -126,6 +127,30 @@ public class TestPlatformDefaultsTest {
 
 		var administrator = testPlatform("Private", true);
 		assertEquals("true", transaction(administrator, "Main", "secret").getAttribute("default"));
+	}
+
+	@Test
+	public void longFlowHeadersAreReadWithoutSynchronizingInputs() throws Exception {
+		var project = project("LongFlow");
+		var declared = new Flow();
+		declared.setName("Declared");
+		project.add(declared);
+		declared.setFlowSource("const _flow = { accessibility: 'Private' };\n" + "x += 1;\n".repeat(100_000));
+		var unreadable = new Flow();
+		unreadable.setName("Unreadable");
+		project.add(unreadable);
+		unreadable.setFlowSource("const _flow = { accessibility: compute() };\n");
+		long started = System.nanoTime();
+		long bridgeCalls = com.twinsoft.convertigo.engine.flow.FlowEngineBridge.syncInputsAttempts();
+		long runtimeCalls = com.twinsoft.convertigo.engine.flow.FlowBridgeProbe.calls();
+		var platform = testPlatform("LongFlow", true);
+		assertEquals(bridgeCalls, com.twinsoft.convertigo.engine.flow.FlowEngineBridge.syncInputsAttempts());
+		assertEquals(runtimeCalls, com.twinsoft.convertigo.engine.flow.FlowBridgeProbe.calls());
+		assertEquals("Private", child(platform.getElementsByTagName("sequence"), "Declared").getAttribute("accessibility"));
+		assertEquals("Private", child(platform.getElementsByTagName("sequence"), "Unreadable").getAttribute("accessibility"));
+		org.junit.Assert.assertTrue("GetTestPlatform took over one second",
+				System.nanoTime() - started < java.util.concurrent.TimeUnit.SECONDS.toNanos(1));
+		org.junit.Assert.assertFalse(com.twinsoft.convertigo.engine.flow.FlowGenericView.active());
 	}
 
 	private static Element testPlatform(String projectName, boolean privateRole) throws Exception {

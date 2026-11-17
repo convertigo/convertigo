@@ -73,6 +73,8 @@ import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.flow.FlowEngineBridge;
+import com.twinsoft.convertigo.engine.flow.FlowGenericView;
+import com.twinsoft.convertigo.engine.flow.FlowStaticContract;
 import com.twinsoft.convertigo.engine.flow.FlowSourceLayout;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -90,10 +92,13 @@ public class Flow extends Sequence {
 	private transient String flowSourceDraft = null;
 	private transient long flowSourceFileLastModified = -1;
 	private transient String serverSourceFingerprint;
-	private transient String flowInputSyncSource = null;
+	private record InputSync(String source, boolean succeeded, Accessibility accessibility) { }
+	private transient volatile InputSync inputSync;
+	/** the header a generic view read from this source: its certain contract, else null, and whether the source names _flow */
+	private record ViewHeader(String source, JSONObject contract, boolean declaresFlow) { }
+	private transient volatile ViewHeader viewHeader;
 	private transient boolean flowInputSyncing = false;
-	/** the accessibility declared by _flow.accessibility, which replaces the property while the source declares it */
-	private transient Accessibility declaredAccessibility = null;
+	private static final ThreadLocal<Boolean> SERIALIZING = ThreadLocal.withInitial(() -> false);
 	// One immutable value: the projection may now be computed off the UI thread (ProjectTreeObject) while the UI reads it.
 	private transient volatile FlowVirtualChildren flowVirtualChildrenCache = null;
 	// counts the clears of the cache and is part of its key: a projection that ran across a clear is not served
@@ -122,9 +127,15 @@ public class Flow extends Sequence {
 
 	@Override
 	public Element toXml(Document document) throws EngineException {
-		var element = super.toXml(document);
-		removeSerializedProperty(element, "flowSource");
-		return element;
+		boolean previous = SERIALIZING.get();
+		SERIALIZING.set(true);
+		try {
+			var element = super.toXml(document);
+			removeSerializedProperty(element, "flowSource");
+			return element;
+		} finally {
+			if (previous) SERIALIZING.set(true); else SERIALIZING.remove();
+		}
 	}
 
 	@Override
@@ -274,6 +285,7 @@ public class Flow extends Sequence {
 
 	@Override
 	public List<DatabaseObject> getDatabaseObjectChildren() throws Exception {
+		if (FlowGenericView.active()) return super.getDatabaseObjectChildren();
 		synchronizeFlowInputs();
 		var children = new ArrayList<DatabaseObject>(super.getDatabaseObjectChildren());
 		children.addAll(getFlowVirtualChildren());
@@ -287,6 +299,7 @@ public class Flow extends Sequence {
 
 	@Override
 	public List<DatabaseObject> getAllChildren() {
+		if (FlowGenericView.active()) return super.getAllChildren();
 		synchronizeFlowInputs();
 		var children = new ArrayList<DatabaseObject>(super.getAllChildren());
 		children.addAll(getFlowVirtualChildren());
@@ -295,6 +308,7 @@ public class Flow extends Sequence {
 
 	@Override
 	public boolean hasDatabaseObjectChildren() throws Exception {
+		if (FlowGenericView.active()) return super.hasDatabaseObjectChildren();
 		synchronizeFlowInputs();
 		return super.hasDatabaseObjectChildren() || !getFlowVirtualChildren().isEmpty();
 	}
@@ -302,14 +316,66 @@ public class Flow extends Sequence {
 	/** The accessibility the source declares (_flow.accessibility), else the property: requesters check it first. */
 	@Override
 	public Accessibility getAccessibility() {
+		if (FlowGenericView.active()) return viewAccessibility(SERIALIZING.get());
 		synchronizeFlowInputs();
-		return declaredAccessibility != null ? declaredAccessibility : super.getAccessibility();
+		var state = inputSync;
+		return state != null && state.accessibility() != null ? state.accessibility() : super.getAccessibility();
 	}
 
 	@Override
 	public boolean getAuthenticatedContextRequired() {
+		if (FlowGenericView.active()) return viewAuthenticatedContextRequired(SERIALIZING.get());
 		synchronizeFlowInputs();
 		return super.getAuthenticatedContextRequired();
+	}
+
+	/** A generic view reads the last synchronization of this source, else a certain header; an uncertain header is shown closed, never written. */
+	private Accessibility viewAccessibility(boolean serializing) {
+		var source = getFlowSource();
+		var state = inputSync;
+		if (state != null && state.succeeded() && source.equals(state.source())) {
+			return state.accessibility() != null ? state.accessibility() : super.getAccessibility();
+		}
+		var header = viewHeader(source);
+		if (header.contract() != null) {
+			var value = header.contract().opt("accessibility");
+			if (value == null || value == JSONObject.NULL) return super.getAccessibility();
+			// the runtime trims the name and ignores its case
+			if (value instanceof String name) {
+				for (var accessibility : Accessibility.values()) {
+					if (accessibility.name().equalsIgnoreCase(name.trim())) return accessibility;
+				}
+			}
+			return serializing ? super.getAccessibility() : Accessibility.Private;
+		}
+		return !serializing && header.declaresFlow() ? Accessibility.Private : super.getAccessibility();
+	}
+
+	private boolean viewAuthenticatedContextRequired(boolean serializing) {
+		var source = getFlowSource();
+		var state = inputSync;
+		// a synchronization writes the declared value into the property
+		if (state != null && state.succeeded() && source.equals(state.source())) return super.getAuthenticatedContextRequired();
+		var header = viewHeader(source);
+		if (header.contract() != null) {
+			var value = header.contract().opt("authenticatedContextRequired");
+			if (value == null || value == JSONObject.NULL) return super.getAuthenticatedContextRequired();
+			if (value instanceof Boolean declared) return declared;
+			// the runtime also reads a trimmed true or false text, whatever its case
+			if (value instanceof String text && text.trim().matches("(?i)true|false")) return text.trim().equalsIgnoreCase("true");
+			return !serializing || super.getAuthenticatedContextRequired();
+		}
+		return !serializing && header.declaresFlow() || super.getAuthenticatedContextRequired();
+	}
+
+	private ViewHeader viewHeader(String source) {
+		var header = viewHeader;
+		if (header == null || header.source() != source && !header.source().equals(source)) {
+			var inspected = FlowStaticContract.inspect(source);
+			header = new ViewHeader(source, inspected.contract(), inspected.declaresFlow());
+			viewHeader = header;
+		}
+		return header;
 	}
 
 	@Override
@@ -329,35 +395,100 @@ public class Flow extends Sequence {
 
 	@Override
 	public List<RequestableVariable> getVariablesList() {
+		if (FlowGenericView.active()) return viewVariables();
 		synchronizeFlowInputs();
 		return super.getVariablesList();
 	}
 
 	@Override
 	public Variable getVariable(int index) {
+		if (FlowGenericView.active()) {
+			var variables = viewVariables();
+			return index >= 0 && index < variables.size() ? variables.get(index) : null;
+		}
 		synchronizeFlowInputs();
 		return super.getVariable(index);
 	}
 
 	@Override
 	public Variable getVariable(String variableName) {
+		if (FlowGenericView.active()) {
+			for (var variable : viewVariables()) if (variable.getName().equals(variableName)) return variable;
+			return null;
+		}
 		synchronizeFlowInputs();
 		return super.getVariable(variableName);
 	}
 
 	@Override
 	public boolean hasVariables() {
+		if (FlowGenericView.active()) return !viewVariables().isEmpty();
 		synchronizeFlowInputs();
 		return super.hasVariables();
 	}
 
 	@Override
 	public int numberOfVariables() {
+		if (FlowGenericView.active()) return viewVariables().size();
 		synchronizeFlowInputs();
 		return super.numberOfVariables();
 	}
 
+	/**
+	 * A generic view shows the inputs a certain header declares, as a synchronization would set them, without changing
+	 * the stored variables; else, and for a header the runtime would not replay as is, the stored variables.
+	 */
+	private List<RequestableVariable> viewVariables() {
+		var stored = super.getAllVariables();
+		var source = getFlowSource();
+		var state = inputSync;
+		if (state != null && state.succeeded() && source.equals(state.source())) return stored;
+		var contract = viewHeader(source).contract();
+		if (contract == null) return stored;
+		var inputs = contract.has("inputs") ? contract.opt("inputs") : contract.opt("input");
+		if (!(inputs instanceof JSONObject definitions) || definitions.length() == 0) return stored;
+		try {
+			validateFlowInputDefinitions(definitions);
+			var projected = new java.util.LinkedHashMap<String, RequestableVariable>();
+			for (var keys = definitions.keys(); keys.hasNext();) {
+				var key = String.valueOf(keys.next());
+				var definition = definitions.getJSONObject(key);
+				var type = flowInputType(definition, "_flow.inputs." + key);
+				var existing = super.getVariable(key) instanceof RequestableVariable requestable ? requestable : null;
+				// a synchronization updates a stored variable in place, so it keeps its kind
+				var multiValued = existing != null ? existing instanceof RequestableMultiValuedVariable : isFlowInputMultiValued(type, definition);
+				var variable = multiValued ? new RequestableMultiValuedVariable() : new RequestableVariable();
+				variable.setName(key);
+				variable.setParent(this);
+				variable.setDescription(definition.has("description") ? definition.getString("description")
+						: existing != null ? existing.getDescription() : "Flow input " + key);
+				if (definition.has("default")) {
+					setDefaultIfChanged(variable, flowInputDefaultValue(definition.opt("default"), variable instanceof RequestableMultiValuedVariable));
+				} else if (existing != null) {
+					variable.setValueOrNull(existing.getValueOrNull());
+				}
+				variable.setRequired(definition.has("required") ? (Boolean) definition.get("required") : existing != null && existing.isRequired());
+				variable.setIsFileUpload(definition.has("isFileUpload") ? (Boolean) definition.get("isFileUpload") : existing != null && existing.getIsFileUpload());
+				if (definition.has("visibility")) variable.setVisibility(((Number) definition.get("visibility")).intValue());
+				else if (existing != null) variable.setVisibility(existing.getVisibility());
+				variable.setSchemaType(flowInputSchemaType(type));
+				projected.put(key, variable);
+			}
+			// as a synchronization: stored variables keep their place, undeclared ones go, new ones follow
+			var variables = new ArrayList<RequestableVariable>();
+			for (var variable : stored) {
+				if (variable.getName().startsWith("__")) variables.add(variable);
+				else if (projected.containsKey(variable.getName())) variables.add(projected.remove(variable.getName()));
+			}
+			variables.addAll(projected.values());
+			return variables;
+		} catch (Exception notReplayable) {
+			return stored;
+		}
+	}
+
 	public List<DatabaseObject> getFlowVirtualChildren() {
+		if (FlowGenericView.active()) return List.of();
 		var source = getFlowSource();
 		var key = FlowEngineBridge.cacheGeneration() + "\n" + getQName() + "\n" + source + "\n" + flowVirtualChildrenClears;
 		var cached = flowVirtualChildrenCache;
@@ -412,17 +543,16 @@ public class Flow extends Sequence {
 
 	private void synchronizeFlowInputs() {
 		var source = getFlowSource();
-		if (flowInputSyncing || source.equals(flowInputSyncSource)) {
+		var state = inputSync;
+		if (flowInputSyncing || state != null && source.equals(state.source())) {
 			return;
 		}
 		if (!source.contains("_flow")) {
-			declaredAccessibility = null;
-			flowInputSyncSource = source;
+			inputSync = new InputSync(source, true, null);
 			return;
 		}
 		if (Engine.isStudioMode() && Boolean.FALSE.equals(hasDeclaredFlowInputs(source))) {
-			declaredAccessibility = null;
-			flowInputSyncSource = source;
+			inputSync = new InputSync(source, true, null);
 			return;
 		}
 		flowInputSyncing = true;
@@ -441,17 +571,16 @@ public class Flow extends Sequence {
 				}
 				// jettison reads a JSON null as a null text
 				var accessibility = response.optString("accessibility", "");
-				declaredAccessibility = accessibility == null || accessibility.isEmpty() || "null".equals(accessibility) ? null : Accessibility.valueOf(accessibility);
-				flowInputSyncSource = source;
+				inputSync = new InputSync(source, true, accessibility == null || accessibility.isEmpty() || "null".equals(accessibility) ? null : Accessibility.valueOf(accessibility));
 			} else {
 				var error = response.optJSONObject("error");
 				var message = error == null ? response.toString() : error.optString("message", error.toString());
 				Engine.logBeans.warn("(Flow) Unable to synchronize Flow inputs for \"" + getQName() + "\": " + message);
-				flowInputSyncSource = source;
+				inputSync = new InputSync(source, false, state == null ? null : state.accessibility());
 			}
 		} catch (Exception e) {
 			Engine.logBeans.warn("(Flow) Unable to synchronize Flow inputs for \"" + getQName() + "\".", e);
-			flowInputSyncSource = source;
+			inputSync = new InputSync(source, false, state == null ? null : state.accessibility());
 		} finally {
 			flowInputSyncing = false;
 		}
@@ -984,6 +1113,7 @@ public class Flow extends Sequence {
 	}
 
 	public void addFlowOutputSchema(XmlSchema schema, XmlSchemaSequence sequence) throws EngineException, JSONException {
+		if (FlowGenericView.active()) return;
 		var response = new FlowEngineBridge().outputSchema(this);
 		if (!response.optBoolean("ok", false)) {
 			if (response.has("error")) {

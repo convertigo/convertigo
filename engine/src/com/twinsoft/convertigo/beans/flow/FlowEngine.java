@@ -116,6 +116,7 @@ public class FlowEngine extends DatabaseObject {
 	}
 
 	public List<DatabaseObject> getFlowVirtualChildren() {
+		if (com.twinsoft.convertigo.engine.flow.FlowGenericView.active()) return List.of();
 		var key = flowVirtualChildrenCacheKey();
 		var cached = flowVirtualChildrenCache;
 		if (cached != null && key.equals(cached.key())) {
@@ -629,6 +630,8 @@ public class FlowEngine extends DatabaseObject {
 	 */
 	/** @return whether the dependencies file changed */
 	private boolean writeDependenciesFile() {
+		// An archive keeps the existing dependencies file; computing a replacement would invoke the runtime.
+		if (com.twinsoft.convertigo.engine.flow.FlowGenericView.active()) return false;
 		var project = getProject();
 		// The Flow runtime answers only in a started engine (not in bare serialization tests).
 		if (project == null || !Engine.isStarted || Engine.logBeans == null) {

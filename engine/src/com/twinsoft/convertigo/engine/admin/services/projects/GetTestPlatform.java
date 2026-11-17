@@ -83,9 +83,9 @@ public class GetTestPlatform extends XmlService {
 		Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
 		
 		Element e_project = createDatabaseObjectElement(document, project, lang);
-		
 		boolean bTpHiddenRole = Engine.authenticatedSessionManager.hasRole(request.getSession(), Role.TEST_PLATFORM_HIDDEN);
 		boolean bTpPrivateRole = Engine.authenticatedSessionManager.hasRole(request.getSession(), Role.TEST_PLATFORM_PRIVATE);
+		try (var view = com.twinsoft.convertigo.engine.flow.FlowGenericView.open()) {
 		
 		for (Connector connector : project.getConnectorsList()) {
 			Element e_connector = createDatabaseObjectElement(document, connector, lang);
@@ -156,6 +156,7 @@ public class GetTestPlatform extends XmlService {
 		}
 		
 		root.appendChild(e_project);
+		}
 	}
 	
 	/**
