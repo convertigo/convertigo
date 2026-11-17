@@ -1,6 +1,6 @@
 import { machine } from '@zag-js/file-upload';
 import { describe, expect, it } from 'vitest';
-import { prepareFileUploadPicker } from './fileUploadSelection';
+import { fileUploadRejectionText, prepareFileUploadPicker } from './fileUploadSelection';
 
 // Exercise the upload dependency's real acceptance/duplicate/rejection actions,
 // rather than replacing its validation with a mock that would accept every file.
@@ -93,5 +93,32 @@ describe('single-file picker selection', () => {
 		expect(upload.accepted).toEqual([first, second]);
 		upload.select([first]);
 		expect(upload.rejected[0].errors).toContain('FILE_EXISTS');
+	});
+});
+
+describe('multiple-file rejection messages', () => {
+	it('describes a repeated accepted file without reporting an unsupported type', () => {
+		const upload = uploadSelection(3);
+		const first = archive();
+		upload.select([first]);
+		upload.select([first]);
+		expect(fileUploadRejectionText(upload.rejected, 3, 'Unsupported file type')).toBe(
+			'This file is already selected.'
+		);
+		expect(upload.accepted).toEqual([first]);
+	});
+	it('reports the file-count limit from the upload machine', () => {
+		const upload = uploadSelection(2);
+		upload.select([archive('A.car'), archive('B.car'), archive('C.car')]);
+		expect(fileUploadRejectionText(upload.rejected, 2, 'Unsupported file type')).toBe(
+			'Choose at most 2 files.'
+		);
+	});
+	it('retains the allowed-type message for a file of another type', () => {
+		const upload = uploadSelection(3);
+		upload.select([archive('invalid.txt', 'text/plain')]);
+		expect(fileUploadRejectionText(upload.rejected, 3, 'Allowed: .car, .zip')).toBe(
+			'Allowed: .car, .zip'
+		);
 	});
 });

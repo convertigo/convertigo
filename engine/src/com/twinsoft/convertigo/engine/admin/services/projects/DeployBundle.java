@@ -75,7 +75,7 @@ public class DeployBundle extends XmlService {
 			upload.setFileCountMax(limits.uploads() + 8L);
 			items = upload.parseRequest(request);
 			var files = new ArrayList<Path>();
-			boolean assemble = false;
+			boolean assemble = Boolean.parseBoolean(request.getParameter("bAssembleXsl"));
 			for (var item : items) {
 				if (item.isFormField()) {
 					if (item.getSize() > 4096) throw new IOException("Project upload options are too large");
@@ -103,7 +103,7 @@ public class DeployBundle extends XmlService {
 					project.setAttribute("version", result.version());
 					project.setAttribute("status", result.status().name().toLowerCase(Locale.ROOT));
 					if (!result.warning().isEmpty()) project.setAttribute("warning", result.warning());
-					if (!result.error().isEmpty()) project.setAttribute("error", result.error());
+					if (!result.error().isEmpty()) project.setAttribute("detail", result.error());
 					summary.appendChild(project);
 				}
 			}

@@ -17,6 +17,144 @@ const sequenceName = 'TestSequence';
 const sequenceId = `${projectName}.sq:${sequenceName}`;
 const initStepId = `${sequenceId}.st:Init`;
 
+test('admin bundle deploy preserves the complete selection after cancelling and repeating a file', async ({
+	page
+}) => {
+	await mockStudioServices(page);
+	const uploads = [];
+	await page.route('**/admin/services/projects.DeployBundle*', async (route) => {
+		const request = route.request();
+		const form = await new Response(request.postDataBuffer(), {
+			headers: { 'Content-Type': request.headers()['content-type'] }
+		}).formData();
+		uploads.push(form.getAll('file').map((file) => file.name));
+		await route.fulfill({
+			status: 200,
+			contentType: 'application/xml',
+			body: '<admin><deployment success="false"><project name="App" version="1" status="deployed" warning="Migration save warning"/><project name="Other" version="2" status="failed" detail="simulated write failure"/><project name="Remaining" version="3" status="not_attempted"/></deployment></admin>'
+		});
+	});
+	await page.goto('/admin/projects/');
+	await page.getByRole('button', { name: 'Deploy project', exact: true }).click();
+	const dialog = page.getByRole('dialog');
+	await dialog.getByText('Deploy several projects or a bundle', { exact: true }).click();
+	const input = dialog.locator('input[type="file"]');
+	const items = dialog.locator('[data-scope="file-upload"][data-part="item-name"]');
+	const choose = dialog.getByRole('button', { name: 'Choose file', exact: true });
+	const archive = (name) => ({
+		name,
+		mimeType: 'application/octet-stream',
+		buffer: Buffer.from('synthetic archive')
+	});
+	const openChooser = async () =>
+		(await Promise.all([page.waitForEvent('filechooser'), choose.click()]))[0];
+	await (await openChooser()).setFiles([archive('App.car'), archive('Shared.zip')]);
+	await expect(items).toHaveText(['App.car', 'Shared.zip']);
+	await (await openChooser()).setFiles([]);
+	await input.dispatchEvent('cancel');
+	await expect(items).toHaveText(['App.car', 'Shared.zip']);
+	await expect
+		.poll(() => input.evaluate((element) => Array.from(element.files, (file) => file.name)))
+		.toEqual(['App.car', 'Shared.zip']);
+	await (await openChooser()).setFiles(archive('App.car'));
+	await expect(items).toHaveText(['App.car', 'Shared.zip']);
+	await expect(dialog.getByText('Unsupported file type.', { exact: false })).toHaveCount(0);
+	await expect
+		.poll(() =>
+			input.evaluate((element) =>
+				Array.from(new FormData(element.form).getAll(element.name), (file) => file.name)
+			)
+		)
+		.toEqual(['App.car', 'Shared.zip']);
+	await (await openChooser()).setFiles(archive('Other.car'));
+	await expect(items).toHaveText(['App.car', 'Shared.zip', 'Other.car']);
+	await dialog
+		.locator('[data-scope="file-upload"][data-part="item"]')
+		.filter({ hasText: 'Shared.zip' })
+		.getByRole('button')
+		.click();
+	await expect(items).toHaveText(['App.car', 'Other.car']);
+	await dialog.getByRole('button', { name: 'Deploy', exact: true }).click();
+	await expect.poll(() => uploads).toEqual([['App.car', 'Other.car']]);
+	await expect(page.getByRole('dialog')).toHaveCount(0);
+	await expect(
+		page.getByText('Deployment stopped. Previously deployed projects were kept.')
+	).toBeVisible();
+	await expect(page.getByText('Migration save warning')).toBeVisible();
+	await expect(page.getByText('simulated write failure')).toBeVisible();
+	await expect(page.getByText('Not attempted', { exact: true })).toBeVisible();
+});
+
+test('admin bundle export sends the checked projects and dependency option', async ({ page }) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await mockStudioServices(page);
+	await page.route('**/admin/services/projects.List*', (route) =>
+		route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({
+				admin: {
+					projects: {
+						project: [
+							{ name: 'App', comment: '', ref: [] },
+							{ name: 'Shared', comment: '', ref: [] }
+						]
+					}
+				}
+			})
+		})
+	);
+	await page.route('**/admin/services/projects.ExportOptions*', (route) =>
+		route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({
+				admin: {
+					options: {
+						option: [
+							{ name: 'includeTestCase', display: 'Include test cases' },
+							{ name: 'includeStubs', display: 'Include stubs' }
+						]
+					}
+				}
+			})
+		})
+	);
+	const exports = [];
+	await page.route('**/admin/services/projects.ExportBundle*', async (route) => {
+		const params = new URLSearchParams(route.request().postData());
+		exports.push({
+			names: JSON.parse(params.get('projects')),
+			dependencies: params.get('includeDependencies')
+		});
+		await route.fulfill({
+			status: 200,
+			headers: {
+				'content-type': 'application/zip',
+				'content-disposition': 'attachment; filename="projects-bundle.zip"'
+			},
+			body: Buffer.from('synthetic bundle')
+		});
+	});
+	await page.goto('/admin/projects/');
+	await page.getByRole('button', { name: 'Export projects', exact: true }).click();
+	await page
+		.getByRole('checkbox', { name: 'Select App for export', exact: true })
+		.locator('..')
+		.click();
+	await page.getByRole('button', { name: 'Export [1]', exact: true }).click();
+	const dialog = page.getByRole('dialog');
+	await dialog.getByText('Include declared dependencies', { exact: true }).click();
+	const [download] = await Promise.all([
+		page.waitForEvent('download'),
+		dialog.getByRole('button', { name: 'Export', exact: true }).click()
+	]);
+	expect(download.suggestedFilename()).toBe('projects-bundle.zip');
+	expect(exports).toEqual([{ names: ['App'], dependencies: 'true' }]);
+	await expect(page.getByRole('dialog')).toHaveCount(0);
+	await expect(page.getByRole('button', { name: 'Export projects', exact: true })).toBeVisible();
+});
+
 test('admin deploy accepts archives after cancelling and choosing the same file or another', async ({
 	page
 }) => {

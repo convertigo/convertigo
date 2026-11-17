@@ -43,6 +43,20 @@ let values = {
 	async deploy(event) {
 		await doCall('Deploy', event);
 	},
+	async deployBundle(event) {
+		try {
+			waiting = true;
+			event.preventDefault();
+			const res = await call('projects.DeployBundle', new FormData(event.target));
+			if (!res?.isError) await values.refresh();
+			return res;
+		} finally {
+			waiting = false;
+		}
+	},
+	async exportBundle(params) {
+		return await doCall('ExportBundle', params);
+	},
 	async exportProject(event) {
 		await doCall('Export', event);
 	},

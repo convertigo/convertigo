@@ -59,7 +59,7 @@ public class ProjectBundleServicesTest {
 		assertEquals("deployed", ((Element) projects.item(0)).getAttribute("status"));
 		assertEquals("Migration save warning", ((Element) projects.item(0)).getAttribute("warning"));
 		assertEquals("failed", ((Element) projects.item(1)).getAttribute("status"));
-		assertEquals("simulated write failure", ((Element) projects.item(1)).getAttribute("error"));
+		assertEquals("simulated write failure", ((Element) projects.item(1)).getAttribute("detail"));
 		assertEquals("not_attempted", ((Element) projects.item(2)).getAttribute("status"));
 		assertFalse(Files.exists(service.temporary));
 	}
@@ -105,6 +105,61 @@ public class ProjectBundleServicesTest {
 	@Test public void retainsTheSingleProjectServiceRoles() {
 		assertArrayEquals(Deploy.class.getAnnotation(ServiceDefinition.class).roles(), DeployBundle.class.getAnnotation(ServiceDefinition.class).roles());
 		assertArrayEquals(Export.class.getAnnotation(ServiceDefinition.class).roles(), ExportBundle.class.getAnnotation(ServiceDefinition.class).roles());
+	}
+
+	@Test public void acceptsTheExistingUploadQueryOption() throws Exception {
+		var original = new Multipart().file("file", "A.car", car("A")).request("/");
+		var request = (HttpServletRequest) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] {HttpServletRequest.class},
+				(proxy, method, args) -> method.getName().equals("getParameter") && args[0].equals("bAssembleXsl")
+						? "true" : method.invoke(original, args));
+		var service = new Deployment();
+		service.getServiceResult(request, document());
+		assertTrue(service.assemble);
+		assertEquals(List.of("A"), service.calls);
+		assertFalse(Files.exists(service.temporary));
+	}
+
+	@Test public void removesPartialUploadFilesWhenTheRequestIsInterrupted() throws Exception {
+		var content = new byte[100_000];
+		new java.util.Random(1296).nextBytes(content);
+		var original = new Multipart().file("file", "A.car", content).request("/");
+		var delegate = original.getInputStream();
+		var stream = new javax.servlet.ServletInputStream() {
+			int consumed;
+			@Override public int read() throws IOException {
+				if (consumed++ >= 32_768) throw new IOException("interrupted test request");
+				return delegate.read();
+			}
+			@Override public int read(byte[] bytes, int offset, int length) throws IOException {
+				if (consumed >= 32_768) throw new IOException("interrupted test request");
+				int count = delegate.read(bytes, offset, Math.min(length, 32_768 - consumed));
+				if (count > 0) consumed += count;
+				return count;
+			}
+			@Override public boolean isFinished() { return false; }
+			@Override public boolean isReady() { return true; }
+			@Override public void setReadListener(javax.servlet.ReadListener listener) { }
+		};
+		var request = (HttpServletRequest) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] {HttpServletRequest.class},
+				(proxy, method, args) -> method.getName().equals("getInputStream") ? stream : method.invoke(original, args));
+		var service = new Deployment();
+		assertThrows(org.apache.commons.fileupload.FileUploadBase.IOFileUploadException.class, () -> service.getServiceResult(request, document()));
+		assertTrue(service.calls.isEmpty());
+		assertFalse(Files.exists(service.temporary));
+	}
+
+	@Test public void removesPreparedExportFilesWhenTheClientStopsTheDownload() throws Exception {
+		Path[] output = new Path[1];
+		var service = new ExportBundle() {
+			@Override protected void export(Path destination, List<String> names, boolean dependencies, Set<ArchiveExportOption> options) throws Exception {
+				output[0] = destination;
+				Files.write(destination, new byte[100_000]);
+			}
+		};
+		var response = new Response();
+		response.fail = true;
+		assertThrows(IOException.class, () -> service.writeResponseResult(parameters(Map.of("projects", "[\"A\"]")), response.proxy()));
+		assertFalse(Files.exists(output[0].getParent()));
 	}
 
 	private class Deployment extends DeployBundle {
