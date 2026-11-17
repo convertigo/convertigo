@@ -150,6 +150,8 @@ public class ProxyManager {
 		if (proxyMode == ProxyMode.auto) {
 			this.pacUtils = new PacManager(proxyUrl);
 			this.pacUtils.start();
+		} else {
+			this.pacUtils = null;
 		}
 
 		if (Engine.theApp != null) {
@@ -214,6 +216,7 @@ public class ProxyManager {
 					}
 					else {
 						disableProxy(hostConfiguration);
+						return;
 					}
 				}
 
@@ -240,7 +243,8 @@ public class ProxyManager {
 	}
 
 	public PacInfos getPacInfos(String url, String host) {
-		return pacUtils.getPacInfos(url, host);
+		var pac = pacUtils;
+		return proxyMode == ProxyMode.auto && pac != null ? pac.getPacInfos(url, host) : null;
 	}
 
 	public void setBasicAuth(HttpState httpState) {

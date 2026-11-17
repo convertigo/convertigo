@@ -702,3 +702,14 @@ tasks.register('billingPassphraseTest') {
 	dependsOn 'billingPassphraseDefaultTest', 'billingPassphraseCustomTest'
 }
 tasks.named('check') { dependsOn 'billingPassphraseTest' }
+
+tasks.register('pacManagerTest', JavaExec) {
+	group = 'verification'
+	description = 'PAC alternatives, DIRECT routing and manual proxy isolation.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.PacManagerTest',
+		'com.twinsoft.convertigo.engine.util.WsReferenceProxyTest'
+}
+tasks.named('check') { dependsOn 'pacManagerTest' }
