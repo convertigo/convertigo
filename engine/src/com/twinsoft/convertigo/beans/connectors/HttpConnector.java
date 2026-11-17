@@ -452,6 +452,7 @@ public class HttpConnector extends Connector {
 		String urlEncodingCharset = httpTransaction.getComputedUrlEncodingCharset();
 
 		// Replace variables in URL
+		List<String> logHiddenPathValues = new ArrayList<>();
 		List<String> urlPathVariableList = AbstractHttpTransaction.getPathVariableList(sUrl);
 		if (!urlPathVariableList.isEmpty()) {
 			Engine.logBeans.debug("(HttpConnector) Defined URL: " + sUrl);
@@ -463,6 +464,9 @@ public class HttpConnector extends Connector {
 				
 				Engine.logBeans.trace("(HttpConnector) Path variable: " + varName + " => (" + method + ") " + httpVariable);
 				
+				if (rVariable != null && Visibility.Logs.isMasked(rVariable)) {
+					logHiddenPathValues.add(ParameterUtils.toString(httpObjectVariableValue));
+				}
 				sUrl = sUrl.replaceAll("\\{" + varName + "\\}", Matcher.quoteReplacement(ParameterUtils.toString(httpObjectVariableValue)));
 			}
 		}
@@ -510,9 +514,11 @@ public class HttpConnector extends Connector {
 			}
 		}
 
-		Engine.logBeans.debug("(HttpConnector) URL: " + sUrl);
-
 		if (Engine.logBeans.isDebugEnabled()) {
+			int queryStart = sUrl.indexOf('?');
+			String logUrl = queryStart < 0 ? sUrl : sUrl.substring(0, queryStart + 1)
+					+ Visibility.Logs.replaceVariables(httpTransaction.getVariablesList(), sUrl.substring(queryStart + 1));
+			Engine.logBeans.debug("(HttpConnector) URL: " + Visibility.Logs.replaceValues(logHiddenPathValues, logUrl));
 			Engine.logBeans.debug("(HttpConnector) GET query: " + Visibility.Logs.replaceVariables(httpTransaction.getVariablesList(), queryString));
 		}
 		
@@ -615,16 +621,18 @@ public class HttpConnector extends Connector {
 			}
 		}
 		
+		boolean isBodyLogHidden = false;
 		RequestableHttpVariable body = (RequestableHttpVariable) httpTransaction.getVariable(Parameter.HttpBody.getName());
 		if (body != null) {
 			method = body.getHttpMethod();
 			httpObjectVariableValue = httpTransaction.getParameterValue(Parameter.HttpBody.getName());
 			if (method.equals("POST") && httpObjectVariableValue != null) {
+				isBodyLogHidden = Visibility.Logs.isMasked(body);
 				if ("application/json".equals(contentType) && httpObjectVariableValue instanceof Element) {
 					try {
 						postQuery = XMLUtils.XmlToJson(((Element) httpObjectVariableValue), true, true, JsonRoot.docChildNodes);
 					} catch (JSONException e) {
-						Engine.logBeans.warn("Failed to transform the XML input to JSON string: [" + e.getClass().getCanonicalName() + "] " + e.getMessage());
+						Engine.logBeans.warn("Failed to transform the XML input to JSON string: [" + e.getClass().getCanonicalName() + "]" + (isBodyLogHidden ? "" : " " + e.getMessage()));
 						postQuery = ParameterUtils.toString(httpObjectVariableValue);
 					}
 				} else {
@@ -645,7 +653,7 @@ public class HttpConnector extends Connector {
 			isMultiValued = trVariable.isMultiValued();
 			method = trVariable.getHttpMethod();
 			httpVariable = trVariable.getHttpName();
-			isLogHidden = Visibility.Logs.isMasked(trVariable.getVisibility());
+			isLogHidden = Visibility.Logs.isMasked(trVariable);
 			
 			
 			if (httpVariable.isBlank()) {
@@ -786,10 +794,10 @@ public class HttpConnector extends Connector {
 		}
 		
 		if (Engine.logBeans.isDebugEnabled()) {
-			Engine.logBeans.debug("(HttpConnector) POST query: " + (isFormUrlEncoded ? "" : "\n") 
-					+ (isFormUrlEncoded ? 
-							Visibility.Logs.replaceVariables(httpTransaction.getVariablesList(), postQuery):
-								Visibility.Logs.replaceValues(logHiddenValues, postQuery)));
+			Object queryForLogs = isBodyLogHidden ? Visibility.Logs.printValue(body, postQuery) : isFormUrlEncoded
+					? Visibility.Logs.replaceVariables(httpTransaction.getVariablesList(), postQuery)
+					: Visibility.Logs.replaceValues(logHiddenValues, postQuery);
+			Engine.logBeans.debug("(HttpConnector) POST query: " + (isFormUrlEncoded ? "" : "\n") + queryForLogs);
 		}
 		Engine.logBeans.debug("(HttpConnector) Connector successfully prepared for transaction");
 	}
@@ -1215,8 +1223,7 @@ public class HttpConnector extends Connector {
 		if (!context.requestedObject.runningThread.bContinue)
 			return null;
 
-		Engine.logBeans.debug("(HttpConnector) Executing method - " + method.getName() + "("
-				+ method.getPath() + ")");
+		Engine.logBeans.debug("(HttpConnector) Executing method - " + method.getName());
 
 		try {
 			AbstractHttpTransaction transaction = (AbstractHttpTransaction) context.requestedObject;
@@ -1225,7 +1232,7 @@ public class HttpConnector extends Connector {
 			if (Engine.logBeans.isTraceEnabled()) {
 				List<String> printedHeaders = new ArrayList<String>(requestHeaders.length);
 				for (Header header : requestHeaders) {
-					printedHeaders.add(isCredentialHeader(header.getName()) ? header.getName() + ": " + Visibility.STRING_MASK + "\r\n" : header.toString());
+					printedHeaders.add(header.getName() + ": " + Visibility.Logs.printValue("__header_" + header.getName(), 0, header.getValue()) + "\r\n");
 				}
 				Engine.logBeans.trace("(HttpConnector) Request headers :\n" + printedHeaders);
 			}

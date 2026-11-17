@@ -298,6 +298,12 @@
 		icon="mdi:magnify"
 		bind:value={filterState.current}
 	/>
+	{#each fprojects.filter((project) => project.migrationSaveError) as project (project.name)}
+		<p role="alert" class="rounded-sm preset-tonal-warning p break-words">
+			<strong>{project.name}</strong> is loaded, but its migrated version could not be saved:
+			{project.migrationSaveError}
+		</p>
+	{/each}
 	<TableAutoCard
 		definition={[
 			{ name: 'Project', key: 'name', class: 'font-normal w-80', sortable: true },

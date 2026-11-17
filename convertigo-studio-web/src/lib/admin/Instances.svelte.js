@@ -19,6 +19,8 @@ let state = $state({
 	unreachable: null
 });
 
+let discoveryGeneration = 0;
+
 function normalizeInstance(value) {
 	if (typeof value !== 'string') return '';
 	const trimmed = value.trim();
@@ -75,15 +77,26 @@ export default {
 		return state.unreachable;
 	},
 
+	reset() {
+		discoveryGeneration += 1;
+		state.storeMode = '';
+		state.instances = [];
+		state.loading = false;
+		state.current = '';
+		state.active = '';
+		state.unreachable = null;
+		state.revision += 1;
+	},
+
 	apply(headers, instance = state.current) {
 		if (instance) headers[INSTANCE_HEADER] = instance;
 		return state.revision;
 	},
 	/** @returns {boolean} true when the response reports that the chosen instance is unreachable */
-	update(response, revision = state.revision) {
-		if (revision !== state.revision) return false;
+	update(response, requestRevision = state.revision) {
 		const headers = response?.headers;
 		const unreachable = normalizeInstance(headers?.get?.(UNREACHABLE_HEADER));
+		if (requestRevision !== state.revision) return Boolean(unreachable);
 		if (unreachable) {
 			// An in-flight request for the previous selection must not restore its banner.
 			if (state.current && unreachable !== state.current) return true;
@@ -110,11 +123,11 @@ export default {
 	async refresh(force = false) {
 		if (state.loading) return;
 		if (!force && (state.storeMode || state.instances.length)) return;
+		const generation = discoveryGeneration;
 		state.loading = true;
 		try {
-			// Discovery must remain reachable even after the selected pod has disappeared.
 			const res = await call('engine.ListInstances', {}, { instance: '' });
-			// A failed discovery keeps the selector as it was.
+			if (generation !== discoveryGeneration) return;
 			if (res?.error || typeof res?.storeMode !== 'string' || !Array.isArray(res?.instances))
 				return;
 			state.storeMode = res.storeMode;
@@ -126,7 +139,7 @@ export default {
 				state.active = state.current;
 			}
 		} finally {
-			state.loading = false;
+			if (generation === discoveryGeneration) state.loading = false;
 		}
 	}
 };

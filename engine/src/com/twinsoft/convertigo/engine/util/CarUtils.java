@@ -246,6 +246,17 @@ public class CarUtils {
 		STANDARD
 	}
 
+	/** A bounded diagnostic without serialized property values or a stack trace. */
+	public static String exportErrorMessage(Throwable error) {
+		Throwable root = org.apache.commons.lang3.exception.ExceptionUtils.getRootCause(error);
+		root = root == null ? error : root;
+		String message = root.getClass().getSimpleName();
+		if (root instanceof java.nio.file.FileSystemException || root instanceof java.io.FileNotFoundException) {
+			message += ": " + root.getMessage();
+		}
+		return org.apache.commons.lang3.StringUtils.abbreviate(message, 1024);
+	}
+
 	/** Saves or exports a project; it switches to standard YAML once its beans require engine 8.5.0. */
 	public static void exportProject(Project project, String fileName) throws EngineException {
 		exportProject(project, fileName, ExportFormat.SAVED);

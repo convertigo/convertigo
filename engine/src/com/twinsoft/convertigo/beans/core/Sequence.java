@@ -248,7 +248,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			Variable variable = getVariable(requestedVariableName);
 			if (variable != null) {
 				value = variable.getValueOrNull();// new 5.0.3 (may return null)
-				valueToPrint = Visibility.Logs.printValue(variable.getVisibility(), value);
+				valueToPrint = Visibility.Logs.printValue(variable, value);
 				if (Engine.logBeans.isDebugEnabled()) {
 					if ((value != null) && (value instanceof String))
 						Engine.logBeans.debug("Default value: " + requestedVariableName + " = \"" + valueToPrint + "\"");
@@ -457,7 +457,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			variableValue = getVariableValue(variableName);
 			jsObject = ((variableValue == null) ? null:org.mozilla.javascript.Context.toObject(variableValue, scope));
 			scope.put(variableName, scope, jsObject);
-			variableValueToPrint = Visibility.Logs.printValue(variableVisibility,variableValue);
+			variableValueToPrint = Visibility.Logs.printValue(variableName,variableVisibility,variableValue);
 			if (Engine.logBeans.isDebugEnabled()) {
 			if ((variableValue != null) && (variableValue instanceof String))
 				Engine.logBeans.debug("(Sequence) Declared but not provided sequence variable " + variableName + "=\"" + variableValueToPrint + "\" added to the scripting scope");
@@ -473,7 +473,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			variableValue = getVariableValue(variableName2);
 			jsObject = ((variableValue == null) ? null:org.mozilla.javascript.Context.toObject(variableValue, scope));
 			scope.put(variableName2, scope, jsObject);
-			variableValueToPrint = Visibility.Logs.printValue(variableVisibility,variableValue);
+			variableValueToPrint = Visibility.Logs.printValue(variableName2,variableVisibility,variableValue);
 			if (Engine.logBeans.isDebugEnabled()) {
 			if ((variableValue != null) && (variableValue instanceof String))
 				Engine.logBeans.debug("(Sequence) Provided sequence variable " + variableName2 + "=\"" + variableValueToPrint + "\" added (or overridden) to the scripting scope");

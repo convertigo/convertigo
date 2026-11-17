@@ -1046,7 +1046,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	 * @param announce whether the other instances of a shared workspace reload it: not for a migration at its load
 	 * @param format the format of its files: the one it was read with for a migration at its load, which is not a save
 	 */
-	private void exportProject(Project project, boolean announce, CarUtils.ExportFormat format) throws EngineException {
+	protected void exportProject(Project project, boolean announce, CarUtils.ExportFormat format) throws EngineException {
 		String projectName = project.getName();
 
 		// Export project
@@ -1055,7 +1055,13 @@ public class DatabaseObjectsManager implements AbstractManager {
 				? "Converting project \"" + projectName + "\" to standard YAML, saving it to: "
 				: "Saving project \"" + projectName + "\" to: ") + exportedProjectFileName);
 		var readFormat = project.getYamlFormat();
-		CarUtils.exportProject(project, exportedProjectFileName, format);
+		try {
+			CarUtils.exportProject(project, exportedProjectFileName, format);
+			project.migrationSaveError = null;
+		} catch (EngineException e) {
+			project.migrationSaveError = CarUtils.exportErrorMessage(e);
+			throw e;
+		}
 		if (format == CarUtils.ExportFormat.SAVED && readFormat != project.getYamlFormat()) {
 			Engine.logDatabaseObjectManager.info("Project \"" + projectName + "\" requires engine " + project.getMinVersion()
 					+ ": saved in standard YAML instead of the legacy format it was read with");
@@ -1698,7 +1704,13 @@ public class DatabaseObjectsManager implements AbstractManager {
 				if (VersionUtils.compare(version[0], "4.0.1") >= 0) {
 					// each instance loading it migrates it the same way: none is told; loading it is not a save, its
 					// format stays the one it was read with
-					exportProject(project, false, CarUtils.ExportFormat.KEPT);
+					try {
+						exportProject(project, false, CarUtils.ExportFormat.KEPT);
+					} catch (EngineException e) {
+						project.migrationSaveError = CarUtils.exportErrorMessage(e);
+						Engine.logDatabaseObjectManager.error("Project \"" + projectName
+								+ "\" is loaded, but its migrated version could not be saved", e);
+					}
 				} else {
 					Engine.logDatabaseObjectManager.error("Project \"" + projectName
 							+ "\" has been partially migrated. It may not work properly. Please import it trought the Studio and export/upload it again.");
@@ -1731,12 +1743,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 			}
 
 			if (!Engine.isCliMode()) {
-				Project p = project;
 				Engine.logDatabaseObjectManager
 				.debug("Syncing FullSync DesignDocument for the projet loaded from: " + importFile);
-				Engine.execute(() -> {
-					CouchDbManager.syncDocument(p);
-				});
+				synchronizeFullSyncDocuments(project);
 			}
 
 			return project;
@@ -1753,6 +1762,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 				}
 			}
 		}
+	}
+
+	protected void synchronizeFullSyncDocuments(Project project) {
+		Engine.execute(() -> CouchDbManager.syncDocument(project));
 	}
 
 	private Element performXmlMigration(Document document) throws EngineException {

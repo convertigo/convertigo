@@ -170,7 +170,9 @@ export async function call(service, data = {}, options = {}) {
 		});
 		responseStatus = res.status;
 		responseStatusText = res.statusText;
+		const wasUnreachable = Instances.unreachable;
 		if (options.instance === undefined && Instances.update(res, instanceRevision)) {
+			if (!wasUnreachable && Instances.unreachable) void Instances.refresh(true);
 			// this server answered: only the instance chosen in the console is unreachable from it
 			markServerReachable();
 			return {
@@ -207,7 +209,6 @@ export async function call(service, data = {}, options = {}) {
 		if (xsrf != null) {
 			localStorage.setItem('x-xsrf-token', xsrf);
 		}
-		if (options.instance === undefined) Instances.update(res, instanceRevision);
 
 		const disposition = /filename=("|')?(.*)\1/.exec(res.headers.get('content-disposition') ?? '');
 		if (disposition) {

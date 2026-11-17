@@ -1261,6 +1261,217 @@ test('studio object search combines text options and project scope with filters 
 	await expect(panel.getByRole('button', { name: 'Search', exact: true })).toBeEnabled();
 });
 
+test('admin deploy accepts archives after cancelling and choosing the same file or another', async ({
+	page
+}) => {
+	await mockStudioServices(page);
+	const uploads = [];
+	await page.route('**/admin/services/projects.Deploy*', async (route) => {
+		const request = route.request();
+		const form = await new Response(request.postDataBuffer(), {
+			headers: { 'Content-Type': request.headers()['content-type'] }
+		}).formData();
+		const file = form.get('file');
+		uploads.push({ name: file.name, size: file.size });
+		await route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({ admin: { message: 'Project deployed' } })
+		});
+	});
+	await page.goto('/admin/projects/');
+	await page.getByRole('button', { name: 'Deploy project', exact: true }).click();
+	const dialog = page.getByRole('dialog');
+	const input = dialog.locator('input[type="file"]');
+	const items = dialog.locator('[data-scope="file-upload"][data-part="item-name"]');
+	const choose = dialog.getByRole('button', { name: 'Choose file', exact: true });
+	const archive = {
+		name: 'Example.car',
+		mimeType: 'application/octet-stream',
+		buffer: Buffer.alloc(41 * 1024 * 1024)
+	};
+	const openChooser = async () => {
+		const [chooser] = await Promise.all([page.waitForEvent('filechooser'), choose.click()]);
+		return chooser;
+	};
+	await (await openChooser()).setFiles(archive);
+	await expect(items).toHaveText(['Example.car']);
+	expect(await input.evaluate((element) => element.files.length)).toBe(1);
+
+	// Playwright dismisses the intercepted chooser with no files; also exercise the DOM cancel event.
+	await (await openChooser()).setFiles([]);
+	await input.dispatchEvent('cancel');
+	await expect(items).toHaveCount(0);
+	expect(await input.evaluate((element) => element.files.length)).toBe(0);
+	await dialog.getByRole('button', { name: 'Deploy', exact: true }).click();
+	expect(uploads).toHaveLength(0);
+
+	await (await openChooser()).setFiles(archive);
+	await expect(items).toHaveText(['Example.car']);
+	expect(
+		await input.evaluate((element) => {
+			const file = new FormData(element.form).get(element.name);
+			return { name: file.name, size: file.size };
+		})
+	).toEqual({ name: 'Example.car', size: 41 * 1024 * 1024 });
+	await expect(dialog.getByText('Unsupported file type.', { exact: false })).toHaveCount(0);
+
+	await (
+		await openChooser()
+	).setFiles({
+		name: 'Another.car',
+		mimeType: '',
+		buffer: Buffer.from('synthetic archive')
+	});
+	await expect(items).toHaveText(['Another.car']);
+	await expect(dialog.getByText('Unsupported file type.', { exact: false })).toHaveCount(0);
+
+	await (
+		await openChooser()
+	).setFiles({
+		name: 'Another.zip',
+		mimeType: 'application/zip',
+		buffer: Buffer.from('synthetic zip archive')
+	});
+	await expect(items).toHaveText(['Another.zip']);
+	await dialog.getByRole('button', { name: 'Deploy', exact: true }).click();
+	await expect.poll(() => uploads).toEqual([{ name: 'Another.zip', size: 21 }]);
+});
+
+test('admin shows and refreshes a project migration save warning as text', async ({ page }) => {
+	await mockStudioServices(page);
+	let warning = 'AccessDeniedException: <project-file>';
+	await page.route('**/admin/services/projects.List*', async (route) => {
+		await route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({
+				admin: {
+					projects: {
+						project: [{ name: projectName, comment: '', ref: [], migrationSaveError: warning }]
+					}
+				}
+			})
+		});
+	});
+	await page.goto('/admin/projects/');
+	const alert = page.getByRole('alert').filter({ hasText: projectName });
+	await expect(alert).toContainText('its migrated version could not be saved');
+	await expect(alert).toContainText(warning);
+	await expect(alert.locator('project-file')).toHaveCount(0);
+	warning = '';
+	await page.getByRole('button', { name: 'Reload project', exact: true }).click();
+	await expect(alert).toHaveCount(0);
+	await expect(
+		page
+			.getByRole('row')
+			.filter({ has: page.getByRole('cell', { name: projectName, exact: true }) })
+	).toBeVisible();
+});
+
+test('admin refreshes discovery after an instance disappears and keeps an active session', async ({
+	page
+}) => {
+	const state = await mockAdminInstances(page);
+	await page.goto('/admin/projects/');
+	const selector = page.getByRole('combobox');
+	await expect(selector).toHaveValue('pod-a');
+	await selector.selectOption('pod-b');
+	state.removed = true;
+	await page.getByRole('link', { name: 'Symbols', exact: true }).click();
+	await expect(page.getByText('Instance pod-b unreachable', { exact: true })).toBeVisible();
+	await expect(page).toHaveURL(/\/admin\/symbols\/$/);
+	await expect(selector).toHaveValue('pod-b');
+	await expect(selector.locator('option')).toContainText(['pod-a', 'pod-c', 'pod-b']);
+	expect(state.discoveryHeaders.every((header) => header == null)).toBe(true);
+	expect(state.discoveryHeaders.length).toBeGreaterThanOrEqual(2);
+	await page.getByRole('button', { name: 'Use pod-a', exact: true }).click();
+	await expect(selector).toHaveValue('pod-a');
+	await expect(page.getByText('Instance pod-b unreachable', { exact: true })).toHaveCount(0);
+});
+
+test('admin logs out and logs back in without routing to the removed instance', async ({
+	page
+}) => {
+	const state = await mockAdminInstances(page);
+	await page.goto('/admin/projects/');
+	await expect(page.getByRole('combobox')).toHaveValue('pod-a');
+	await page.getByRole('combobox').selectOption('pod-b');
+	state.removed = true;
+	await page.getByRole('link', { name: 'Logout admin', exact: true }).click();
+	await expect(page).toHaveURL(/\/login\//);
+	await page.getByLabel('Username', { exact: true }).fill('synthetic-admin');
+	await page.getByLabel('Password', { exact: true }).fill('synthetic-test-value');
+	await page.getByRole('button', { name: 'Login', exact: true }).click();
+	await expect(page).toHaveURL(/\/admin\//);
+	await expect(page.getByRole('combobox')).toHaveValue('pod-a');
+	expect(state.authenticationHeaders).toEqual([undefined, undefined]);
+	expect(state.authenticated).toBe(true);
+});
+
+async function mockAdminInstances(page) {
+	await mockStudioServices(page);
+	const state = {
+		removed: false,
+		authenticated: true,
+		discoveryHeaders: [],
+		authenticationHeaders: []
+	};
+	await page.route('**/admin/services/**', async (route) => {
+		const request = route.request();
+		const service = serviceName(request.url());
+		const target = request.headers()['x-c8o-instance'];
+		if (
+			!['engine.ListInstances', 'engine.CheckAuthentication', 'engine.Authenticate'].includes(
+				service
+			)
+		) {
+			await route.fallback();
+			return;
+		}
+		if (state.removed && target === 'pod-b') {
+			await route.fulfill({
+				status: 502,
+				headers: { 'X-C8O-Instance-Unreachable': 'pod-b', 'X-C8O-Instance-Local': 'pod-a' },
+				body: ''
+			});
+			return;
+		}
+		let body;
+		if (service === 'engine.ListInstances') {
+			state.discoveryHeaders.push(target);
+			body = {
+				storeMode: 'redis',
+				localRoutingId: 'pod-a',
+				instances: (state.removed ? ['pod-a', 'pod-c'] : ['pod-a', 'pod-b']).map((instanceId) => ({
+					instanceId,
+					routingId: instanceId
+				}))
+			};
+		} else {
+			if (service === 'engine.Authenticate') {
+				state.authenticationHeaders.push(target);
+				state.authenticated =
+					new URLSearchParams(request.postData() ?? '').get('authType') === 'login';
+			}
+			body = {
+				admin: {
+					authenticated: state.authenticated,
+					user: state.authenticated ? 'admin' : '',
+					roles: { role: state.authenticated ? [{ name: 'WEB_ADMIN' }] : [] }
+				}
+			};
+		}
+		await route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			headers: { 'X-C8O-Instance': target ?? 'pod-a' },
+			body: JSON.stringify(body)
+		});
+	});
+	return state;
+}
+
 test('studio opens a selected backend object with tree, execution and flow synchronized', async ({
 	page
 }) => {

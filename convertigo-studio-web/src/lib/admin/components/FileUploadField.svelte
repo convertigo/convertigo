@@ -1,6 +1,7 @@
 <script>
 	import { FileUpload } from '@skeletonlabs/skeleton-svelte';
 	import Ico from '#lib/utils/Ico.svelte';
+	import { prepareFileUploadPicker } from './fileUploadSelection';
 
 	/** @type {{
 		name: string;
@@ -95,7 +96,11 @@
 			<p class="text-xs text-muted">{resolvedHint}</p>
 		{/if}
 		<FileUpload.Trigger element={trigger} />
-		<FileUpload.HiddenInput />
+		<FileUpload.Context>
+			{#snippet children(fileUpload)}
+				<FileUpload.HiddenInput onclick={() => prepareFileUploadPicker(fileUpload(), maxFiles)} />
+			{/snippet}
+		</FileUpload.Context>
 	</FileUpload.Dropzone>
 	<FileUpload.Context>
 		{#snippet children(fileUpload)}

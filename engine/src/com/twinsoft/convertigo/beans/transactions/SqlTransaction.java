@@ -397,7 +397,7 @@ public class SqlTransaction extends TransactionWithVariables {
 			if (variableValue instanceof UniqueTag && ((UniqueTag) variableValue).equals(UniqueTag.NOT_FOUND))
 				variableValue = null;
 			if (variableValue != null)
-				Engine.logBeans.trace("(SqlTransaction) scope value: "+ Visibility.Logs.printValue(variableVisibility,variableValue));
+				Engine.logBeans.trace("(SqlTransaction) scope value: "+ Visibility.Logs.printValue(parameterName,variableVisibility,variableValue));
 		}
 
 		if (variableValue == null) {
@@ -413,6 +413,13 @@ public class SqlTransaction extends TransactionWithVariables {
 		checkSubLoaded();
 
 		logHiddenValues.clear();
+		if (sqlQueryInfos.getOtherParametersList() != null) {
+			for (String name : sqlQueryInfos.getOtherParametersList()) {
+				if (Visibility.Logs.isMasked(name, getVariableVisibility(name))) {
+					logHiddenValues.add(getParameterStringValue(name));
+				}
+			}
+		}
 
 		String preparedSqlQuery = sqlQueryInfos.getQuery();
 

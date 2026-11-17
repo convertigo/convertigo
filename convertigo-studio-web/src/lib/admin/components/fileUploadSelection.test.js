@@ -1,0 +1,97 @@
+import { machine } from '@zag-js/file-upload';
+import { describe, expect, it } from 'vitest';
+import { prepareFileUploadPicker } from './fileUploadSelection';
+
+// Exercise the upload dependency's real acceptance/duplicate/rejection actions,
+// rather than replacing its validation with a mock that would accept every file.
+function uploadSelection(maxFiles = 1) {
+	const values = new Map([
+		['acceptedFiles', []],
+		['rejectedFiles', []]
+	]);
+	const context = {
+		get: (key) => values.get(key),
+		set: (key, value) =>
+			values.set(key, typeof value === 'function' ? value(values.get(key)) : value)
+	};
+	const props = machine.props({ props: { maxFiles } });
+	const parameters = {
+		context,
+		prop: (key) => props[key],
+		computed: (key) => (key === 'multiple' ? maxFiles > 1 : 'application/zip,.car,.zip')
+	};
+	return {
+		get accepted() {
+			return context.get('acceptedFiles');
+		},
+		get rejected() {
+			return context.get('rejectedFiles');
+		},
+		clearFiles: () => machine.implementations.actions.clearFiles(parameters),
+		select: (files) =>
+			machine.implementations.actions.setEventFiles({ ...parameters, event: { files } })
+	};
+}
+
+const archive = (name = 'Example.car', type = 'application/octet-stream') =>
+	new File(['synthetic archive'], name, { type, lastModified: 1 });
+
+describe('single-file picker selection', () => {
+	it('clears the displayed file when opening the picker, including a cancelled opening', () => {
+		const upload = uploadSelection();
+		upload.select([archive()]);
+		expect(upload.accepted).toHaveLength(1);
+		prepareFileUploadPicker(upload, 1);
+		// No selection follows a cancelled chooser: the old row must stay cleared.
+		expect(upload.accepted).toEqual([]);
+		expect(upload.rejected).toEqual([]);
+	});
+
+	it('accepts the same archive after reopening instead of rejecting it as a duplicate', () => {
+		const upload = uploadSelection();
+		const file = archive();
+		upload.select([file]);
+		prepareFileUploadPicker(upload, 1);
+		upload.select([file]);
+		expect(upload.accepted).toEqual([file]);
+		expect(upload.rejected).toEqual([]);
+	});
+
+	it.each([
+		['Another.car', ''],
+		['Another.CAR', 'application/octet-stream'],
+		['Another.zip', 'application/zip']
+	])('accepts a replacement %s without relying on the browser MIME type', (name, type) => {
+		const upload = uploadSelection();
+		upload.select([archive()]);
+		prepareFileUploadPicker(upload, 1);
+		const next = archive(name, type);
+		upload.select([next]);
+		expect(upload.accepted).toEqual([next]);
+		expect(upload.rejected).toEqual([]);
+	});
+
+	it('keeps type validation and clears its previous rejection on the next opening', () => {
+		const upload = uploadSelection();
+		upload.select([archive('invalid.txt', 'text/plain')]);
+		expect(upload.accepted).toEqual([]);
+		expect(upload.rejected[0].errors).toContain('FILE_INVALID_TYPE');
+		prepareFileUploadPicker(upload, 1);
+		expect(upload.rejected).toEqual([]);
+		const valid = archive();
+		upload.select([valid]);
+		expect(upload.accepted).toEqual([valid]);
+	});
+
+	it('preserves multi-file accumulation and duplicate validation', () => {
+		const upload = uploadSelection(3);
+		const first = archive();
+		const second = archive('Another.car');
+		upload.select([first]);
+		prepareFileUploadPicker(upload, 3);
+		upload.select([second]);
+		expect(upload.accepted).toEqual([first, second]);
+		upload.select([first]);
+		expect(upload.rejected[0].errors).toContain('FILE_EXISTS');
+	});
+});

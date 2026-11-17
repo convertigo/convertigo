@@ -1,5 +1,13 @@
 # Changelog
 
+## 8.4.8
+
+#### Bug Fixes:
+
+- [#1294](https://github.com/convertigo/convertigo/issues/1294) [Engine] Fixed, billing initializes with a custom cryptographic passphrase; these servers now apply the same analytics and server monitoring settings as other servers, while existing passphrases and stored values are preserved
+
+**Compatibility note:** [#1279](https://github.com/convertigo/convertigo/issues/1279) [Engine] Guava 33.8.0 may require changes to project libraries overriding methods of `ForwardingMap.StandardValues`, because some methods are now final.
+
 ## 8.4.7
 
 #### Improvements:

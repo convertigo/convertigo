@@ -126,7 +126,7 @@ describe('Administration instance routing', () => {
 		const revision = Instances.apply({});
 		Instances.current = 'route-b';
 		expect(Instances.update(response({ 'X-C8O-Instance-Unreachable': 'route-a' }), revision)).toBe(
-			false
+			true
 		);
 		expect(Instances.current).toBe('route-b');
 		expect(Instances.unreachable).toBe(null);
@@ -170,5 +170,51 @@ describe('Administration instance routing', () => {
 		expect(Instances.update(response({ 'X-C8O-Instance-Unreachable': 'route-b' }))).toBe(true);
 		expect(Instances.current).toBe('route-a');
 		expect(Instances.unreachable).toBe(null);
+	});
+	it('resets routing, discovery and the outage when a session ends', () => {
+		const revision = Instances.revision;
+		Instances.reset();
+		const headers = {};
+		Instances.apply(headers);
+		expect(headers).toEqual({});
+		expect(Instances.current).toBe('');
+		expect(Instances.options).toEqual([]);
+		expect(Instances.storeMode).toBe('');
+		expect(Instances.unreachable).toBe(null);
+		expect(Instances.revision).toBeGreaterThan(revision);
+	});
+
+	it('discovers instances without forwarding to the removed target', async () => {
+		await Instances.refresh();
+		Instances.current = 'route-b';
+		vi.mocked(call).mockResolvedValueOnce({
+			storeMode: 'redis',
+			instances: [{ instanceId: 'pod-c', routingId: 'route-c' }]
+		});
+		await Instances.refresh(true);
+		expect(call).toHaveBeenLastCalledWith('engine.ListInstances', {}, { instance: '' });
+		expect(Instances.options).toEqual([
+			{ value: 'route-c', text: 'pod-c' },
+			{ value: 'route-b', text: 'route-b' }
+		]);
+	});
+
+	it('ignores discovery and routing responses from a previous session', async () => {
+		const revision = Instances.revision;
+		let resolve;
+		vi.mocked(call).mockImplementationOnce(
+			() =>
+				new Promise((done) => {
+					resolve = done;
+				})
+		);
+		const refreshing = Instances.refresh(true);
+		Instances.reset();
+		resolve({ storeMode: 'redis', instances: [{ instanceId: 'old-pod' }] });
+		await refreshing;
+		Instances.update(response({ 'X-C8O-Instance': 'old-pod' }), revision);
+		expect(Instances.current).toBe('');
+		expect(Instances.options).toEqual([]);
+		expect(Instances.loading).toBe(false);
 	});
 });

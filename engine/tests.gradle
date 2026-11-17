@@ -1119,3 +1119,43 @@ tasks.register('xmlProjectLibrariesTest', JavaExec) {
 	args 'com.twinsoft.convertigo.engine.util.XMLUtilsProjectLibrariesTest'
 }
 tasks.named('check') { dependsOn 'xmlProjectLibrariesTest' }
+
+tasks.register('projectMigrationSaveTest', JavaExec) {
+	group = 'verification'
+	description = 'Migrated project import and FullSync initialization survive a project save failure.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.ProjectMigrationSaveTest'
+}
+tasks.named('check') { dependsOn 'projectMigrationSaveTest' }
+
+
+tasks.register('requestBodyLoggingTest', JavaExec) {
+	group = 'verification'
+	description = 'Declared body visibility and literal hidden-value replacement preserve request data.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.RequestBodyLoggingTest',
+		'com.twinsoft.convertigo.engine.VisibilityLogDefaultsTest'
+}
+tasks.named('check') { dependsOn 'requestBodyLoggingTest' }
+
+// Each passphrase must be configured before BillingManager's static initialization.
+['default', 'custom'].each { mode ->
+	tasks.register("billingPassphrase${mode.capitalize()}Test", JavaExec) {
+		group = 'verification'
+		description = "Billing initialization and analytics settings with the ${mode} passphrase, without network requests."
+		dependsOn testClasses
+		classpath = sourceSets.test.runtimeClasspath
+		mainClass = 'com.twinsoft.convertigo.engine.BillingPassphraseTest'
+		args mode
+	}
+}
+tasks.register('billingPassphraseTest') {
+	group = 'verification'
+	description = 'Billing settings in fresh JVMs with default and custom cryptographic passphrases.'
+	dependsOn 'billingPassphraseDefaultTest', 'billingPassphraseCustomTest'
+}
+tasks.named('check') { dependsOn 'billingPassphraseTest' }

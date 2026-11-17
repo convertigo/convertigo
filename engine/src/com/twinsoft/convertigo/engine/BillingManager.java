@@ -45,7 +45,9 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 			.decodeFromHexString(EnginePropertiesManager.PropertyName.CRYPTO_PASSPHRASE.getDefaultValue(),
 					"xead864b734a0400bf0dac127fe32013367869fb7fb429bf22bf27e695dc52f270828ce7b5384765f0ed7c25a623e9c50")
 			.split(":");
-	static private final String dkey = Crypto2.decodeFromHexString("xffd37e28952823f1be24b330ad153a72");
+	// Embedded settings use their original passphrase, independently of configured secrets.
+	static private final String dkey = Crypto2.decodeFromHexString(
+			PropertyName.CRYPTO_PASSPHRASE.getDefaultValue(), "xffd37e28952823f1be24b330ad153a72");
 
 	private volatile String customer_name = "";
 

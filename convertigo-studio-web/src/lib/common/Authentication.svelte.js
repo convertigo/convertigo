@@ -1,3 +1,4 @@
+import Instances from '#lib/admin/Instances.svelte';
 import { abortPendingCalls, call, checkArray } from '#lib/utils/service.js';
 import Time from './Time.svelte';
 
@@ -156,6 +157,7 @@ function matchAdminPage(routeId = '') {
 
 function setResult(next) {
 	result = next ?? {};
+	if (!result.authenticated) Instances.reset();
 	const fingerprint = JSON.stringify({
 		authenticated: result.authenticated ?? false,
 		user: result.user ?? '',
@@ -229,13 +231,20 @@ export default {
 	},
 	checkAuthentication: async () => {
 		const sequence = ++requestSequence;
-		const next = (await call('engine.CheckAuthentication')).admin ?? {
-			error: 'Error checking authentication'
-		};
+		let response = await call('engine.CheckAuthentication');
+		if (sequence !== requestSequence) return;
+		if (response?.instanceUnreachable) {
+			// Keep an active session and its explicit recovery choice. Before login, discover locally.
+			if (result.authenticated) return;
+			Instances.reset();
+			response = await call('engine.CheckAuthentication');
+		}
+		const next = response?.admin ?? { error: 'Error checking authentication' };
 		applyResult(sequence, next, { updateTime: true });
 	},
 	authenticate: async (event) => {
 		event.preventDefault?.();
+		if (!result.authenticated) Instances.reset();
 		const sequence = ++requestSequence;
 		applyResult(
 			sequence,
