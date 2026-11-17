@@ -258,8 +258,14 @@ public class ReferencedProjectManager {
 	}
 
 	public void check(File projectFile) {
+		check(projectFile, Engine.theApp.databaseObjectsManager);
+	}
+
+	void check(File projectFile, DatabaseObjectsManager owner) {
 		try {
+			String source = ProjectImportGroup.current(owner) == null ? null : DatabaseObjectsManager.getProjectName(projectFile);
 			for (var ref: references(projectFile)) {
+				if (ProjectImportGroup.skipsReference(owner, source, ref.getParser().getProjectName())) continue;
 				try {
 					importProject(ref.getParser());
 				} catch (Exception e) {

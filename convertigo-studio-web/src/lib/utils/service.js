@@ -9,6 +9,7 @@ import { resolve } from '#lib/utils/route.js';
 import { browser, building, dev } from '$app/env';
 import { goto } from '$app/navigation';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
+import { splitMultipartForm } from './multipartForm';
 import {
 	isInvalidatedSessionError,
 	requestStudioSessionRecovery
@@ -133,14 +134,8 @@ export async function call(service, data = {}, options = {}) {
 		};
 		const instanceRevision = Instances.apply(headers, options.instance);
 		if (data instanceof FormData) {
-			let files = new FormData();
-			for (const [entryKey, value] of [...data.entries()]) {
-				const key = String(entryKey);
-				if (value instanceof File) {
-					files.append(key, value);
-					data.delete(key);
-				}
-			}
+			const { files, fields } = splitMultipartForm(data);
+			data = fields;
 			if (!files.keys().next().done) {
 				body = files;
 				// @ts-ignore
@@ -313,14 +308,8 @@ export async function callRequestable(mode, project, data = {}) {
 	};
 	const instanceRevision = Instances.apply(headers);
 	if (data instanceof FormData) {
-		let files = new FormData();
-		for (const [entryKey, value] of [...data.entries()]) {
-			const key = String(entryKey);
-			if (value instanceof File) {
-				files.append(key, value);
-				data.delete(key);
-			}
-		}
+		const { files, fields } = splitMultipartForm(data);
+		data = fields;
 		if (!files.keys().next().done) {
 			body = files;
 			// @ts-ignore

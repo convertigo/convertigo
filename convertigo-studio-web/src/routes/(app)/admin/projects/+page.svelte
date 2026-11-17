@@ -13,6 +13,7 @@
 	import ModalDynamic from '#lib/common/components/ModalDynamic.svelte';
 	import Projects from '#lib/common/Projects.svelte.js';
 	import { resolve } from '#lib/utils/route.js';
+	import { checkArray } from '#lib/utils/service.js';
 	import { browser } from '$app/env';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -22,6 +23,8 @@
 	let {
 		projects,
 		deploy,
+		deployBundle,
+		exportBundle,
 		exportProject,
 		importURL,
 		remove,
@@ -35,6 +38,26 @@
 	} = $derived(Projects);
 	const projectsDocHref = getAdminPageDocHref('/admin/projects');
 	let exportChoices = $state({});
+	let selectingExport = $state(false);
+	let selectedProjects = $state({});
+	let bundleDependencies = $state('false');
+	let bundleDeploy = $state('false');
+	/** @type {{success: boolean | string, project?: {name: string, version: string, status: string, warning?: string, detail?: string} | {name: string, version: string, status: string, warning?: string, detail?: string}[]} | null} */
+	let deploymentReport = $state(null);
+	let deploymentWarnings = $state([]);
+	let selectedNames = $derived(
+		projects
+			.filter((project) => selectedProjects[project.name] === 'true')
+			.map((project) => project.name)
+	);
+
+	const openBundleExport = async () => {
+		if (!selectedNames.length) return;
+		const options = await exportOptions(selectedNames[0]);
+		exportChoices = Object.fromEntries(options.map((option) => [option.name, 'true']));
+		bundleDependencies = 'false';
+		modalExport.open({ bundle: true, names: [...selectedNames], options });
+	};
 
 	onDestroy(Projects.stop);
 
@@ -127,9 +150,18 @@
 </script>
 
 <ModalDynamic bind:this={modalExport}>
-	{#snippet children({ close, params: { options, project } })}
-		<Card title="Exporting {project}">
+	{#snippet children({ close, params: { options = [], project, bundle = false, names = [] } = {} })}
+		<Card
+			title={bundle ? `Exporting ${names.length} projects as a bundle` : `Exporting ${project}`}
+		>
 			<fieldset disabled={waiting} class="layout-y-stretch">
+				{#if bundle}
+					<CheckState bind:value={bundleDependencies}>Include declared dependencies</CheckState>
+					<p class="text-sm text-muted">
+						A ZIP bundle contains one CAR per project and a manifest with versions and dependency
+						order.
+					</p>
+				{/if}
 				{#each options as { name, display } (name)}
 					<CheckState {name} bind:value={exportChoices[name]}>{display}</CheckState>
 				{/each}
@@ -141,11 +173,21 @@
 						disabled={waiting}
 						onclick={async () => {
 							if (
-								await exportProject({
-									projectName: project,
-									exportOptions: JSON.stringify(exportChoices)
-								})
+								await (bundle
+									? exportBundle({
+											projects: JSON.stringify(names),
+											includeDependencies: bundleDependencies,
+											exportOptions: JSON.stringify(exportChoices)
+										})
+									: exportProject({
+											projectName: project,
+											exportOptions: JSON.stringify(exportChoices)
+										}))
 							) {
+								if (bundle) {
+									selectingExport = false;
+									selectedProjects = {};
+								}
 								close();
 							}
 						}}
@@ -167,20 +209,46 @@
 	<Card title="Drop or choose a .car/.zip file and Deploy">
 		<form
 			onsubmit={async (event) => {
-				await deploy(event);
-				modalDeployUpload?.close();
+				if (bundleDeploy === 'true') {
+					deploymentReport = null;
+					const result = await deployBundle(event);
+					if (result?.admin?.deployment) {
+						deploymentReport = result.admin.deployment;
+						deploymentWarnings = checkArray(result.admin.warning);
+						modalDeployUpload?.close();
+					}
+				} else {
+					await deploy(event);
+					modalDeployUpload?.close();
+				}
 			}}
 		>
 			<fieldset disabled={waiting} class="layout-y-stretch">
-				<FileUploadField
-					name="file"
-					accept={{ 'application/zip': ['.car', '.zip'] }}
-					required
-					allowDrop
-					dropIcon="mdi:application-outline"
-					title="Drop or choose a .car/.zip file"
-					hint="then press Deploy"
-				/>
+				<CheckState bind:value={bundleDeploy}>Deploy several projects or a bundle</CheckState>
+				{#if bundleDeploy === 'true'}
+					<p class="text-sm text-muted">
+						Choose CAR/ZIP files or one distribution ZIP. The complete selection is checked first.
+						Projects use the server's normal backup setting and automatic starts. All sources of a
+						cyclic group are installed before loading it. A failure stops the remaining projects;
+						already installed sources and deployed projects are kept.
+					</p>
+				{/if}
+				{#key bundleDeploy}
+					<FileUploadField
+						name="file"
+						maxFiles={bundleDeploy === 'true' ? 64 : 1}
+						accept={{ 'application/zip': ['.car', '.zip'] }}
+						required
+						allowDrop
+						dropIcon="mdi:application-outline"
+						title={bundleDeploy === 'true'
+							? 'Drop or choose .car/.zip files or a bundle'
+							: 'Drop or choose a .car/.zip file'}
+						hint={bundleDeploy === 'true'
+							? 'Up to 64 files and 1 GiB in total, then press Deploy'
+							: 'then press Deploy'}
+					/>
+				{/key}
 				<CheckState name="bAssembleXsl" value="false"
 					>Assemble XSL files included in style sheets when deploying</CheckState
 				>
@@ -270,22 +338,62 @@
 <Card title="Projects" docHref={projectsDocHref}>
 	{#snippet cornerOption()}
 		<ResponsiveButtons
-			buttons={[
-				{
-					icon: 'mdi:application-outline',
-					value: 'deploy',
-					cls: 'button-primary',
-					label: 'Deploy project',
-					onclick: modalDeployUpload?.open
-				},
-				{
-					icon: 'mdi:import',
-					value: 'export',
-					cls: 'button-secondary',
-					label: 'Import a Remote Project URL',
-					onclick: modalDeployURL?.open
-				}
-			]}
+			buttons={selectingExport
+				? [
+						{
+							icon: 'mdi:check-all',
+							label: 'Select visible',
+							cls: 'button-secondary',
+							onclick: () => {
+								for (const project of fprojects)
+									if (project.name) selectedProjects[project.name] = 'true';
+							}
+						},
+						{
+							icon: 'mdi:export',
+							label: `Export [${selectedNames.length}]`,
+							cls: 'button-primary',
+							disabled: !selectedNames.length,
+							onclick: openBundleExport
+						},
+						{
+							icon: 'mdi:close-circle-outline',
+							label: 'Cancel',
+							cls: 'button-secondary',
+							onclick: () => {
+								selectingExport = false;
+								selectedProjects = {};
+							}
+						}
+					]
+				: [
+						{
+							icon: 'mdi:application-outline',
+							value: 'deploy',
+							cls: 'button-primary',
+							label: 'Deploy project',
+							onclick: () => {
+								bundleDeploy = 'false';
+								modalDeployUpload?.open({});
+							}
+						},
+						{
+							icon: 'mdi:import',
+							value: 'export',
+							cls: 'button-secondary',
+							label: 'Import a Remote Project URL',
+							onclick: modalDeployURL?.open
+						},
+						{
+							icon: 'mdi:export',
+							cls: 'button-secondary',
+							label: 'Export projects',
+							onclick: () => {
+								selectingExport = true;
+								selectedProjects = {};
+							}
+						}
+					]}
 			class="max-w-4xl"
 			disabled={!init}
 		/>
@@ -304,8 +412,43 @@
 			{project.migrationSaveError}
 		</p>
 	{/each}
+	{#if deploymentReport}
+		<Card title="Bundle deployment result">
+			<p role="status">
+				{deploymentReport.success === true || deploymentReport.success === 'true'
+					? 'All projects were deployed.'
+					: 'Deployment stopped. Installed sources and deployed projects were kept.'}
+			</p>
+			{#each deploymentWarnings as warning, index (index)}<p class="text-sm text-warning-700-300">
+					{typeof warning === 'string' ? warning : (warning['#text'] ?? '')}
+				</p>{/each}
+			<TableAutoCard
+				definition={[
+					{ name: 'Project', key: 'name' },
+					{ name: 'Version', key: 'version' },
+					{ name: 'Status', custom: true },
+					{ name: 'Details', custom: true }
+				]}
+				data={checkArray(deploymentReport.project)}
+			>
+				{#snippet children({ row, def })}
+					{#if def.name === 'Details'}
+						{row.warning ?? row.detail ?? ''}
+					{:else if def.name === 'Status'}
+						{{
+							deployed: 'Deployed',
+							failed: 'Failed',
+							installed: 'Installed, not finalized',
+							not_attempted: 'Not attempted'
+						}[row.status] ?? row.status}
+					{/if}
+				{/snippet}
+			</TableAutoCard>
+		</Card>
+	{/if}
 	<TableAutoCard
 		definition={[
+			...(selectingExport ? [{ name: 'Select', custom: true }] : []),
 			{ name: 'Project', key: 'name', class: 'font-normal w-80', sortable: true },
 			{ name: 'Comment', key: 'comment', sortable: true },
 			{
@@ -323,7 +466,15 @@
 	>
 		{#snippet children({ row: { name, undefined_symbols }, def })}
 			{@const project = name ? name : '_'}
-			{#if def?.name == 'Actions'}
+			{#if def?.name === 'Select'}
+				<CheckState
+					ariaLabel={`Select ${project} for export`}
+					bind:value={
+						() => selectedProjects[project] ?? 'false',
+						(value) => (selectedProjects[project] = value)
+					}><span class="sr-only">Select {project} for export</span></CheckState
+				>
+			{:else if def?.name == 'Actions'}
 				<ResponsiveButtons
 					buttons={[
 						{

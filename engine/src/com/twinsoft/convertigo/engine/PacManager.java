@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.util.regex.Pattern;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
@@ -36,6 +37,8 @@ import org.mozilla.javascript.Scriptable;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
 
 public class PacManager {
+	private static final Pattern PROXY_ADDRESS = Pattern.compile(
+			"(\\[[^\\s\\[\\]]+\\]|[^\\s:/\\\\?#@\\[\\]]+)\\s*:\\s*([0-9]+)");
 
 	private final String scriptUrl;
 	private Scriptable scope;
@@ -78,7 +81,9 @@ public class PacManager {
 		try {
 			File file = (scriptUrl.indexOf(":/") == -1) ? new File(scriptUrl) : new File(new URI(scriptUrl));
 
-			return IOUtils.toString(new FileInputStream(file), "UTF-8");
+			try (var input = new FileInputStream(file)) {
+				return IOUtils.toString(input, "UTF-8");
+			}
 		} catch (Exception e) {
 			Engine.logProxyManager.error("(PacManager) Error reading proxy auto config file" + e);
 			return "";
@@ -119,19 +124,44 @@ public class PacManager {
 
 		Engine.logProxyManager.debug("(PacManager) evaluate " + url + " from " + host + " : " + result);
 
-		return result.toString();
+		return result == null ? "" : result.toString();
 	}
 
 	PacInfos getPacInfos(String url, String host) {
-		PacInfos pacInfos = null;
-		String result = evaluate(url, host);
-		if (result.startsWith("PROXY")) {
-			result = result.replaceAll("PROXY\\s*", "");
-			pacInfos = new PacInfos();
-			pacInfos.pacServer = result.split(":")[0];
-			pacInfos.pacPort = Integer.parseInt(result.split(":")[1]);
+		return parsePacResult(evaluate(url, host));
+	}
+
+	PacInfos parsePacResult(String result) {
+		if (result == null || result.isBlank()) return null;
+		for (String entry : result.split(";")) {
+			entry = entry.trim();
+			if (entry.isEmpty()) continue;
+			String[] directive = entry.split("\\s+", 2);
+			if ("DIRECT".equalsIgnoreCase(directive[0]) && directive.length == 1) return null;
+			if (!"PROXY".equalsIgnoreCase(directive[0])) {
+				Engine.logProxyManager.warn("(PacManager) Skipping unsupported PAC directive: " + directive[0]);
+				continue;
+			}
+			if (directive.length == 2) {
+				var address = PROXY_ADDRESS.matcher(directive[1].trim());
+				if (address.matches()) {
+					try {
+						int port = Integer.parseInt(address.group(2));
+						if (port > 0 && port <= 65535) {
+							var info = new PacInfos();
+							String server = address.group(1);
+							info.pacServer = server.startsWith("[") ? server.substring(1, server.length() - 1) : server;
+							info.pacPort = port;
+							return info;
+						}
+					} catch (NumberFormatException invalidPort) {
+						// An invalid alternative must not prevent trying the next entry.
+					}
+				}
+			}
+			Engine.logProxyManager.warn("(PacManager) Skipping invalid PROXY entry in PAC response");
 		}
-		return pacInfos;
+		return null;
 	}
 
 	public class PacInfos {

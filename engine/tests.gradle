@@ -68,6 +68,7 @@ tasks.named('check') {
 	dependsOn 'requestScopedSessionTest'
 	dependsOn 'componentRefManagerTest'
 	dependsOn 'projectArchiveTest'
+	dependsOn 'projectBundleTest'
 	dependsOn 'ionBeanTest'
 	dependsOn 'mdcLifecycleTest'
 	dependsOn 'workspaceLoadingTest'
@@ -1159,3 +1160,38 @@ tasks.register('billingPassphraseTest') {
 	dependsOn 'billingPassphraseDefaultTest', 'billingPassphraseCustomTest'
 }
 tasks.named('check') { dependsOn 'billingPassphraseTest' }
+
+
+tasks.register('projectBundleTest', JavaExec) {
+	group = 'verification'
+	description = 'Project bundle dependency planning, archive content and manifest checks.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.ProjectBundleTest',
+		'com.twinsoft.convertigo.engine.util.ProjectBundleZipTest',
+		'com.twinsoft.convertigo.engine.util.ProjectBundleImportTest',
+		'com.twinsoft.convertigo.engine.admin.services.projects.ProjectBundleServicesTest'
+}
+
+tasks.register('projectBundleLifecycleTest', JavaExec) {
+	group = 'verification'
+	description = 'Project group installation, complete import outcomes and normal backup lifecycle.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.ProjectBundleLifecycleTest'
+}
+
+tasks.named('check') { dependsOn 'projectBundleLifecycleTest' }
+
+tasks.register('pacManagerTest', JavaExec) {
+	group = 'verification'
+	description = 'PAC alternatives, DIRECT routing and manual proxy isolation.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.PacManagerTest',
+		'com.twinsoft.convertigo.engine.util.WsReferenceProxyTest'
+}
+tasks.named('check') { dependsOn 'pacManagerTest' }

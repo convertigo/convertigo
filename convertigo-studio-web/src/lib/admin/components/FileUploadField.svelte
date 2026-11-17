@@ -1,7 +1,12 @@
 <script>
 	import { FileUpload } from '@skeletonlabs/skeleton-svelte';
 	import Ico from '#lib/utils/Ico.svelte';
-	import { prepareFileUploadPicker } from './fileUploadSelection';
+	import { tick } from 'svelte';
+	import {
+		fileUploadRejectionText,
+		prepareFileUploadPicker,
+		syncMultipleFileUploadInput
+	} from './fileUploadSelection';
 
 	/** @type {{
 		name: string;
@@ -98,14 +103,23 @@
 		<FileUpload.Trigger element={trigger} />
 		<FileUpload.Context>
 			{#snippet children(fileUpload)}
-				<FileUpload.HiddenInput onclick={() => prepareFileUploadPicker(fileUpload(), maxFiles)} />
+				<FileUpload.HiddenInput
+					onclick={() => prepareFileUploadPicker(fileUpload(), maxFiles)}
+					oninput={async (event) => {
+						const input = event.currentTarget;
+						await tick();
+						syncMultipleFileUploadInput(fileUpload(), input, maxFiles);
+					}}
+					oncancel={(event) =>
+						syncMultipleFileUploadInput(fileUpload(), event.currentTarget, maxFiles)}
+				/>
 			{/snippet}
 		</FileUpload.Context>
 	</FileUpload.Dropzone>
 	<FileUpload.Context>
 		{#snippet children(fileUpload)}
 			<FileUpload.ItemGroup class={itemGroupClass}>
-				{#each fileUpload().acceptedFiles as file (file.name)}
+				{#each fileUpload().acceptedFiles as file (file)}
 					<FileUpload.Item
 						{file}
 						class="layout-x-between items-center rounded-sm border border-surface-200-800 bg-surface-50-950 py-2 px-low shadow-xs"
@@ -125,7 +139,9 @@
 					</FileUpload.Item>
 				{/each}
 				{#if (fileUpload().rejectedFiles?.length ?? 0) > 0}
-					<p class="text-xs text-error-700-300">{resolvedRejectedText}</p>
+					<p class="text-xs text-error-700-300">
+						{fileUploadRejectionText(fileUpload().rejectedFiles, maxFiles, resolvedRejectedText)}
+					</p>
 				{/if}
 			</FileUpload.ItemGroup>
 		{/snippet}

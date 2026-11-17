@@ -24,6 +24,24 @@ public class ZipUtilsTest {
 	public TemporaryFolder folder = new TemporaryFolder();
 
 	@Test
+	public void preservesProjectStateForCaseVariantsOfExcludedFolders() throws Exception {
+		Engine.logEngine = Logger.getLogger("zip-test");
+		var archive = folder.newFile("variants.car").toPath();
+		var target = folder.newFolder("variants-target").toPath();
+		try (var zip = new ZipOutputStream(Files.newOutputStream(archive))) {
+			for (String name : new String[] {"Demo/_Private/new.txt", "Demo/_DATA/new.txt", "Demo/normal.txt"}) {
+				zip.putNextEntry(new ZipEntry(name));
+				zip.write(new byte[] {1});
+				zip.closeEntry();
+			}
+		}
+		ZipUtils.expandZip(archive.toString(), target.toString(), "Demo");
+		assertFalse(Files.exists(target.resolve("_Private")));
+		assertFalse(Files.exists(target.resolve("_DATA")));
+		assertTrue(Files.exists(target.resolve("normal.txt")));
+	}
+
+	@Test
 	public void flushesBinaryEntriesAcrossOutputBufferBoundaries() throws Exception {
 		Engine.logEngine = Logger.getLogger("zip-test");
 		var archive = folder.newFile("binary.car").toPath();
@@ -102,6 +120,50 @@ public class ZipUtilsTest {
 			}
 		}
 		ZipUtils.expandZip(archive.toString(), target.toString(), "Demo");
+	}
+
+	@Test
+	public void preservesProjectStateWhenApplyingPrefixedEntries() throws Exception {
+		var target = folder.newFolder("state-target").toPath();
+		Files.createDirectory(target.resolve("_private"));
+		Files.createDirectory(target.resolve("_data"));
+		Files.writeString(target.resolve("_private/state.txt"), "keep private state");
+		Files.writeString(target.resolve("_data/state.txt"), "keep data state");
+		expand(target, "Demo/_private/state.txt", "Demo/_data/state.txt",
+				"Demo/./_private/added.txt", "Demo/public/../_data/added.txt", "Demo/_private-assets/kept.txt");
+		assertEquals("keep private state", Files.readString(target.resolve("_private/state.txt")));
+		assertEquals("keep data state", Files.readString(target.resolve("_data/state.txt")));
+		assertFalse(Files.exists(target.resolve("_private/added.txt")));
+		assertFalse(Files.exists(target.resolve("_data/added.txt")));
+		assertTrue(Files.isRegularFile(target.resolve("_private-assets/kept.txt")));
+	}
+
+	@Test
+	public void appliesProjectStateExclusionsWithoutAnArchivePrefix() throws Exception {
+		Engine.logEngine = Logger.getLogger("zip-test");
+		var archive = folder.newFile("flat.car").toPath();
+		var target = folder.newFolder("flat-target").toPath();
+		try (var zip = new ZipOutputStream(Files.newOutputStream(archive))) {
+			for (var name : new String[] { "_private/state.txt", "_data/state.txt", "assets/kept.txt" }) {
+				zip.putNextEntry(new ZipEntry(name));
+				zip.write(new byte[] { 1 });
+				zip.closeEntry();
+			}
+		}
+		ZipUtils.expandZip(archive.toString(), target.toString());
+		assertFalse(Files.exists(target.resolve("_private")));
+		assertFalse(Files.exists(target.resolve("_data")));
+		assertTrue(Files.isRegularFile(target.resolve("assets/kept.txt")));
+	}
+
+	@Test
+	public void preservesProjectStateReachedThroughAnExistingAlias() throws Exception {
+		var target = folder.newFolder("state-alias-target").toPath();
+		Files.createDirectory(target.resolve("_private"));
+		Files.createSymbolicLink(target.resolve("state-alias"), target.resolve("_private"));
+		expand(target, "Demo/state-alias/added.txt", "Demo/kept.txt");
+		assertFalse(Files.exists(target.resolve("_private/added.txt")));
+		assertTrue(Files.isRegularFile(target.resolve("kept.txt")));
 	}
 
 	@Test
