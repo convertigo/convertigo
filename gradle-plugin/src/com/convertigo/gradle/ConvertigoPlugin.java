@@ -79,6 +79,13 @@ public class ConvertigoPlugin implements Plugin<Project> {
 			task.setDescription("Build a <projectName>.car file.");
 		});
 		
+		tasks.create("projectBundle", ProjectBundle.class, task -> {
+			task.plugin = ConvertigoPlugin.this;
+			task.setGroup("build");
+			task.dependsOn(export);
+			task.setDescription("Build a ZIP bundle of selected project archives and optional declared dependencies.");
+		});
+
 		deploy = tasks.create("deploy", ProjectDeploy.class, (task) -> {
 			task.plugin = ConvertigoPlugin.this;
 			task.setGroup("publishing");

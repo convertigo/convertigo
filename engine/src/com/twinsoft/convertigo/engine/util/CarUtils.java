@@ -77,7 +77,7 @@ public class CarUtils {
 		return makeArchive(new File(dir, project.getName() + ".car"), project, archiveExportOptions);
 	}
 
-	public static File makeArchive(File file, Project project, Set<ArchiveExportOption> archiveExportOptions) throws EngineException {
+	public static synchronized File makeArchive(File file, Project project, Set<ArchiveExportOption> archiveExportOptions) throws EngineException {
 		Set<File> undeployedFiles = getUndeployedFiles(project.getName());
 		String projectName = project.getName();
 		String dirPath = project.getDirPath();

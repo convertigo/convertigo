@@ -36,6 +36,7 @@ tasks.named('check') {
 	dependsOn 'requestScopedSessionTest'
 	dependsOn 'componentRefManagerTest'
 	dependsOn 'projectArchiveTest'
+	dependsOn 'projectBundleTest'
 	dependsOn 'ionBeanTest'
 	dependsOn 'mdcLifecycleTest'
 	dependsOn 'workspaceLoadingTest'
@@ -702,3 +703,13 @@ tasks.register('billingPassphraseTest') {
 	dependsOn 'billingPassphraseDefaultTest', 'billingPassphraseCustomTest'
 }
 tasks.named('check') { dependsOn 'billingPassphraseTest' }
+
+
+tasks.register('projectBundleTest', JavaExec) {
+	group = 'verification'
+	description = 'Project bundle dependency planning, archive content and manifest checks.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.ProjectBundleTest'
+}
