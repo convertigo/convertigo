@@ -29,12 +29,16 @@ vi.mock('#lib/common/ServerConnection.svelte.js', () => ({
 	isServerUnavailableStatus: () => false
 }));
 
+const testWindow = () =>
+	/** @type {Window & {__c8oSessionExpired?: boolean, java?: unknown}} */ (window);
+
 const expired = {
 	error: {
 		message: 'getAttribute: Session already invalidated',
 		exception: 'java.lang.IllegalStateException'
 	}
 };
+/** @param {{error: {message: string, exception?: string}}} error */
 function respond(error = expired) {
 	vi.stubGlobal(
 		'fetch',
@@ -71,7 +75,7 @@ describe('embedded Studio session recovery through the service transport', () =>
 		async (service) => {
 			const response = await call(service);
 			expect(response.isError).toBe(true);
-			expect(window.__c8oSessionExpired).toBe(true);
+			expect(testWindow().__c8oSessionExpired).toBe(true);
 			expect(fetch).toHaveBeenCalledTimes(1);
 			expect(fixtures.modal.open).not.toHaveBeenCalled();
 			expect(fixtures.checkAuthentication).not.toHaveBeenCalled();
@@ -89,35 +93,35 @@ describe('embedded Studio session recovery through the service transport', () =>
 			)
 		);
 		await call('logs.Get');
-		expect(window.__c8oSessionExpired).toBe(true);
+		expect(testWindow().__c8oSessionExpired).toBe(true);
 		expect(fixtures.modal.open).not.toHaveBeenCalled();
 	});
 	it('also reconnects on an authentication failure', async () => {
 		respond({ error: { message: 'Authentication failure: no role defined' } });
 		await call('logs.Get');
-		expect(window.__c8oSessionExpired).toBe(true);
+		expect(testWindow().__c8oSessionExpired).toBe(true);
 		expect(fixtures.checkAuthentication).not.toHaveBeenCalled();
 	});
 	it('accepts the Redis session invalidation wording', async () => {
 		respond({ error: { ...expired.error, message: 'Session has been invalidated' } });
 		await call('logs.Get');
-		expect(window.__c8oSessionExpired).toBe(true);
+		expect(testWindow().__c8oSessionExpired).toBe(true);
 	});
 	it('continues showing unrelated IllegalStateExceptions', async () => {
 		respond({ error: { ...expired.error, message: 'Project is already running' } });
 		await call('logs.Get');
-		expect(window.__c8oSessionExpired).toBeUndefined();
+		expect(testWindow().__c8oSessionExpired).toBeUndefined();
 		expect(fixtures.modal.open).toHaveBeenCalled();
 	});
 	it('does not hide the error in an ordinary web browser', async () => {
-		delete window.java;
+		delete testWindow().java;
 		await call('logs.Get');
-		expect(window.__c8oSessionExpired).toBeUndefined();
+		expect(testWindow().__c8oSessionExpired).toBeUndefined();
 		expect(fixtures.modal.open).toHaveBeenCalled();
 	});
 	it('does not reconnect during an explicit logout', async () => {
 		fixtures.loggingOut = true;
 		await call('logs.Get');
-		expect(window.__c8oSessionExpired).toBeUndefined();
+		expect(testWindow().__c8oSessionExpired).toBeUndefined();
 	});
 });

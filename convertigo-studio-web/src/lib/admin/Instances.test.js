@@ -201,7 +201,10 @@ describe('Administration instance routing', () => {
 
 	it('ignores discovery and routing responses from a previous session', async () => {
 		const revision = Instances.revision;
-		let resolve;
+		/** @type {(value: any) => void} */
+		let resolve = () => {
+			throw new Error('Pending response was not initialized');
+		};
 		vi.mocked(call).mockImplementationOnce(
 			() =>
 				new Promise((done) => {

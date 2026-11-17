@@ -1,5 +1,6 @@
 <script>
 	import { Background, Controls, getViewportForBounds, MiniMap, SvelteFlow } from '@xyflow/svelte';
+	import { agentFollow, flashAgentObject } from '#lib/studio/agentFollow.svelte.js';
 	import {
 		areEquivalentDboObjectIds,
 		canDropDbo,
@@ -20,7 +21,6 @@
 	import { getSourcePickerDragPayload } from '#lib/studio/sourcePickerDnd.js';
 	import AutoPlaceholder from '#lib/utils/AutoPlaceholder.svelte';
 	import { draggedData } from '#lib/utils/dndStore.js';
-	import { agentFollow, flashAgentObject } from '#lib/studio/agentFollow.svelte.js';
 	import { removeDbo, renameDbo } from '#lib/utils/service.js';
 	import { untrack } from 'svelte';
 	import { SvelteMap, SvelteSet } from 'svelte/reactivity';

@@ -1,4 +1,4 @@
-/** @type {import('@sveltejs/kit').HandleClientError} */
+/** @type {import('@sveltejs/kit/hooks').HandleClientError} */
 export async function handleError({ error }) {
 	// The recovery script is loaded before the bundles, including during bootstrap.
 	try {

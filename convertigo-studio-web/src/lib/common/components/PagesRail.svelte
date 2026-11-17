@@ -57,8 +57,8 @@
 				{href}
 				rel={external ? 'external noopener noreferrer' : undefined}
 				target={external ? '_blank' : undefined}
-				data-sveltekit-preload-data={external ? undefined : 'off'}
-				data-sveltekit-preload-code={external ? undefined : 'off'}
+				data-sveltekit-preload-data={external ? undefined : 'false'}
+				data-sveltekit-preload-code={external ? undefined : 'false'}
 				aria-current={isSelected ? 'page' : undefined}
 				class="rail-link {loading ? 'blur-sm' : ''}"
 				transition:slide={{ axis: 'y' }}

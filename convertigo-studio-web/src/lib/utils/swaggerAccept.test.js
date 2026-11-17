@@ -11,6 +11,7 @@ const source = readFileSync(
 );
 
 function configuration() {
+	/** @type {Record<string, any> | undefined} */
 	let config;
 	const bundle = (value) => {
 		config = value;
@@ -25,6 +26,7 @@ function configuration() {
 		SwaggerUIStandalonePreset: 'standalone'
 	});
 	window.onload();
+	if (!config) throw new Error('Swagger configuration was not initialized');
 	return config;
 }
 

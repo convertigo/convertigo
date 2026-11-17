@@ -5,16 +5,24 @@ import { prepareFileUploadPicker } from './fileUploadSelection';
 // Exercise the upload dependency's real acceptance/duplicate/rejection actions,
 // rather than replacing its validation with a mock that would accept every file.
 function uploadSelection(maxFiles = 1) {
+	/** @type {Map<string, any[]>} */
 	const values = new Map([
 		['acceptedFiles', []],
 		['rejectedFiles', []]
 	]);
 	const context = {
-		get: (key) => values.get(key),
+		get: (key) => values.get(key) ?? [],
 		set: (key, value) =>
 			values.set(key, typeof value === 'function' ? value(values.get(key)) : value)
 	};
-	const props = machine.props({ props: { maxFiles } });
+	const createProps = machine.props;
+	const actions = machine.implementations?.actions;
+	if (!createProps || !actions?.clearFiles || !actions?.setEventFiles) {
+		throw new Error('Upload machine actions are unavailable');
+	}
+	// These actions only need the props and context supplied by this fixture.
+	const props = createProps(/** @type {any} */ ({ props: { id: 'upload-test', maxFiles } }));
+	/** @type {any} */
 	const parameters = {
 		context,
 		prop: (key) => props[key],
@@ -27,9 +35,8 @@ function uploadSelection(maxFiles = 1) {
 		get rejected() {
 			return context.get('rejectedFiles');
 		},
-		clearFiles: () => machine.implementations.actions.clearFiles(parameters),
-		select: (files) =>
-			machine.implementations.actions.setEventFiles({ ...parameters, event: { files } })
+		clearFiles: () => actions.clearFiles(parameters),
+		select: (files) => actions.setEventFiles({ ...parameters, event: { type: 'FILES.SET', files } })
 	};
 }
 

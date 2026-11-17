@@ -71,7 +71,7 @@
 		"fast-xml-parser": "^5.12.1",
 		"fs-extra": "^11.4.1",
 		"html-entities": "^2.6.0",
-		"marked": "^18.2.0",
+		"marked": "^18.2.1",
 		"monaco-editor": "^0.57.0",
 		"svelte-persisted-state": "^1.4.1",
 		"svelte-tiny-virtual-list": "^4.0.0"

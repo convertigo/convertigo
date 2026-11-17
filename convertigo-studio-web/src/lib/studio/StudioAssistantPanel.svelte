@@ -4,6 +4,7 @@
 	import { call, getFrontendUrl } from '#lib/utils/service.js';
 	import { browser } from '$app/env';
 	import { onMount, untrack } from 'svelte';
+	import { agentRunSignal } from './agentFollow.svelte.js';
 	import {
 		activationProjects,
 		chooseAssistantUrl,
@@ -12,7 +13,6 @@
 		remoteAgentContext,
 		stackChanges
 	} from './assistantHost.js';
-	import { agentRunSignal } from './agentFollow.svelte.js';
 	import { loadRegistration, registration } from './registration.svelte.js';
 	import { saveStudioPreferences, studioPreferences } from './studioPreferences.svelte.js';
 

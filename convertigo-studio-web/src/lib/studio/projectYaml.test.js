@@ -3,7 +3,7 @@ import { convertProjectYaml } from './projectYaml.js';
 
 describe('project YAML conversion', () => {
 	it('warns about compatibility and does nothing when cancelled', async () => {
-		const confirm = vi.fn(() => false);
+		const confirm = vi.fn(/** @type {(message: string) => boolean} */ (() => false));
 		const request = vi.fn();
 		expect(await convertProjectYaml('Demo', confirm, request)).toBe(false);
 		expect(confirm.mock.calls[0][0]).toContain('minimum engine version to 8.5');

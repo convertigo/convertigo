@@ -1,4 +1,4 @@
-import Instances from '#lib/admin/Instances.svelte';
+import Instances from '#lib/admin/Instances.svelte.js';
 import { abortPendingCalls, call, checkArray } from '#lib/utils/service.js';
 import Time from './Time.svelte';
 

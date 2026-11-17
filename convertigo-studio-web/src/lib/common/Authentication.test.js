@@ -1,4 +1,4 @@
-import Instances from '#lib/admin/Instances.svelte';
+import Instances from '#lib/admin/Instances.svelte.js';
 import { call } from '#lib/utils/service.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -81,7 +81,10 @@ describe('Authentication and instance recovery', () => {
 	});
 
 	it('does not let an obsolete check reset a later successful login', async () => {
-		let finishCheck;
+		/** @type {(value: any) => void} */
+		let finishCheck = () => {
+			throw new Error('Pending response was not initialized');
+		};
 		vi.mocked(call).mockImplementationOnce(
 			() =>
 				new Promise((resolve) => {
@@ -110,12 +113,14 @@ describe('Authentication routes', () => {
 		authenticationFixture.webStudio = 'true';
 		authenticationFixture.serverBuild = 'false';
 		vi.mocked(call).mockReset();
-		vi.mocked(call).mockImplementation(async () => ({ admin: {
-			authenticated: true,
-			roles: { role: authenticationFixture.roles.map((name) => ({ name })) },
-			webStudio: authenticationFixture.webStudio,
-			serverBuild: authenticationFixture.serverBuild
-		} }));
+		vi.mocked(call).mockImplementation(async () => ({
+			admin: {
+				authenticated: true,
+				roles: { role: authenticationFixture.roles.map((name) => ({ name })) },
+				webStudio: authenticationFixture.webStudio,
+				serverBuild: authenticationFixture.serverBuild
+			}
+		}));
 	});
 	it('grants Studio Web to project viewers and rejects unrelated roles', async () => {
 		const Authentication = (await import('./Authentication.svelte.js')).default;

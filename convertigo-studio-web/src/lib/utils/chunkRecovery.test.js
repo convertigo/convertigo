@@ -26,7 +26,9 @@ function runtime({ status = 404, storage = new Map(), online = true } = {}) {
 			this.listeners[type] = listener;
 		}
 	}
-	class Script extends Element {}
+	class Script extends Element {
+		src = '';
+	}
 	const script = new Script('script');
 	script.src = 'https://cloud.test/convertigo/chunk-recovery.js';
 	const document = {
@@ -57,7 +59,10 @@ function runtime({ status = 404, storage = new Map(), online = true } = {}) {
 		}
 	};
 	const fetch = vi.fn(async () => ({ status, redirected: false }));
-	const performance = { getEntriesByType: () => [], now: () => 1000 };
+	const performance = {
+		getEntriesByType: /** @type {() => {name: string, startTime: number}[]} */ (() => []),
+		now: () => 1000
+	};
 	vm.runInNewContext(source, {
 		window,
 		document,
@@ -144,7 +149,10 @@ describe('controlled recovery of missing application chunks', () => {
 
 	it('captures the Monaco script error and Vite preload event without duplicate notices', async () => {
 		const r = runtime();
-		let resolve;
+		/** @type {(value: any) => void} */
+		let resolve = () => {
+			throw new Error('Pending response was not initialized');
+		};
 		r.fetch.mockReturnValueOnce(
 			new Promise((done) => {
 				resolve = done;

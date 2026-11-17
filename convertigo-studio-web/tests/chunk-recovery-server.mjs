@@ -10,7 +10,7 @@ const loader = await readFile(
 );
 
 createServer(async (request, response) => {
-	const url = new URL(request.url, 'http://127.0.0.1:4174');
+	const url = new URL(request.url ?? '/', 'http://127.0.0.1:4174');
 	const send = (status, type, body) => {
 		response.writeHead(status, { 'Content-Type': type, 'Cache-Control': 'no-store' });
 		response.end(request.method === 'HEAD' ? undefined : body);

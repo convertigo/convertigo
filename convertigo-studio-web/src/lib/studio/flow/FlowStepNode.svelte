@@ -6,6 +6,7 @@
 	import { draggedData } from '#lib/utils/dndStore.js';
 	import Ico from '#lib/utils/Ico.svelte';
 	import { getUrl } from '#lib/utils/service.js';
+	import { untrack } from 'svelte';
 	import {
 		branchLabel,
 		branchLabelForStep,
@@ -15,7 +16,6 @@
 		dropZoneTone,
 		isIfStep
 	} from './flowStepLabels';
-	import { untrack } from 'svelte';
 	import { inputHandleId, outputHandleId } from './xyflow';
 
 	/** @type {{ data: import('./types').FlowStepNodeData }} */

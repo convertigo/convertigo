@@ -1268,10 +1268,11 @@ test('admin deploy accepts archives after cancelling and choosing the same file 
 	const uploads = [];
 	await page.route('**/admin/services/projects.Deploy*', async (route) => {
 		const request = route.request();
-		const form = await new Response(request.postDataBuffer(), {
+		const form = await new Response(new Uint8Array(request.postDataBuffer() ?? []), {
 			headers: { 'Content-Type': request.headers()['content-type'] }
 		}).formData();
 		const file = form.get('file');
+		if (!(file instanceof File)) throw new Error('Expected an uploaded file');
 		uploads.push({ name: file.name, size: file.size });
 		await route.fulfill({
 			status: 200,
@@ -1296,13 +1297,17 @@ test('admin deploy accepts archives after cancelling and choosing the same file 
 	};
 	await (await openChooser()).setFiles(archive);
 	await expect(items).toHaveText(['Example.car']);
-	expect(await input.evaluate((element) => element.files.length)).toBe(1);
+	expect(
+		await input.evaluate((element) => /** @type {HTMLInputElement} */ (element).files?.length)
+	).toBe(1);
 
 	// Playwright dismisses the intercepted chooser with no files; also exercise the DOM cancel event.
 	await (await openChooser()).setFiles([]);
 	await input.dispatchEvent('cancel');
 	await expect(items).toHaveCount(0);
-	expect(await input.evaluate((element) => element.files.length)).toBe(0);
+	expect(
+		await input.evaluate((element) => /** @type {HTMLInputElement} */ (element).files?.length)
+	).toBe(0);
 	await dialog.getByRole('button', { name: 'Deploy', exact: true }).click();
 	expect(uploads).toHaveLength(0);
 
@@ -1310,7 +1315,10 @@ test('admin deploy accepts archives after cancelling and choosing the same file 
 	await expect(items).toHaveText(['Example.car']);
 	expect(
 		await input.evaluate((element) => {
-			const file = new FormData(element.form).get(element.name);
+			const field = /** @type {HTMLInputElement} */ (element);
+			if (!field.form) throw new Error('Expected an upload form');
+			const file = new FormData(field.form).get(field.name);
+			if (!(file instanceof File)) throw new Error('Expected the selected file');
 			return { name: file.name, size: file.size };
 		})
 	).toEqual({ name: 'Example.car', size: 41 * 1024 * 1024 });
@@ -1393,6 +1401,8 @@ test('admin refreshes discovery after an instance disappears and keeps an active
 test('admin logs out and logs back in without routing to the removed instance', async ({
 	page
 }) => {
+	const errors = [];
+	page.on('pageerror', (error) => errors.push(error.message));
 	const state = await mockAdminInstances(page);
 	await page.goto('/admin/projects/');
 	await expect(page.getByRole('combobox')).toHaveValue('pod-a');
@@ -1407,6 +1417,7 @@ test('admin logs out and logs back in without routing to the removed instance', 
 	await expect(page.getByRole('combobox')).toHaveValue('pod-a');
 	expect(state.authenticationHeaders).toEqual([undefined, undefined]);
 	expect(state.authenticated).toBe(true);
+	expect(errors).toEqual([]);
 });
 
 async function mockAdminInstances(page) {
@@ -1414,8 +1425,8 @@ async function mockAdminInstances(page) {
 	const state = {
 		removed: false,
 		authenticated: true,
-		discoveryHeaders: [],
-		authenticationHeaders: []
+		discoveryHeaders: /** @type {(string | undefined)[]} */ ([]),
+		authenticationHeaders: /** @type {(string | undefined)[]} */ ([])
 	};
 	await page.route('**/admin/services/**', async (route) => {
 		const request = route.request();
@@ -1600,9 +1611,12 @@ for (const executionView of ['studio', 'dashboard']) {
 			testcases: [{ name: 'PresetInput', variable: [{ name: 'input', value: 'preset' }] }]
 		});
 		await mockStudioServices(page, { state, executionRequests });
-		let finishResponse;
+		/** @type {() => void} */
+		let finishResponse = () => {
+			throw new Error('Pending response was not initialized');
+		};
 		const responseReady = new Promise((resolve) => {
-			finishResponse = resolve;
+			finishResponse = () => resolve(undefined);
 		});
 		await page.route(`**/projects/${projectName}/.json`, async (route) => {
 			executionRequests.push(route.request().postData() ?? '');
@@ -5358,6 +5372,23 @@ function responseForService(service, params, options = {}) {
 			}
 			return state();
 		}
+		case 'engine.JsonMonitor':
+			return {
+				engineState: true,
+				startTime: 1,
+				time: Date.now(),
+				memoryUsed: 16,
+				memoryTotal: 64,
+				memoryMaximal: 128,
+				threads: 1,
+				contexts: 0,
+				requests: 0,
+				sessionMaxCV: 10,
+				sessions: 1,
+				availableSessions: 9
+			};
+		case 'engine.GetEnvironmentVariablesJson':
+			return { variables: [] };
 		case 'engine.CheckAuthentication':
 			return {
 				admin: {

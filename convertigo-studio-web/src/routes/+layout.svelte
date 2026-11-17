@@ -238,7 +238,8 @@
 	{/snippet}
 </Toast.Group>
 {#if authBootstrapped}
-	{#key Instances.revision}
+	<!-- Logout clears the selection itself; remounting it would start logout again. -->
+	{#key page.route.id === '/(root)/logout' ? null : Instances.revision}
 		{@render children?.()}
 	{/key}
 {:else}
