@@ -29,6 +29,7 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -345,6 +346,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 			return null;
 		}
 
+		var importGroup = ProjectImportGroup.current(this, projectName);
+		if (importGroup != null && importGroup.completed(projectName)) return importGroup.completedProject(projectName);
 		Project project;
 
 		synchronized (projects) {
@@ -954,6 +957,43 @@ public class DatabaseObjectsManager implements AbstractManager {
 				}
 			}
 		}
+		var deployment = installProjectArchive(projectArchiveFilename, targetProjectName, bForce, keepOldReferences, newPriorities);
+		if (deployment == null) return null;
+		deployment.load();
+		return deployment.finish();
+	}
+
+	@FunctionalInterface
+	private interface ProjectArchiveExtractor {
+		void extract(String archive, String directory, String prefix) throws Exception;
+	}
+
+	/** Installs a local archive with the normal backup/replacement policy, without loading beans. */
+	public ProjectDeployment installProjectArchive(String projectArchiveFilename, String targetProjectName, boolean bForce,
+			boolean keepOldReferences, boolean newPriorities) throws EngineException {
+		return installProjectArchive(projectArchiveFilename, targetProjectName, bForce, keepOldReferences, newPriorities, ZipUtils::expandZip);
+	}
+
+	/** Installs a canonical archive prepared by the bundle reader; extraction failures stop the operation. */
+	public ProjectDeployment installPreparedProjectArchive(String filename, String projectName) throws EngineException {
+		try {
+			com.twinsoft.convertigo.engine.util.ProjectBundlePlan.validateName(projectName);
+			var budget = new com.twinsoft.convertigo.engine.util.ProjectBundleZip.Budget(
+					com.twinsoft.convertigo.engine.util.ProjectBundleZip.Limits.defaults());
+			var archive = Path.of(filename);
+			var entries = com.twinsoft.convertigo.engine.util.ProjectBundleZip.inspect(archive, budget);
+			for (var entry : entries) if (!entry.name().startsWith(projectName + "/")) throw new IOException("The prepared archive contains another project");
+			return installProjectArchive(filename, projectName, true, false, false, (file, directory, prefix) ->
+					com.twinsoft.convertigo.engine.util.ProjectBundleZip.extractProject(archive, Path.of(directory), entries, budget, projectName));
+		} catch (EngineException failure) {
+			throw failure;
+		} catch (Exception failure) {
+			throw new EngineException("Unable to install the prepared project archive", failure);
+		}
+	}
+
+	private ProjectDeployment installProjectArchive(String projectArchiveFilename, String targetProjectName, boolean bForce,
+			boolean keepOldReferences, boolean newPriorities, ProjectArchiveExtractor extractor) throws EngineException {
 		String archiveProjectName, projectDirPath;
 		try {
 			archiveProjectName = ZipUtils.getProjectName(projectArchiveFilename);
@@ -1008,7 +1048,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 			// Decompressing Convertigo archive
 			Engine.logDatabaseObjectManager.debug("Analyzing the archive entries: " + projectArchiveFilename);
-			ZipUtils.expandZip(projectArchiveFilename, projectDirPath, archiveProjectName);
+			extractor.extract(projectArchiveFilename, projectDirPath, archiveProjectName);
 		} catch (Exception e) {
 			throw new EngineException("Unable to deploy the project from the file \"" + projectArchiveFilename + "\".",
 					e);
@@ -1036,39 +1076,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 				}
 			}
 
-			if (getProjectLoadingData().projectName == null) {
-				getProjectLoadingData().projectName = targetProjectName;
-			}
+			return new ProjectDeployment(projectArchiveFilename, targetProjectName, projectDirPath, projectFile);
 
-			// Import project (will perform the migration)
-			Project project = importProject(projectFile, true);
-
-			// Rename connector's directory under traces directory if needed
-			// (name should be normalized since 4.6)
-			File tracesDir = new File(projectDirPath + "/Traces");
-			if (tracesDir.isDirectory()) {
-				File connectorDir;
-				String connectorName;
-				File[] files = tracesDir.listFiles();
-				for (int i = 0; i < files.length; i++) {
-					connectorDir = files[i];
-					if (connectorDir.isDirectory()) {
-						connectorName = connectorDir.getName();
-						if (!StringUtils.isNormalized(connectorName)) {
-							if (!connectorDir.renameTo(new File(Engine.PROJECTS_PATH + "/" + targetProjectName
-									+ "/Traces/" + StringUtils.normalize(connectorName))))
-								Engine.logDatabaseObjectManager.warn("Could not rename \"" + connectorName
-										+ "\" directory under \"Traces\" directory.");
-						}
-					}
-				}
-			}
-
-			Engine.logDatabaseObjectManager.info("Project \"" + targetProjectName + "\" deployed!");
-			if (project != null) {
-				removeDeployedArchive(new File(projectArchiveFilename));
-			}
-			return project;
 		} catch (VersionException e) {
 			throw e;
 		} catch (Exception e) {
@@ -1078,62 +1087,151 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 
+	private enum DeploymentState { INSTALLED, LOADING, LOADED, FINISHED, FAILED }
+
+	/** One installation, one complete import and one deployment finalization. */
+	public final class ProjectDeployment {
+		private final String archiveFilename;
+		private final String targetProjectName;
+		private final String projectDirPath;
+		private final File projectFile;
+		private DeploymentState state = DeploymentState.INSTALLED;
+		private Project project;
+
+		private ProjectDeployment(String archiveFilename, String targetProjectName, String projectDirPath, File projectFile) {
+			this.archiveFilename = archiveFilename;
+			this.targetProjectName = targetProjectName;
+			this.projectDirPath = projectDirPath;
+			this.projectFile = projectFile;
+		}
+
+		public String getProjectName() { return targetProjectName; }
+
+		public synchronized Project load() throws EngineException {
+			if (state != DeploymentState.INSTALLED) throw new IllegalStateException("This project installation has already been loaded");
+			state = DeploymentState.LOADING;
+			try {
+				if (getProjectLoadingData().projectName == null) getProjectLoadingData().projectName = targetProjectName;
+				project = importProject(projectFile, true);
+				state = DeploymentState.LOADED;
+				return project;
+			} catch (VersionException failure) {
+				state = DeploymentState.FAILED;
+				throw failure;
+			} catch (Exception failure) {
+				state = DeploymentState.FAILED;
+				throw failure(failure);
+			}
+		}
+
+		public synchronized Project finish() throws EngineException {
+			if (state != DeploymentState.LOADED) throw new IllegalStateException("This project installation is not ready for finalization");
+			try {
+
+				// Rename connector's directory under traces directory if needed
+				// (name should be normalized since 4.6)
+				File tracesDir = new File(projectDirPath + "/Traces");
+				if (tracesDir.isDirectory()) {
+					File connectorDir;
+					String connectorName;
+					File[] files = tracesDir.listFiles();
+					for (int i = 0; i < files.length; i++) {
+						connectorDir = files[i];
+						if (connectorDir.isDirectory()) {
+							connectorName = connectorDir.getName();
+							if (!StringUtils.isNormalized(connectorName)) {
+								if (!connectorDir.renameTo(new File(Engine.PROJECTS_PATH + "/" + targetProjectName
+										+ "/Traces/" + StringUtils.normalize(connectorName))))
+									Engine.logDatabaseObjectManager.warn("Could not rename \"" + connectorName
+											+ "\" directory under \"Traces\" directory.");
+							}
+						}
+					}
+				}
+
+				Engine.logDatabaseObjectManager.info("Project \"" + targetProjectName + "\" deployed!");
+				if (project != null) removeDeployedArchive(new File(archiveFilename));
+				state = DeploymentState.FINISHED;
+				return project;
+			} catch (Exception failure) {
+				state = DeploymentState.FAILED;
+				throw failure(failure);
+			}
+		}
+
+		public synchronized Project finish(boolean assembleXsl) throws EngineException {
+			var result = finish();
+			if (assembleXsl && result != null) {
+				try { assembleProjectXsl(result.getName()); }
+				catch (EngineException failure) { state = DeploymentState.FAILED; throw failure; }
+			}
+			return result;
+		}
+
+		private EngineException failure(Exception cause) {
+			String reason = cause.getMessage();
+			return new EngineException("Unable to deploy the project from the file \"" + archiveFilename + "\""
+					+ (reason == null || reason.isBlank() ? "." : ": " + reason), cause);
+		}
+	}
+
 	public Project deployProject(String projectArchiveFilename, boolean bForce, boolean bAssembleXsl)
 			throws EngineException {
 		Project project = deployProject(projectArchiveFilename, bForce);
 		String projectName = project.getName();
 
-		if (bAssembleXsl) {
-			String projectDir = Engine.projectDir(projectName);
-			String xmlFilePath = projectDir + "/" + projectName + ".xml";
-			try {
-				Document document = XMLUtils.loadXml(xmlFilePath);
-				Element rootElement = document.getDocumentElement();
-				NodeList sheets = rootElement.getElementsByTagName("sheet");
-
-				NodeList properties;
-				Element prop;
-				String sheetUrl;
-				Document xslDom;
-				NodeList includes;
-				// for each sheet, read file and assemble xsl includes
-				for (int i = 0; i < sheets.getLength(); i++) {
-					// retrieve sheet url
-					properties = ((Element) sheets.item(i)).getElementsByTagName("property");
-					prop = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "url");
-					sheetUrl = projectDir + "/"
-							+ ((Element) prop.getElementsByTagName("java.lang.String").item(0)).getAttribute("value");
-					// read file
-					xslDom = XMLUtils.loadXml(sheetUrl);
-					if (Engine.logDatabaseObjectManager.isTraceEnabled())
-						Engine.logDatabaseObjectManager
-						.trace("XSL file read: " + sheetUrl + "\n" + XMLUtils.prettyPrintDOM(xslDom));
-					includes = xslDom.getDocumentElement().getElementsByTagName("xsl:include");
-					Engine.logDatabaseObjectManager
-					.trace(includes.getLength() + " \"xsl:include\" tags in the XSL file");
-					// for each include element, include the xsl elemnts
-					for (int j = 0; j < includes.getLength(); j++) {
-						includeXsl(projectDir, (Element) includes.item(j));
-						j--;
-						// decrement variable j because includeXsl function
-						// removes "includes.item(j)" Node from
-						// its parent Node, and so it is also removed from the
-						// "includes" NodeList
-					}
-					// save the xsl dom in the xsl file
-					if (Engine.logDatabaseObjectManager.isTraceEnabled())
-						Engine.logDatabaseObjectManager.trace(
-								"XSL file saved after including include files: \n" + XMLUtils.prettyPrintDOM(xslDom));
-					XMLUtils.saveXml(xslDom, sheetUrl);
-				}
-
-			} catch (Exception e) {
-				deleteProject(projectName);
-				throw new EngineException("Unable to assemble the XSL files from project \"" + projectName + "\".", e);
-			}
-		}
-
+		if (bAssembleXsl) assembleProjectXsl(projectName);
 		return project;
+	}
+
+	private void assembleProjectXsl(String projectName) throws EngineException {
+		String projectDir = Engine.projectDir(projectName);
+		String xmlFilePath = projectDir + "/" + projectName + ".xml";
+		try {
+			Document document = XMLUtils.loadXml(xmlFilePath);
+			Element rootElement = document.getDocumentElement();
+			NodeList sheets = rootElement.getElementsByTagName("sheet");
+
+			NodeList properties;
+			Element prop;
+			String sheetUrl;
+			Document xslDom;
+			NodeList includes;
+			// for each sheet, read file and assemble xsl includes
+			for (int i = 0; i < sheets.getLength(); i++) {
+				// retrieve sheet url
+				properties = ((Element) sheets.item(i)).getElementsByTagName("property");
+				prop = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "url");
+				sheetUrl = projectDir + "/"
+						+ ((Element) prop.getElementsByTagName("java.lang.String").item(0)).getAttribute("value");
+				// read file
+				xslDom = XMLUtils.loadXml(sheetUrl);
+				if (Engine.logDatabaseObjectManager.isTraceEnabled())
+					Engine.logDatabaseObjectManager
+					.trace("XSL file read: " + sheetUrl + "\n" + XMLUtils.prettyPrintDOM(xslDom));
+				includes = xslDom.getDocumentElement().getElementsByTagName("xsl:include");
+				Engine.logDatabaseObjectManager
+				.trace(includes.getLength() + " \"xsl:include\" tags in the XSL file");
+				// for each include element, include the xsl elemnts
+				for (int j = 0; j < includes.getLength(); j++) {
+					includeXsl(projectDir, (Element) includes.item(j));
+					j--;
+					// decrement variable j because includeXsl function
+					// removes "includes.item(j)" Node from
+					// its parent Node, and so it is also removed from the
+					// "includes" NodeList
+				}
+				// save the xsl dom in the xsl file
+				if (Engine.logDatabaseObjectManager.isTraceEnabled())
+					Engine.logDatabaseObjectManager.trace(
+							"XSL file saved after including include files: \n" + XMLUtils.prettyPrintDOM(xslDom));
+				XMLUtils.saveXml(xslDom, sheetUrl);
+			}
+
+		} catch (Exception e) {
+			deleteProject(projectName);
+			throw new EngineException("Unable to assemble the XSL files from project \"" + projectName + "\".", e);
+		}
 	}
 
 	private void includeXsl(String projectDir, Element includeElem)
@@ -1276,7 +1374,21 @@ public class DatabaseObjectsManager implements AbstractManager {
 		return importProject(new File(importFileName), override);
 	}
 
-	public Project importProject(File _importFile, boolean override) throws EngineException {
+	public ProjectImportGroup openProjectImportGroup(Set<String> projectNames) {
+		return ProjectImportGroup.open(this, projectNames);
+	}
+
+	public Project importProject(File file, boolean override) throws EngineException {
+		if (ProjectImportGroup.current(this) == null) return importProjectInternal(file, override);
+		File descriptor = file;
+		if (file.getName().endsWith(".xml") && !file.exists()) descriptor = new File(file.getParentFile(), "c8oProject.yaml");
+		var scope = ProjectImportGroup.current(this, getProjectName(descriptor));
+		if (scope == null) return importProjectInternal(file, override);
+		String name = getProjectName(descriptor);
+		return scope.load(name, () -> importProjectInternal(file, override));
+	}
+
+	private Project importProjectInternal(File _importFile, boolean override) throws EngineException {
 		String filename = _importFile.getName();
 		if (filename.endsWith(".xml") && !_importFile.exists()) {
 			String oldName = filename;
@@ -1313,7 +1425,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 				if (!lock.checkDone) {
 					lock.checkDone = true;
-					Engine.theApp.referencedProjectManager.check(importFile);
+					Engine.theApp.referencedProjectManager.check(importFile, this);
 					Engine.logDatabaseObjectManager.info("[importProject] Check for references done: " + projectName);
 				}
 

@@ -716,3 +716,14 @@ tasks.register('projectBundleTest', JavaExec) {
 		'com.twinsoft.convertigo.engine.util.ProjectBundleImportTest',
 		'com.twinsoft.convertigo.engine.admin.services.projects.ProjectBundleServicesTest'
 }
+
+tasks.register('projectBundleLifecycleTest', JavaExec) {
+	group = 'verification'
+	description = 'Project group installation, complete import outcomes and normal backup lifecycle.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.ProjectBundleLifecycleTest'
+}
+
+tasks.named('check') { dependsOn 'projectBundleLifecycleTest' }

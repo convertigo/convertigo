@@ -210,11 +210,22 @@ public final class ProjectBundleZip {
 
 	public static void extract(Path archive, Path target, List<Entry> entries, Budget budget,
 			Predicate<String> excluded) throws IOException {
-		if (!Files.isDirectory(target, LinkOption.NOFOLLOW_LINKS)) throw new IOException("A fresh staging directory is required");
+		extractEntries(archive, target, entries, budget, excluded, "");
+	}
+
+	public static void extractProject(Path archive, Path target, List<Entry> entries, Budget budget, String name) throws IOException {
+		String prefix = name + "/";
+		for (var entry : entries) if (!entry.name().startsWith(prefix)) throw new IOException("The prepared archive contains another project");
+		extractEntries(archive, target, entries, budget, ProjectBundleImport::localProjectStatePath, prefix);
+	}
+
+	private static void extractEntries(Path archive, Path target, List<Entry> entries, Budget budget,
+			Predicate<String> excluded, String prefix) throws IOException {
+		if (!Files.isDirectory(target, LinkOption.NOFOLLOW_LINKS)) throw new IOException("An extraction directory is required");
 		var root = target.toRealPath();
 		long required = 0;
 		for (var entry : entries) {
-			if (!excluded.test(entry.name())) {
+			if (!excluded.test(entry.name().substring(prefix.length()))) {
 				if (entry.size() > budget.limits.totalBytes() - required) throw new IOException("The bundle exceeds its expanded size limit");
 				required += entry.size();
 			}
@@ -224,11 +235,12 @@ public final class ProjectBundleZip {
 			if (zip.size() != entries.size()) throw new IOException("Inconsistent archive directory");
 			byte[] buffer = new byte[64 * 1024];
 			for (var entry : entries) {
-				if (excluded.test(entry.name())) continue;
+				String relative = entry.name().substring(prefix.length());
+				if (relative.isEmpty() || excluded.test(relative)) continue;
 				var metadata = zip.getEntry(entry.name());
 				if (metadata == null || metadata.getSize() != entry.size() || metadata.getCompressedSize() != entry.compressedSize()
 						|| metadata.getMethod() != entry.method() || metadata.getCrc() != entry.crc()) throw new IOException("Inconsistent archive entry");
-				var output = root.resolve(entry.name()).normalize();
+				var output = root.resolve(relative).normalize();
 				if (!output.startsWith(root)) throw new IOException("Invalid entry destination");
 				Files.createDirectories(entry.directory() ? output : output.getParent());
 				if (!output.getParent().toRealPath().startsWith(root)) throw new IOException("Invalid entry parent");

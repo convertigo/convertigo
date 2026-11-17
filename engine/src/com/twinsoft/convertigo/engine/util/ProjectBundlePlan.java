@@ -43,18 +43,27 @@ public final class ProjectBundlePlan {
 		}
 	}
 
+	public record Group(List<ProjectInfo> projects, boolean cyclic) {
+		public Group { projects = List.copyOf(projects); }
+	}
+
+	private final List<Group> groups;
 	private final List<ProjectInfo> projects;
 
-	private ProjectBundlePlan(List<ProjectInfo> projects) {
-		this.projects = List.copyOf(projects);
+	private ProjectBundlePlan(List<Group> groups) {
+		this.groups = List.copyOf(groups);
+		this.projects = groups.stream().flatMap(group -> group.projects().stream()).toList();
 	}
 
-	public List<ProjectInfo> projects() {
-		return projects;
-	}
+	public List<ProjectInfo> projects() { return projects; }
+	public List<Group> groups() { return groups; }
 
-	/** Dependencies outside the selection are not imported or fetched by this planner. */
 	public static ProjectBundlePlan create(Collection<ProjectInfo> selected) throws IOException {
+		return create(selected, List.of());
+	}
+
+	/** Manifest orders only order members of a group; descriptors determine its membership. */
+	public static ProjectBundlePlan create(Collection<ProjectInfo> selected, List<List<String>> manifestOrders) throws IOException {
 		if (selected.isEmpty()) throw new IOException("Choose at least one project");
 		var byName = new LinkedHashMap<String, ProjectInfo>();
 		var portableNames = new TreeSet<String>();
@@ -64,24 +73,78 @@ public final class ProjectBundlePlan {
 				throw new IOException("The project selection contains a duplicate name: " + project.name());
 			}
 		}
-		var result = new ArrayList<ProjectInfo>();
-		var states = new HashMap<String, Integer>();
-		for (var name : new TreeSet<>(byName.keySet())) visit(name, byName, states, result);
+		var components = new Components(byName);
+		for (var name : new TreeSet<>(byName.keySet())) if (!components.indices.containsKey(name)) components.visit(name);
+		var groups = new ArrayList<Group>();
+		var membership = new HashMap<String, Integer>();
+		for (var names : components.groups) {
+			var rank = new HashMap<String, Integer>();
+			for (var order : manifestOrders) {
+				if (!order.containsAll(names)) continue;
+				for (int i = 0; i < order.size(); i++) rank.putIfAbsent(order.get(i), i);
+				break;
+			}
+			names.sort(java.util.Comparator.comparingInt((String name) -> rank.getOrDefault(name, Integer.MAX_VALUE)).thenComparing(name -> name));
+			int id = groups.size();
+			for (var name : names) membership.put(name, id);
+			boolean cyclic = names.size() > 1 || byName.get(names.get(0)).dependencies().contains(names.get(0));
+			groups.add(new Group(names.stream().map(byName::get).toList(), cyclic));
+		}
+		var dependencies = new ArrayList<Set<Integer>>();
+		java.util.Comparator<Integer> order = java.util.Comparator.comparing(id -> groups.get(id).projects().stream().map(ProjectInfo::name).min(String::compareTo).orElseThrow());
+		for (int id = 0; id < groups.size(); id++) {
+			var required = new TreeSet<Integer>(order);
+			for (var project : groups.get(id).projects()) for (var dependency : project.dependencies()) {
+				Integer target = membership.get(dependency);
+				if (target != null && target != id) required.add(target);
+			}
+			dependencies.add(required);
+		}
+		var ids = new TreeSet<Integer>(order);
+		for (int i = 0; i < groups.size(); i++) ids.add(i);
+		var result = new ArrayList<Group>();
+		var visited = new java.util.HashSet<Integer>();
+		for (int id : ids) orderGroup(id, groups, dependencies, visited, result);
 		return new ProjectBundlePlan(result);
 	}
 
-	private static void visit(String name, Map<String, ProjectInfo> projects, Map<String, Integer> states,
-			List<ProjectInfo> ordered) throws IOException {
-		int state = states.getOrDefault(name, 0);
-		if (state == 2) return;
-		if (state == 1) throw new IOException("The project selection contains a dependency cycle involving " + name);
-		states.put(name, 1);
-		var project = projects.get(name);
-		for (var dependency : project.dependencies()) {
-			if (projects.containsKey(dependency)) visit(dependency, projects, states, ordered);
+	private static void orderGroup(int id, List<Group> groups, List<Set<Integer>> dependencies,
+			Set<Integer> visited, List<Group> result) {
+		if (!visited.add(id)) return;
+		for (int dependency : dependencies.get(id)) orderGroup(dependency, groups, dependencies, visited, result);
+		result.add(groups.get(id));
+	}
+
+	/** Tarjan's algorithm, restricted to projects actually present in the selection. */
+	private static final class Components {
+		final Map<String, ProjectInfo> projects;
+		final Map<String, Integer> indices = new HashMap<>(), low = new HashMap<>();
+		final java.util.Deque<String> stack = new java.util.ArrayDeque<>();
+		final Set<String> onStack = new java.util.HashSet<>();
+		final List<List<String>> groups = new ArrayList<>();
+		int next;
+
+		Components(Map<String, ProjectInfo> projects) { this.projects = projects; }
+
+		void visit(String name) {
+			indices.put(name, next);
+			low.put(name, next++);
+			stack.push(name);
+			onStack.add(name);
+			for (var dependency : projects.get(name).dependencies()) {
+				if (!projects.containsKey(dependency)) continue;
+				if (!indices.containsKey(dependency)) {
+					visit(dependency);
+					low.put(name, Math.min(low.get(name), low.get(dependency)));
+				} else if (onStack.contains(dependency)) low.put(name, Math.min(low.get(name), indices.get(dependency)));
+			}
+			if (low.get(name).equals(indices.get(name))) {
+				var group = new ArrayList<String>();
+				String member;
+				do { member = stack.pop(); onStack.remove(member); group.add(member); } while (!member.equals(name));
+				groups.add(group);
+			}
 		}
-		states.put(name, 2);
-		ordered.add(project);
 	}
 
 	public static void validateName(String name) {

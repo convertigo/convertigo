@@ -109,6 +109,11 @@ public class Deploy extends UploadService {
 		Project project = Engine.theApp.databaseObjectsManager.deployProject(projectArchive, true,
 				assembleXsl);
 
+		completeDeployment(request, project);
+		return project;
+	}
+
+	static void completeDeployment(HttpServletRequest request, Project project) throws Exception {
 		String projectName = project.getName();
 		Engine.theApp.schemaManager.clearCache(projectName);
 		Project.executeAutoStartSequences(projectName);
@@ -161,7 +166,6 @@ public class Deploy extends UploadService {
 			});
 		}
 
-		return project;
 	}
 
 	@Override

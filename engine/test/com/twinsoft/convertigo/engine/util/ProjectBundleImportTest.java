@@ -87,18 +87,16 @@ public class ProjectBundleImportTest {
 		assertEmpty(root);
 	}
 
-	@Test public void refusesDuplicatesCyclesUnknownTopLevelFilesAndNestedBundlesWithoutWorkspaceChanges() throws Exception {
+	@Test public void refusesDuplicatesUnknownTopLevelFilesAndNestedBundlesWithoutWorkspaceChanges() throws Exception {
 		var root = folder.newFolder().toPath();
 		var workspace = folder.newFolder().toPath();
 		var sentinel = Files.writeString(workspace.resolve("keep.txt"), "unchanged");
 		var app = car("App", "1", null);
 		var duplicate = car("App", "2", null);
-		var cycleA = car("A", "1", "B");
-		var cycleB = car("B", "1", "A");
 		var nested = zip(Map.of("inner.zip", Files.readAllBytes(zip(Map.of("App.car", Files.readAllBytes(app))))));
 		var unknown = zip(Map.of("App.car", Files.readAllBytes(app), "unexpected.txt", text("unknown")));
 		var invalid = Files.writeString(folder.newFile().toPath(), "not a zip");
-		for (var uploads : List.of(List.of(app, duplicate), List.of(cycleA, cycleB), List.of(nested), List.of(unknown), List.of(invalid))) {
+		for (var uploads : List.of(List.of(app, duplicate), List.of(nested), List.of(unknown), List.of(invalid))) {
 			assertThrows(IOException.class, () -> ProjectBundleImport.prepare(uploads, root, Limits.defaults()));
 			assertEmpty(root);
 			assertEquals("unchanged", Files.readString(sentinel));
@@ -122,13 +120,36 @@ public class ProjectBundleImportTest {
 	@Test public void omitsPrivateStateWithPortableCaseVariantsAndReleasesExtractedContent() throws Exception {
 		var root = folder.newFolder().toPath();
 		var upload = zip(Map.of("Folder/c8oProject.yaml", yaml("Folder", "1", null),
-				"Folder/_Private/a.txt", text("private"), "Folder/_DATA/b.txt", text("data")));
+				"Folder/_Private/a.txt", text("private"), "Folder/_DATA/b.txt", text("data"),
+				"Folder/.project", text("workspace"), "Folder/.git/config", text("local"),
+				"Folder/.settings/local", text("settings"), "Folder/assets/.project", text("asset")));
 		try (var prepared = ProjectBundleImport.prepare(List.of(upload), root, Limits.defaults())) {
 			try (var car = new ZipFile(prepared.archive("Folder").toFile())) {
 				assertFalse(car.stream().anyMatch(entry -> entry.getName().toLowerCase(java.util.Locale.ROOT).contains("/_private/")
 						|| entry.getName().toLowerCase(java.util.Locale.ROOT).contains("/_data/")));
 			}
+			try (var car = new ZipFile(prepared.archive("Folder").toFile())) {
+				assertNull(car.getEntry("Folder/.project"));
+				assertNull(car.getEntry("Folder/.git/config"));
+				assertNull(car.getEntry("Folder/.settings/local"));
+				assertNotNull(car.getEntry("Folder/assets/.project"));
+			}
 			try (var files = Files.walk(root)) { assertFalse(files.anyMatch(path -> path.getFileName().toString().startsWith("content-"))); }
+		}
+		assertEmpty(root);
+	}
+
+	@Test public void preparesCyclicGroupsWithAWarningAndTheManifestMemberOrder() throws Exception {
+		var root = folder.newFolder().toPath();
+		var a = car("A", "1", "B");
+		var b = car("B", "1", "A");
+		var upload = zip(Map.of("A.car", Files.readAllBytes(a), "B.car", Files.readAllBytes(b), "bundle.json",
+				text("{\"formatVersion\":1,\"projects\":[{\"name\":\"A\",\"version\":\"1\"},{\"name\":\"B\",\"version\":\"1\"}],\"order\":[\"B\",\"A\"]}")));
+		try (var prepared = ProjectBundleImport.prepare(List.of(upload), root, Limits.defaults())) {
+			assertEquals(List.of("B", "A"), prepared.plan().projects().stream().map(ProjectBundlePlan.ProjectInfo::name).toList());
+			assertTrue(prepared.plan().groups().get(0).cyclic());
+			assertEquals(1, prepared.warnings().size());
+			assertTrue(prepared.warnings().get(0).contains("B, A"));
 		}
 		assertEmpty(root);
 	}

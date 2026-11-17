@@ -34,12 +34,13 @@ public class ProjectBundleTest {
 		assertEquals(List.of("Another", "Shared", "App"), first.projects().stream().map(ProjectInfo::name).toList());
 	}
 
-	@Test public void refusesDuplicateNamesVersionsPortableAliasesAndCycles() throws Exception {
+	@Test public void refusesDuplicateNamesVersionsAndPortableAliases() throws Exception {
 		var app = new ProjectInfo("App", "1", Set.of("Shared"));
 		assertThrows(IOException.class, () -> ProjectBundlePlan.create(List.of(app, app)));
 		assertThrows(IOException.class, () -> ProjectBundlePlan.create(List.of(app, new ProjectInfo("App", "2", Set.of()))));
 		assertThrows(IOException.class, () -> ProjectBundlePlan.create(List.of(app, new ProjectInfo("app", "1", Set.of()))));
-		assertThrows(IOException.class, () -> ProjectBundlePlan.create(List.of(app, new ProjectInfo("Shared", "2", Set.of("App")))));
+		var cycle = ProjectBundlePlan.create(List.of(app, new ProjectInfo("Shared", "2", Set.of("App"))));
+		assertTrue(cycle.groups().get(0).cyclic());
 		assertThrows(IOException.class, () -> ProjectBundlePlan.create(List.of()));
 		assertThrows(IllegalArgumentException.class, () -> new ProjectInfo("../App", "1", Set.of()));
 		assertThrows(IllegalArgumentException.class, () -> new ProjectInfo("CON", "1", Set.of()));
@@ -95,6 +96,12 @@ public class ProjectBundleTest {
 			shared.add(cycle);
 			assertThrows(IOException.class, () -> ProjectBundle.export(output, List.of("App"), true, ArchiveExportOption.all, catalog::get));
 			assertArrayEquals(before, Files.readAllBytes(output));
+			Files.writeString(root.resolve("Shared/c8oProject.yaml"), "↑convertigo: 8.0.0.m006\n↓Shared [core.Project]: \n  version: 2.3\n  ↓App [references.ProjectSchemaReference]: \n    projectName: App\n");
+			ProjectBundle.export(output, List.of("App"), true, ArchiveExportOption.all, catalog::get);
+			try (var prepared = ProjectBundleImport.prepare(List.of(output), folder.getRoot().toPath(), ProjectBundleZip.Limits.defaults())) {
+				assertTrue(prepared.plan().groups().get(0).cyclic());
+				assertEquals(1, prepared.warnings().size());
+			}
 			assertThrows(IOException.class, () -> ProjectBundle.export(output, List.of("Missing"), true, ArchiveExportOption.all, catalog::get));
 			try (var files = Files.list(output.getParent())) {
 				assertFalse(files.anyMatch(p -> p.getFileName().toString().startsWith(".project-bundle-")));
@@ -165,6 +172,23 @@ public class ProjectBundleTest {
 		} finally {
 			Engine.PROJECTS_PATH = previous;
 		}
+	}
+
+	@Test public void ordersDependencyGroupsAndHonorsManifestOrderInsideACycleOnly() throws Exception {
+		var app = new ProjectInfo("App", "1", Set.of("Shared", "Base"));
+		var shared = new ProjectInfo("Shared", "1", Set.of("App"));
+		var base = new ProjectInfo("Base", "1", Set.of());
+		var downstream = new ProjectInfo("Viewer", "1", Set.of("App"));
+		var selected = List.of(downstream, shared, app, base);
+		var plain = ProjectBundlePlan.create(selected);
+		assertEquals(List.of("Base", "App", "Shared", "Viewer"), plain.projects().stream().map(ProjectInfo::name).toList());
+		assertEquals(3, plain.groups().size());
+		assertTrue(plain.groups().get(1).cyclic());
+		var manifest = ProjectBundlePlan.create(selected, List.of(List.of("Viewer", "Shared", "App", "Base")));
+		assertEquals(List.of("Base", "Shared", "App", "Viewer"), manifest.projects().stream().map(ProjectInfo::name).toList());
+		var partial = ProjectBundlePlan.create(selected, List.of(List.of("Shared")));
+		assertEquals(plain.projects(), partial.projects());
+		assertTrue(ProjectBundlePlan.create(List.of(new ProjectInfo("Self", "1", Set.of("Self")))).groups().get(0).cyclic());
 	}
 
 	private static Project project(Path root, String name, String version, String dependency) throws Exception {

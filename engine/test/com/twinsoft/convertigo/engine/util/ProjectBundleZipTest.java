@@ -155,6 +155,24 @@ public class ProjectBundleZipTest {
 		assertFalse(Files.isSymbolicLink(target.resolve("a.txt")));
 	}
 
+	@Test public void projectsCanonicalEntriesOntoTheProjectDirectoryAndStopsOnWriteFailure() throws Exception {
+		var archive = archive("Project/", "", "Project/c8oProject.yaml", "descriptor", "Project/assets/data.zip", "asset");
+		var target = folder.newFolder().toPath();
+		Files.writeString(target.resolve(".project"), "existing metadata");
+		var budget = new Budget(Limits.defaults());
+		var entries = ProjectBundleZip.inspect(archive, budget);
+		ProjectBundleZip.extractProject(archive, target, entries, budget, "Project");
+		assertEquals("descriptor", Files.readString(target.resolve("c8oProject.yaml")));
+		assertEquals("asset", Files.readString(target.resolve("assets/data.zip")));
+		assertEquals("existing metadata", Files.readString(target.resolve(".project")));
+		assertFalse(Files.exists(target.resolve("Project")));
+		assertThrows(IOException.class, () -> ProjectBundleZip.extractProject(archive, folder.newFolder().toPath(), entries, new Budget(Limits.defaults()), "Another"));
+		var blocked = folder.newFolder().toPath();
+		Files.createDirectory(blocked.resolve("c8oProject.yaml"));
+		assertThrows(IOException.class, () -> ProjectBundleZip.extractProject(archive, blocked, entries, new Budget(Limits.defaults()), "Project"));
+		assertFalse(Files.exists(blocked.resolve("assets/data.zip")));
+	}
+
 	private static void prepare(Path archive, Path target, Budget budget) throws IOException {
 		var entries = ProjectBundleZip.inspect(archive, budget);
 		ProjectBundleZip.extract(archive, target, entries, budget, name -> false);

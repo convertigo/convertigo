@@ -162,6 +162,37 @@ public class ProjectBundleServicesTest {
 		assertFalse(Files.exists(output[0].getParent()));
 	}
 
+
+	@Test public void installsEveryCyclicMemberBeforeLoadingAndReportsUnfinishedSources() throws Exception {
+		for (boolean installationFailure : List.of(false, true)) {
+			var events = new ArrayList<String>();
+			var service = new Deployment() {
+				@Override protected AutoCloseable openGroup(com.twinsoft.convertigo.engine.util.ProjectBundlePlan.Group group) {
+					assertTrue(group.cyclic());
+					events.add("open");
+					return () -> events.add("close");
+				}
+				@Override protected com.twinsoft.convertigo.engine.util.ProjectBundleDeployment.Completion install(HttpServletRequest request, String name, Path archive, boolean assembleXsl) throws Exception {
+					events.add("install " + name);
+					if (installationFailure && name.equals("B")) throw new IOException("installation stopped");
+					return () -> { events.add("load " + name); throw new IOException("loading stopped"); };
+				}
+			};
+			var request = new Multipart().file("file", "A.car", car("A", "B"))
+					.file("file", "B.car", car("B", "A")).file("file", "Z.car", car("Z")).request("/");
+			var document = document();
+			service.getServiceResult(request, document);
+			assertEquals(installationFailure ? List.of("open", "install A", "install B", "close")
+					: List.of("open", "install A", "install B", "load A", "close"), events);
+			var projects = document.getElementsByTagName("project");
+			assertEquals(3, projects.getLength());
+			assertEquals(installationFailure ? "installed" : "failed", ((Element) projects.item(0)).getAttribute("status"));
+			assertEquals(installationFailure ? "failed" : "installed", ((Element) projects.item(1)).getAttribute("status"));
+			assertEquals("not_attempted", ((Element) projects.item(2)).getAttribute("status"));
+			assertFalse(Files.exists(service.temporary));
+		}
+	}
+
 	private class Deployment extends DeployBundle {
 		final List<String> calls = new ArrayList<>();
 		Path temporary;
@@ -170,20 +201,25 @@ public class ProjectBundleServicesTest {
 		Limits configured = Limits.defaults();
 		@Override protected Limits limits() { return configured; }
 		@Override protected Path createTemporaryDirectory() throws IOException { return temporary = folder.newFolder().toPath(); }
-		@Override protected String deploy(HttpServletRequest request, String name, Path archive, boolean assembleXsl) throws Exception {
+		@Override protected com.twinsoft.convertigo.engine.util.ProjectBundleDeployment.Completion install(HttpServletRequest request, String name, Path archive, boolean assembleXsl) throws Exception {
 			assertTrue(Files.isRegularFile(archive));
+			return () -> {
 			calls.add(name);
 			assemble = assembleXsl;
 			if (name.equals(fail)) throw new IOException("simulated write failure");
 			return name.equals("A") ? "Migration save warning" : null;
+			};
 		}
 	}
 
-	private static byte[] car(String name) throws IOException {
+	private static byte[] car(String name) throws IOException { return car(name, null); }
+
+	private static byte[] car(String name, String dependency) throws IOException {
 		var bytes = new ByteArrayOutputStream();
 		try (var zip = new ZipOutputStream(bytes)) {
 			zip.putNextEntry(new ZipEntry(name + "/c8oProject.yaml"));
-			zip.write(text("↑convertigo: 8.0.0.m006\n↓" + name + " [core.Project]: \n  version: 1\n"));
+			zip.write(text("↑convertigo: 8.0.0.m006\n↓" + name + " [core.Project]: \n  version: 1\n"
+					+ (dependency == null ? "" : "  ↓Reference [references.ProjectSchemaReference]: \n    projectName: " + dependency + "\n")));
 			zip.closeEntry();
 		}
 		return bytes.toByteArray();

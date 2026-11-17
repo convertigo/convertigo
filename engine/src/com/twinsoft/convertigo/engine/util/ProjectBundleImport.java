@@ -46,6 +46,7 @@ import com.twinsoft.convertigo.engine.util.ProjectBundleZip.Limits;
 public final class ProjectBundleImport implements AutoCloseable {
 	private final Path staging;
 	private final Budget budget;
+	private final Budget canonicalBudget;
 	private final List<ProjectInfo> descriptions = new ArrayList<>();
 	private final Map<String, Path> archives = new LinkedHashMap<>();
 	private final List<String> warnings = new ArrayList<>();
@@ -56,6 +57,7 @@ public final class ProjectBundleImport implements AutoCloseable {
 	private ProjectBundleImport(Path staging, Limits limits) {
 		this.staging = staging;
 		this.budget = new Budget(limits);
+		this.canonicalBudget = new Budget(limits);
 	}
 
 	public static ProjectBundleImport prepare(Collection<Path> uploads, Path temporaryRoot, Limits limits) throws Exception {
@@ -69,7 +71,10 @@ public final class ProjectBundleImport implements AutoCloseable {
 		var prepared = new ProjectBundleImport(Files.createTempDirectory(temporaryRoot, "project-bundle-"), limits);
 		try {
 			for (var upload : uploads) prepared.read(upload, true);
-			prepared.plan = ProjectBundlePlan.create(prepared.descriptions);
+			prepared.plan = ProjectBundlePlan.create(prepared.descriptions, prepared.manifestOrders());
+			for (var group : prepared.plan.groups()) if (group.cyclic()) prepared.warnings.add(
+					"Dependency group: " + String.join(", ", group.projects().stream().map(ProjectInfo::name).toList())
+					+ ". All group sources are installed before loading its projects.");
 			prepared.checkManifests();
 			return prepared;
 		} catch (Exception | Error failure) {
@@ -109,7 +114,7 @@ public final class ProjectBundleImport implements AutoCloseable {
 		ProjectBundleZip.extract(archive, extracted, entries, budget, name -> {
 			if (noise(name)) return true;
 			for (var projectRoot : projectRoots) if (name.startsWith(projectRoot)
-					&& privatePath(name.substring(projectRoot.length()))) return true;
+					&& localProjectStatePath(name.substring(projectRoot.length()))) return true;
 			return false;
 		});
 		if (entries.stream().anyMatch(entry -> noise(entry.name()))) warnings.add("Ignored archive metadata files");
@@ -181,7 +186,7 @@ public final class ProjectBundleImport implements AutoCloseable {
 				if (Files.isSymbolicLink(file)) throw new IOException("Unexpected project entry type");
 				String name = directory.relativize(file).toString().replace(java.io.File.separatorChar, '/');
 				if (file.equals(descriptor) && name.endsWith(".xml")) name = info.name() + ".xml";
-				if (privatePath(name)) continue;
+				if (localProjectStatePath(name)) continue;
 				ProjectBundleZip.validateName(name);
 				boolean isDirectory = Files.isDirectory(file, LinkOption.NOFOLLOW_LINKS);
 				zip.putNextEntry(new ZipEntry(info.name() + "/" + name + (isDirectory ? "/" : "")));
@@ -189,9 +194,28 @@ public final class ProjectBundleImport implements AutoCloseable {
 				zip.closeEntry();
 			}
 		}
+		ProjectBundleZip.inspect(archive, canonicalBudget);
 		descriptions.add(info);
 		archives.put(info.name(), archive);
 		org.apache.commons.io.FileUtils.deleteDirectory(directory.toFile());
+	}
+
+	private List<List<String>> manifestOrders() throws Exception {
+		var result = new ArrayList<List<String>>();
+		for (var manifest : manifests) {
+			var json = new JSONObject(Files.readString(manifest.path(), StandardCharsets.UTF_8));
+			var values = json.optJSONArray("order");
+			if (json.optInt("formatVersion", -1) != 1 || values == null || values.length() != manifest.projects().size()) continue;
+			var order = new ArrayList<String>();
+			var seen = new java.util.HashSet<String>();
+			for (int i = 0; i < values.length(); i++) {
+				String name = values.optString(i);
+				if (!manifest.projects().contains(name) || !seen.add(name)) break;
+				order.add(name);
+			}
+			if (order.size() == values.length()) result.add(List.copyOf(order));
+		}
+		return result;
 	}
 
 	private void checkManifests() throws Exception {
@@ -220,9 +244,10 @@ public final class ProjectBundleImport implements AutoCloseable {
 		}
 	}
 
-	private static boolean privatePath(String path) {
-		path = java.text.Normalizer.normalize(path, java.text.Normalizer.Form.NFC).toLowerCase(java.util.Locale.ROOT);
-		return path.equals("_private") || path.startsWith("_private/") || path.equals("_data") || path.startsWith("_data/");
+	static boolean localProjectStatePath(String path) {
+		String first = path.contains("/") ? path.substring(0, path.indexOf('/')) : path;
+		first = java.text.Normalizer.normalize(first, java.text.Normalizer.Form.NFC).toLowerCase(java.util.Locale.ROOT);
+		return java.util.Set.of("_private", "_data", ".project", ".settings", ".git", ".svn", "cvs").contains(first);
 	}
 
 	private static boolean noise(String path) {

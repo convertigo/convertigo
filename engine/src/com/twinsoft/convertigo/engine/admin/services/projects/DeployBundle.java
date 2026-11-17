@@ -50,15 +50,28 @@ public class DeployBundle extends XmlService {
 		return Files.createTempDirectory("convertigo-project-upload-");
 	}
 
-	protected String deploy(HttpServletRequest request, String name, Path archive, boolean assembleXsl) throws Exception {
-		try {
-			var project = Deploy.deployArchive(request, archive.toString(), assembleXsl);
-			if (!name.equals(project.getName())) throw new IOException("The deployed project name differs from its descriptor");
-			return project.migrationSaveError;
-		} catch (Exception failure) {
-			Engine.logAdmin.warn("Project bundle deployment stopped at " + name, failure);
-			throw failure;
-		}
+	protected ProjectBundleDeployment.Completion install(HttpServletRequest request, String name, Path archive, boolean assembleXsl) throws Exception {
+		var deployment = Engine.theApp.databaseObjectsManager.installPreparedProjectArchive(archive.toString(), name);
+		if (deployment == null) throw new IOException("The project could not be installed");
+		return () -> {
+			try {
+				var project = deployment.load();
+				if (project == null || !name.equals(project.getName())) throw new IOException("The loaded project differs from its descriptor");
+				deployment.finish(assembleXsl);
+				Deploy.completeDeployment(request, project);
+				return project.migrationSaveError;
+			} catch (Exception failure) {
+				Engine.logAdmin.warn("Project bundle deployment stopped at " + name, failure);
+				throw failure;
+			}
+		};
+	}
+
+	protected AutoCloseable openGroup(com.twinsoft.convertigo.engine.util.ProjectBundlePlan.Group group) {
+		if (!group.cyclic()) return () -> {};
+		return Engine.theApp.databaseObjectsManager.openProjectImportGroup(
+				group.projects().stream().map(com.twinsoft.convertigo.engine.util.ProjectBundlePlan.ProjectInfo::name)
+						.collect(java.util.stream.Collectors.toSet()));
 	}
 
 	@Override
@@ -92,7 +105,14 @@ public class DeployBundle extends XmlService {
 			boolean assembleXsl = assemble;
 			try (var prepared = ProjectBundleImport.prepare(files, temporary, limits)) {
 				for (var warning : prepared.warnings()) ServiceUtils.addMessage(document, document.getDocumentElement(), warning, "warning", false);
-				var results = ProjectBundleDeployment.apply(prepared, (name, archive) -> deploy(request, name, archive, assembleXsl));
+				var results = ProjectBundleDeployment.apply(prepared, new ProjectBundleDeployment.Installer() {
+					@Override public ProjectBundleDeployment.Completion install(String name, Path archive) throws Exception {
+						return DeployBundle.this.install(request, name, archive, assembleXsl);
+					}
+					@Override public AutoCloseable openGroup(com.twinsoft.convertigo.engine.util.ProjectBundlePlan.Group group) {
+						return DeployBundle.this.openGroup(group);
+					}
+				});
 				var summary = document.createElement("deployment");
 				boolean success = results.stream().allMatch(result -> result.status() == ProjectBundleDeployment.Status.DEPLOYED);
 				summary.setAttribute("success", Boolean.toString(success));
