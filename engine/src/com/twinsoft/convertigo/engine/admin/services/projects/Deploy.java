@@ -99,8 +99,15 @@ public class Deploy extends UploadService {
 			projectArchive = projectArchive.substring(i + 1);
 		}
 
-		Project project = Engine.theApp.databaseObjectsManager.deployProject(getRepository() + projectArchive, true,
-				bAssembleXsl);
+		Project project = deployArchive(request, getRepository() + projectArchive, bAssembleXsl);
+		String message = "The project '" + project.getName() + "' has been successfully deployed.";
+		Engine.logAdmin.info(message);
+		ServiceUtils.addMessage(document, document.getDocumentElement(), message, "message", false);
+	}
+
+	static Project deployArchive(HttpServletRequest request, String projectArchive, boolean assembleXsl) throws Exception {
+		Project project = Engine.theApp.databaseObjectsManager.deployProject(projectArchive, true,
+				assembleXsl);
 
 		String projectName = project.getName();
 		Engine.theApp.schemaManager.clearCache(projectName);
@@ -154,9 +161,7 @@ public class Deploy extends UploadService {
 			});
 		}
 
-		String message = "The project '" + projectName + "' has been successfully deployed.";
-		Engine.logAdmin.info(message);
-		ServiceUtils.addMessage(document, document.getDocumentElement(), message, "message", false);
+		return project;
 	}
 
 	@Override

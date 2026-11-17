@@ -713,5 +713,6 @@ tasks.register('projectBundleTest', JavaExec) {
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.util.ProjectBundleTest',
 		'com.twinsoft.convertigo.engine.util.ProjectBundleZipTest',
-		'com.twinsoft.convertigo.engine.util.ProjectBundleImportTest'
+		'com.twinsoft.convertigo.engine.util.ProjectBundleImportTest',
+		'com.twinsoft.convertigo.engine.admin.services.projects.ProjectBundleServicesTest'
 }
