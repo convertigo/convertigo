@@ -244,64 +244,72 @@ public class WsReference {
 				soapuiSettingsChanged = true;
 			}
 			
-			// PROXY
-			ProxyMode proxyMode = Engine.theApp.proxyManager.proxyMode;
-			String proxyExcludes = StringUtils.join(Engine.theApp.proxyManager.getBypassDomains(), ",");
-			String proxyServer = Engine.theApp.proxyManager.getProxyServer();
-			int proxyPort = Engine.theApp.proxyManager.getProxyPort();
-			String proxyUser = Engine.theApp.proxyManager.getProxyUser();
-			String proxyPwd = Engine.theApp.proxyManager.getProxyPassword();
-			
-			boolean enableProxy = Engine.theApp.proxyManager.isEnabled();
-			if (enableProxy) {
-				if (proxyMode == ProxyMode.auto) {
-					try {
-						URL url = new URI(wsdlUrl).toURL();
-						PacInfos pacInfos = Engine.theApp.proxyManager.getPacInfos(url.toString(), url.getHost());
-						if (pacInfos != null) {
-							proxyServer = pacInfos.getServer();
-							proxyPort = pacInfos.getPort();
-						}
-					}
-					catch (Exception e) {}
-				}
-				
-				if (!settings.getBoolean(ProxySettings.ENABLE_PROXY)) {
-					settings.setBoolean(ProxySettings.ENABLE_PROXY, true);
-					soapuiSettingsChanged = true;
-				}
-				if (!proxyExcludes.equals(settings.getString(ProxySettings.EXCLUDES, null))) {
-					settings.setString(ProxySettings.EXCLUDES, proxyExcludes);
-					soapuiSettingsChanged = true;
-				}
-				if (!proxyServer.equals(settings.getString(ProxySettings.HOST, null))) {
-					settings.setString(ProxySettings.HOST, proxyServer);
-					soapuiSettingsChanged = true;
-				}
-				if (!String.valueOf(proxyPort).equals(settings.getString(ProxySettings.PORT, null))) {
-					settings.setString(ProxySettings.PORT, String.valueOf(proxyPort));
-					soapuiSettingsChanged = true;
-				}
-				if (!proxyUser.equals(settings.getString(ProxySettings.USERNAME, null))) {
-					settings.setString(ProxySettings.USERNAME, proxyUser);
-					soapuiSettingsChanged = true;
-				}
-				if (!proxyPwd.equals(settings.getString(ProxySettings.PASSWORD, null))) {
-					settings.setString(ProxySettings.PASSWORD, proxyPwd);
-					soapuiSettingsChanged = true;
-				}
-			}
-			else {
-				if (settings.getBoolean(ProxySettings.ENABLE_PROXY)) {
-					settings.setBoolean(ProxySettings.ENABLE_PROXY, false);
-					soapuiSettingsChanged = true;
-				}
-			}
+			soapuiSettingsChanged |= configureProxy(settings, wsdlUrl);
 		}
 		if (soapuiSettingsChanged)
 			SoapUI.saveSettings();
 	}
 	
+	static boolean configureProxy(Settings settings, String wsdlUrl) throws Exception {
+		boolean changed = false;
+		// PROXY
+		ProxyMode proxyMode = Engine.theApp.proxyManager.proxyMode;
+		String proxyExcludes = StringUtils.join(Engine.theApp.proxyManager.getBypassDomains(), ",");
+		String proxyServer = Engine.theApp.proxyManager.getProxyServer();
+		int proxyPort = Engine.theApp.proxyManager.getProxyPort();
+		String proxyUser = Engine.theApp.proxyManager.getProxyUser();
+		String proxyPwd = Engine.theApp.proxyManager.getProxyPassword();
+
+		boolean enableProxy = Engine.theApp.proxyManager.isEnabled();
+		if (enableProxy && proxyMode == ProxyMode.auto) {
+			try {
+				URL url = new URI(wsdlUrl).toURL();
+				PacInfos pacInfos = Engine.theApp.proxyManager.getPacInfos(url.toString(), url.getHost());
+				if (pacInfos != null) {
+					proxyServer = pacInfos.getServer();
+					proxyPort = pacInfos.getPort();
+				} else {
+					enableProxy = false;
+				}
+			}
+			catch (Exception e) {}
+		}
+		if (enableProxy) {
+
+			if (!settings.getBoolean(ProxySettings.ENABLE_PROXY)) {
+				settings.setBoolean(ProxySettings.ENABLE_PROXY, true);
+				changed = true;
+			}
+			if (!proxyExcludes.equals(settings.getString(ProxySettings.EXCLUDES, null))) {
+				settings.setString(ProxySettings.EXCLUDES, proxyExcludes);
+				changed = true;
+			}
+			if (!proxyServer.equals(settings.getString(ProxySettings.HOST, null))) {
+				settings.setString(ProxySettings.HOST, proxyServer);
+				changed = true;
+			}
+			if (!String.valueOf(proxyPort).equals(settings.getString(ProxySettings.PORT, null))) {
+				settings.setString(ProxySettings.PORT, String.valueOf(proxyPort));
+				changed = true;
+			}
+			if (!proxyUser.equals(settings.getString(ProxySettings.USERNAME, null))) {
+				settings.setString(ProxySettings.USERNAME, proxyUser);
+				changed = true;
+			}
+			if (!proxyPwd.equals(settings.getString(ProxySettings.PASSWORD, null))) {
+				settings.setString(ProxySettings.PASSWORD, proxyPwd);
+				changed = true;
+			}
+		}
+		else {
+			if (settings.getBoolean(ProxySettings.ENABLE_PROXY)) {
+				settings.setBoolean(ProxySettings.ENABLE_PROXY, false);
+				changed = true;
+			}
+		}
+		return changed;
+	}
+
 	private static HttpConnector importRestWebService(Project project, RestServiceReference restServiceReference) throws Exception
 	{
 		try {
