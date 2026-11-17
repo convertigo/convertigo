@@ -17,6 +17,83 @@ const sequenceName = 'TestSequence';
 const sequenceId = `${projectName}.sq:${sequenceName}`;
 const initStepId = `${sequenceId}.st:Init`;
 
+test('admin deploy accepts archives after cancelling and choosing the same file or another', async ({
+	page
+}) => {
+	await mockStudioServices(page);
+	const uploads = [];
+	await page.route('**/admin/services/projects.Deploy*', async (route) => {
+		const request = route.request();
+		const form = await new Response(request.postDataBuffer(), {
+			headers: { 'Content-Type': request.headers()['content-type'] }
+		}).formData();
+		const file = form.get('file');
+		uploads.push({ name: file.name, size: file.size });
+		await route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({ admin: { message: 'Project deployed' } })
+		});
+	});
+	await page.goto('/admin/projects/');
+	await page.getByRole('button', { name: 'Deploy project', exact: true }).click();
+	const dialog = page.getByRole('dialog');
+	const input = dialog.locator('input[type="file"]');
+	const items = dialog.locator('[data-scope="file-upload"][data-part="item-name"]');
+	const choose = dialog.getByRole('button', { name: 'Choose file', exact: true });
+	const archive = {
+		name: 'Example.car',
+		mimeType: 'application/octet-stream',
+		buffer: Buffer.alloc(41 * 1024 * 1024)
+	};
+	const openChooser = async () => {
+		const [chooser] = await Promise.all([page.waitForEvent('filechooser'), choose.click()]);
+		return chooser;
+	};
+	await (await openChooser()).setFiles(archive);
+	await expect(items).toHaveText(['Example.car']);
+	expect(await input.evaluate((element) => element.files.length)).toBe(1);
+
+	// Playwright dismisses the intercepted chooser with no files; also exercise the DOM cancel event.
+	await (await openChooser()).setFiles([]);
+	await input.dispatchEvent('cancel');
+	await expect(items).toHaveCount(0);
+	expect(await input.evaluate((element) => element.files.length)).toBe(0);
+	await dialog.getByRole('button', { name: 'Deploy', exact: true }).click();
+	expect(uploads).toHaveLength(0);
+
+	await (await openChooser()).setFiles(archive);
+	await expect(items).toHaveText(['Example.car']);
+	expect(
+		await input.evaluate((element) => {
+			const file = new FormData(element.form).get(element.name);
+			return { name: file.name, size: file.size };
+		})
+	).toEqual({ name: 'Example.car', size: 41 * 1024 * 1024 });
+	await expect(dialog.getByText('Unsupported file type.', { exact: false })).toHaveCount(0);
+
+	await (
+		await openChooser()
+	).setFiles({
+		name: 'Another.car',
+		mimeType: '',
+		buffer: Buffer.from('synthetic archive')
+	});
+	await expect(items).toHaveText(['Another.car']);
+	await expect(dialog.getByText('Unsupported file type.', { exact: false })).toHaveCount(0);
+
+	await (
+		await openChooser()
+	).setFiles({
+		name: 'Another.zip',
+		mimeType: 'application/zip',
+		buffer: Buffer.from('synthetic zip archive')
+	});
+	await expect(items).toHaveText(['Another.zip']);
+	await dialog.getByRole('button', { name: 'Deploy', exact: true }).click();
+	await expect.poll(() => uploads).toEqual([{ name: 'Another.zip', size: 21 }]);
+});
+
 test('admin shows and refreshes a project migration save warning as text', async ({ page }) => {
 	await mockStudioServices(page);
 	let warning = 'AccessDeniedException: <project-file>';
