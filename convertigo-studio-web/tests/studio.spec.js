@@ -31,7 +31,7 @@ test('admin bundle deploy preserves the complete selection after cancelling and 
 		await route.fulfill({
 			status: 200,
 			contentType: 'application/xml',
-			body: '<admin><deployment success="false"><project name="App" version="1" status="deployed" warning="Migration save warning"/><project name="Other" version="2" status="failed" detail="simulated write failure"/><project name="Remaining" version="3" status="not_attempted"/></deployment></admin>'
+			body: '<admin><deployment success="false"><project name="App" version="1" status="deployed" warning="Migration save warning"/><project name="Other" version="2" status="failed" detail="simulated write failure"/><project name="Installed" version="3" status="installed" detail="Sources installed; loading and finalization were not completed"/><project name="Remaining" version="3" status="not_attempted"/></deployment></admin>'
 		});
 	});
 	await page.goto('/admin/projects/');
@@ -78,10 +78,11 @@ test('admin bundle deploy preserves the complete selection after cancelling and 
 	await expect.poll(() => uploads).toEqual([['App.car', 'Other.car']]);
 	await expect(page.getByRole('dialog')).toHaveCount(0);
 	await expect(
-		page.getByText('Deployment stopped. Previously deployed projects were kept.')
+		page.getByText('Deployment stopped. Installed sources and deployed projects were kept.')
 	).toBeVisible();
 	await expect(page.getByText('Migration save warning')).toBeVisible();
 	await expect(page.getByText('simulated write failure')).toBeVisible();
+	await expect(page.getByText('Installed, not finalized', { exact: true })).toBeVisible();
 	await expect(page.getByText('Not attempted', { exact: true })).toBeVisible();
 });
 

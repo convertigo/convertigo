@@ -228,8 +228,9 @@
 				{#if bundleDeploy === 'true'}
 					<p class="text-sm text-muted">
 						Choose CAR/ZIP files or one distribution ZIP. The complete selection is checked first.
-						Projects are then replaced one at a time with normal backups and automatic starts. A
-						failure stops the remaining projects; earlier projects remain deployed.
+						Projects use the server's normal backup setting and automatic starts. All sources of a
+						cyclic group are installed before loading it. A failure stops the remaining projects;
+						already installed sources and deployed projects are kept.
 					</p>
 				{/if}
 				{#key bundleDeploy}
@@ -413,7 +414,7 @@
 			<p role="status">
 				{deploymentReport.success === true || deploymentReport.success === 'true'
 					? 'All projects were deployed.'
-					: 'Deployment stopped. Previously deployed projects were kept.'}
+					: 'Deployment stopped. Installed sources and deployed projects were kept.'}
 			</p>
 			{#each deploymentWarnings as warning, index (index)}<p class="text-sm text-warning-700-300">
 					{typeof warning === 'string' ? warning : (warning['#text'] ?? '')}
@@ -431,9 +432,12 @@
 					{#if def.name === 'Details'}
 						{row.warning ?? row.detail ?? ''}
 					{:else if def.name === 'Status'}
-						{{ deployed: 'Deployed', failed: 'Failed', not_attempted: 'Not attempted' }[
-							row.status
-						] ?? row.status}
+						{{
+							deployed: 'Deployed',
+							failed: 'Failed',
+							installed: 'Installed, not finalized',
+							not_attempted: 'Not attempted'
+						}[row.status] ?? row.status}
 					{/if}
 				{/snippet}
 			</TableAutoCard>

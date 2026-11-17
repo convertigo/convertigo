@@ -96,6 +96,9 @@ public class ProjectBundleLifecycleTest {
 		}
 		assertNull("asynchronous fixture removal must finish before restoring the engine", workerField.get(null));
 		manager.destroy();
+		var loading = DatabaseObjectsManager.class.getDeclaredField("projectLoadingDataThreadLocal");
+		loading.setAccessible(true);
+		((ThreadLocal<?>) loading.get(null)).remove();
 		Engine.theApp = oldApp;
 		DatabaseObjectsManager.studioProjects = oldStudio;
 		Engine.PROJECTS_PATH = oldProjects;
@@ -125,6 +128,7 @@ public class ProjectBundleLifecycleTest {
 			assertThrows(IllegalStateException.class, a::finish);
 		}
 		assertNull(ProjectImportGroup.current(manager));
+		assertNoLoadingContext();
 	}
 
 	@Test public void reusesACompletedNestedImportWithoutAnotherSynchronization() throws Exception {
@@ -137,6 +141,11 @@ public class ProjectBundleLifecycleTest {
 			assertEquals(List.of("A", "B"), loaded);
 			assertEquals(Map.of("A", 1, "B", 1), syncs);
 		}
+		assertNoLoadingContext();
+		var next = install("Next", null, "8.4.0.m006");
+		assertEquals("Next", next.load().getName());
+		next.finish();
+		assertNoLoadingContext();
 	}
 
 	@Test public void remembersAnAbsorbedPostCacheFailureInsteadOfTreatingItAsLoaded() throws Exception {
@@ -154,6 +163,7 @@ public class ProjectBundleLifecycleTest {
 			assertNull(manager.getCachedProject("B"));
 		}
 		assertNull(ProjectImportGroup.current(manager));
+		assertNoLoadingContext();
 	}
 
 	@Test public void keepsMigrationSaveWarningsAndExternalReferenceChecks() throws Exception {
@@ -168,6 +178,7 @@ public class ProjectBundleLifecycleTest {
 			assertSame(project, manager.importProject(projects.resolve("A/c8oProject.yaml").toFile(), true));
 		}
 		assertNull(ProjectImportGroup.current(manager));
+		assertNoLoadingContext();
 	}
 
 	@Test public void replacesSourcesWithTheNormalBackupWithoutLoadingThePreviousProject() throws Exception {
@@ -233,6 +244,52 @@ public class ProjectBundleLifecycleTest {
 		assertFalse(assembled.contains("xsl:include"));
 		assertTrue(assembled.contains("xsl:template"));
 		assertFalse(Files.exists(xslArchive));
+	}
+
+	@Test public void deploysAndExportsACyclicBundleThroughTheRealServices() throws Exception {
+		Engine.theApp.schemaManager = new SchemaManager();
+		var a = folder.newFile("A.car").toPath();
+		var b = folder.newFile("B.car").toPath();
+		writeArchive(a, Map.of("A/c8oProject.yaml", yaml("A", "B", "8.4.0.m006")));
+		writeArchive(b, Map.of("B/c8oProject.yaml", yaml("B", "A", "8.4.0.m006")));
+		var request = new com.twinsoft.convertigo.engine.servlets.GenericServletMultipartTest.Multipart()
+				.file("file", "A.car", Files.readAllBytes(a)).file("file", "B.car", Files.readAllBytes(b)).request("/");
+		var document = com.twinsoft.convertigo.engine.util.XMLUtils.createDom();
+		document.appendChild(document.createElement("admin"));
+		class Deployment extends com.twinsoft.convertigo.engine.admin.services.projects.DeployBundle {
+			void run() throws Exception { getServiceResult(request, document); }
+		}
+		new Deployment().run();
+		assertEquals("true", ((org.w3c.dom.Element) document.getElementsByTagName("deployment").item(0)).getAttribute("success"));
+		assertEquals(List.of("A", "B"), loaded);
+		assertEquals(Map.of("A", 1, "B", 1), syncs);
+		assertNoLoadingContext();
+		var response = new com.twinsoft.convertigo.engine.servlets.GenericServletMultipartTest.Response();
+		var options = Map.of("projects", "[\"A\"]", "includeDependencies", "true");
+		var exportRequest = (javax.servlet.http.HttpServletRequest) java.lang.reflect.Proxy.newProxyInstance(getClass().getClassLoader(),
+				new Class<?>[] {javax.servlet.http.HttpServletRequest.class},
+				(proxy, method, arguments) -> method.getName().equals("getParameter") ? options.get(arguments[0]) : null);
+		class Exporter extends com.twinsoft.convertigo.engine.admin.services.projects.ExportBundle {
+			void run() throws Exception { writeResponseResult(exportRequest, response.proxy()); }
+		}
+		new Exporter().run();
+		assertEquals("application/zip", response.headers.get("Content-Type"));
+		var output = Files.write(folder.newFile("bundle.zip").toPath(), response.body.toByteArray());
+		try (var bundle = com.twinsoft.convertigo.engine.util.ProjectBundleImport.prepare(List.of(output), folder.newFolder().toPath(),
+				com.twinsoft.convertigo.engine.util.ProjectBundleZip.Limits.defaults())) {
+			assertEquals(List.of("A", "B"), bundle.plan().projects().stream().map(com.twinsoft.convertigo.engine.util.ProjectBundlePlan.ProjectInfo::name).toList());
+			assertTrue(bundle.plan().groups().get(0).cyclic());
+		}
+	}
+
+	private static void assertNoLoadingContext() throws Exception {
+		// get() creates an empty value when none is present; remove that observation afterwards.
+		var name = DatabaseObjectsManager.ProjectLoadingData.class.getDeclaredField("projectName");
+		name.setAccessible(true);
+		assertNull(name.get(DatabaseObjectsManager.getProjectLoadingData()));
+		var field = DatabaseObjectsManager.class.getDeclaredField("projectLoadingDataThreadLocal");
+		field.setAccessible(true);
+		((ThreadLocal<?>) field.get(null)).remove();
 	}
 
 	private static void writeArchive(Path archive, Map<String, String> contents) throws Exception {

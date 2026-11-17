@@ -1111,7 +1111,11 @@ public class DatabaseObjectsManager implements AbstractManager {
 			if (state != DeploymentState.INSTALLED) throw new IllegalStateException("This project installation has already been loaded");
 			state = DeploymentState.LOADING;
 			try {
-				if (getProjectLoadingData().projectName == null) getProjectLoadingData().projectName = targetProjectName;
+				var group = ProjectImportGroup.current(DatabaseObjectsManager.this, targetProjectName);
+				// A completed group import returns without entering the importer's cleanup.
+				if ((group == null || !group.completed(targetProjectName)) && getProjectLoadingData().projectName == null) {
+					getProjectLoadingData().projectName = targetProjectName;
+				}
 				project = importProject(projectFile, true);
 				state = DeploymentState.LOADED;
 				return project;
