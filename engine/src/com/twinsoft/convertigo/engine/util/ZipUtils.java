@@ -144,41 +144,47 @@ public class ZipUtils {
 							if (prefixDir != null) {
 								entryName = entryName.substring(prefixDir.length());
 							}
-							// Ignore entry from _data or _private directory
-							if (!entryName.startsWith("/_data/") && !entryName.startsWith("/_private/")) {
-								Engine.logEngine.debug("  The entry is accepted");
-								File file = new File(rootDir + "/" + entryName);
+							Engine.logEngine.debug("  The entry is accepted");
+							File file = new File(rootDir + "/" + entryName);
 
-								// Reject entries that would be written outside the
-								// extraction root.
-								if (!file.getCanonicalFile().toPath().startsWith(extractionRoot)) {
-									Engine.logEngine.warn("Skipping ZIP entry outside the target directory: " + entryName);
-									continue;
-								}
-
-								// Creating the directory if needed
-								ftmp = file.getParentFile();
-								if (!directories.contains(ftmp)) {
-									if (!ftmp.exists()) {
-										ftmp.mkdirs();
-										Engine.logEngine.debug("  Directory created");
-									}
-									if (ftmp.isDirectory()) {
-										directories.add(ftmp);
-									}
-								}
-								
-								// Writing the files to the disk
-								// Inflater reads can be short; batch writes to shared filesystems.
-								BufferedOutputStream fos = new BufferedOutputStream(new FileOutputStream(file), 64 * 1024);
-								try {
-									IOUtils.copy(zis, fos);
-								} finally {
-									fos.close();
-								}
-								file.setLastModified(entry.getTime());
-								Engine.logEngine.debug("  File written to: " + rootDir + "/" + entryName);
+							// Reject entries that would be written outside the
+							// extraction root.
+							var targetPath = file.getCanonicalFile().toPath();
+							if (!targetPath.startsWith(extractionRoot)) {
+								Engine.logEngine.warn("Skipping ZIP entry outside the target directory: " + entryName);
+								continue;
 							}
+
+							// Apply project state exclusions to the resolved path, after removing the archive prefix.
+							var relativePath = extractionRoot.relativize(targetPath);
+							var firstPart = relativePath.getName(0).toString();
+							if (firstPart.equals("_private") || firstPart.equals("_data")) {
+								continue;
+							}
+
+							// Creating the directory if needed
+							ftmp = file.getParentFile();
+							if (!directories.contains(ftmp)) {
+								if (!ftmp.exists()) {
+									ftmp.mkdirs();
+									Engine.logEngine.debug("  Directory created");
+								}
+								if (ftmp.isDirectory()) {
+									directories.add(ftmp);
+								}
+							}
+
+							// Writing the files to the disk
+							// Inflater reads can be short; batch writes to shared filesystems.
+							BufferedOutputStream fos = new BufferedOutputStream(new FileOutputStream(file), 64 * 1024);
+							try {
+								IOUtils.copy(zis, fos);
+							} finally {
+								fos.close();
+							}
+							file.setLastModified(entry.getTime());
+							Engine.logEngine.debug("  File written to: " + rootDir + "/" + entryName);
+
 						}
 					} catch(IOException e) {
 						Engine.logEngine.error("Unable to expand the ZIP entry \"" + entryName + "\": " + e.getMessage(), e);
