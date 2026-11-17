@@ -711,5 +711,7 @@ tasks.register('projectBundleTest', JavaExec) {
 	dependsOn sessionTestClasses
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
-	args 'com.twinsoft.convertigo.engine.util.ProjectBundleTest'
+	args 'com.twinsoft.convertigo.engine.util.ProjectBundleTest',
+		'com.twinsoft.convertigo.engine.util.ProjectBundleZipTest',
+		'com.twinsoft.convertigo.engine.util.ProjectBundleImportTest'
 }

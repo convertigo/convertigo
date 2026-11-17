@@ -37,6 +37,7 @@ public final class ProjectBundlePlan {
 		public ProjectInfo {
 			validateName(name);
 			version = version == null ? "" : version;
+			if (version.length() > 4096 || dependencies.size() > 1000) throw new IllegalArgumentException("Project metadata is too large");
 			dependencies = Collections.unmodifiableSet(new TreeSet<>(dependencies));
 			dependencies.forEach(ProjectBundlePlan::validateName);
 		}

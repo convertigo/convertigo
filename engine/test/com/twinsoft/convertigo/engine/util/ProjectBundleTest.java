@@ -74,6 +74,16 @@ public class ProjectBundleTest {
 					assertNotNull(archive.getEntry("Shared/asset.txt"));
 				}
 			}
+			try (var prepared = ProjectBundleImport.prepare(List.of(output), folder.getRoot().toPath(), ProjectBundleZip.Limits.defaults())) {
+				assertEquals(plan.projects(), prepared.plan().projects());
+				assertTrue(prepared.warnings().isEmpty());
+				for (var info : prepared.plan().projects()) {
+					try (var canonical = new ZipFile(prepared.archive(info.name()).toFile())) {
+						assertEquals(Files.readString(root.resolve(info.name()).resolve("asset.txt")),
+								new String(canonical.getInputStream(canonical.getEntry(info.name() + "/asset.txt")).readAllBytes(), java.nio.charset.StandardCharsets.UTF_8));
+					}
+				}
+			}
 			ProjectBundle.export(output, List.of("App"), false, ArchiveExportOption.all, catalog::get);
 			try (var zip = new ZipFile(output.toFile())) {
 				assertEquals(2, zip.size());
@@ -132,7 +142,8 @@ public class ProjectBundleTest {
 		project.setName(name);
 		project.setVersion(version);
 		var dir = Files.createDirectory(root.resolve(name));
-		Files.writeString(dir.resolve("c8oProject.yaml"), "project: " + name);
+		Files.writeString(dir.resolve("c8oProject.yaml"), "↑convertigo: 8.0.0.m006\n↓" + name + " [core.Project]: \n  version: " + version + "\n"
+				+ (dependency == null ? "" : "  ↓Reference [references.ProjectSchemaReference]: \n    projectName: " + dependency + "\n"));
 		Files.writeString(dir.resolve("asset.txt"), "asset");
 		Files.createDirectory(dir.resolve("_private"));
 		Files.writeString(dir.resolve("_private/local.txt"), "local");
