@@ -1139,7 +1139,8 @@ tasks.register('requestBodyLoggingTest', JavaExec) {
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.RequestBodyLoggingTest',
-		'com.twinsoft.convertigo.engine.VisibilityLogDefaultsTest'
+		'com.twinsoft.convertigo.engine.VisibilityLogDefaultsTest',
+		'com.twinsoft.convertigo.engine.util.VariableYamlTest'
 }
 tasks.named('check') { dependsOn 'requestBodyLoggingTest' }
 

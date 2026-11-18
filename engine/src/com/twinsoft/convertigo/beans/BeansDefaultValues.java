@@ -403,6 +403,11 @@ public class BeansDefaultValues {
 					}
 					String name = pProp.getAttribute("name");
 					Element dProp = dBean == null ? null : defaultProperty(dBean, name);
+					// Log metadata must not materialize a value whose default is null.
+					if ("true".equals(pProp.getAttribute("isNull")) && dProp != null
+							&& "true".equals(dProp.getAttribute("isNull"))) {
+						continue;
+					}
 					if (!"name".equals(name) &&
 							(dProp == null || !checkIsSame(pProp, dProp)
 									)) {
@@ -423,7 +428,8 @@ public class BeansDefaultValues {
 						Element content = nextElement(pProp.getFirstChild(), true);
 
 						if (nextElement(content, false) == null && content.getTagName().startsWith("java.lang.")) {
-							nProp.setTextContent(content.getAttribute("value"));
+							// Keep an explicit empty scalar distinguishable from attributes alone.
+							nProp.appendChild(nProp.getOwnerDocument().createTextNode(content.getAttribute("value")));
 
 							if (isNgxApplicationComponent && name.equals("tplProjectName")) {
 								templateProjectName = content.getAttribute("value");
@@ -880,7 +886,8 @@ public class BeansDefaultValues {
 					}
 
 					if (nProp.hasAttribute("isNull")) {
-						nProp.setAttribute("isNull", "false");
+						// Earlier exports could retain only traceable/ciphered metadata for a null value.
+						nProp.setAttribute("isNull", Boolean.toString(pPropNode.hasAttributes() && !pPropNode.hasChildNodes()));
 					}
 				}
 
