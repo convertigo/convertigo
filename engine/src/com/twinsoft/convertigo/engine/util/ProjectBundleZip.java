@@ -247,8 +247,11 @@ public final class ProjectBundleZip {
 				if (entry.directory()) continue;
 				var crc = new CRC32();
 				long copied = 0;
+				// Installation replaces files like a single CAR; staging still requires new files.
+				var create = prefix.isEmpty() ? StandardOpenOption.CREATE_NEW : StandardOpenOption.CREATE;
 				try (var input = zip.getInputStream(metadata);
-						var stream = Files.newOutputStream(output, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE, LinkOption.NOFOLLOW_LINKS)) {
+						var stream = Files.newOutputStream(output, create, StandardOpenOption.TRUNCATE_EXISTING,
+								StandardOpenOption.WRITE, LinkOption.NOFOLLOW_LINKS)) {
 					int read;
 					while ((read = input.read(buffer)) != -1) {
 						copied += read;
