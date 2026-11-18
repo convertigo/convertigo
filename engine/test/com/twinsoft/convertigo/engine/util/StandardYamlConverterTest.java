@@ -81,6 +81,25 @@ public class StandardYamlConverterTest {
 		}
 	}
 
+	@Test public void emptyScalarsRemainDistinctFromEmptyElementsAndMetadata() throws Exception {
+		Document expected = project();
+		Element bean = (Element) expected.getDocumentElement().getFirstChild();
+		for (boolean attributes : List.of(false, true)) {
+			for (boolean scalar : List.of(false, true)) {
+				Element value = expected.createElement("value" + attributes + scalar);
+				if (attributes) value.setAttribute("traceable", "false");
+				if (scalar) value.appendChild(expected.createTextNode(""));
+				bean.appendChild(value);
+			}
+		}
+		File yaml = write(expected);
+		same(expected, YamlConverter.readYaml(yaml));
+		for (boolean jackson : List.of(false, true)) {
+			rewrite(yaml.toPath().getParent(), jackson, !jackson);
+			same(expected, YamlConverter.readYaml(yaml));
+		}
+	}
+
 	@Test public void allXmlNodeKindsAndExactScalarsSurviveBothLibraries() throws Exception {
 		Document expected = project();
 		Element bean = (Element) expected.getDocumentElement().getFirstChild();

@@ -260,7 +260,10 @@ final class StandardYamlConverter {
 						var included = reader.read(file);
 						for (var entry : included.entrySet()) entry(element, entry.getKey(), entry.getValue(), depth + 1);
 					} finally { active.remove(file); }
-				} else element.setTextContent(text);
+				} else if (!bean) {
+					// An explicit empty scalar must remain distinct from metadata alone.
+					element.appendChild(document.createTextNode(text));
+				}
 			} else if (value instanceof MappingNode) {
 				for (var entry : fields(value).entrySet()) entry(element, entry.getKey(), entry.getValue(), depth + 1);
 			} else if (value instanceof SequenceNode sequence) {
@@ -403,7 +406,7 @@ final class StandardYamlConverter {
 			}
 		}
 		Node first = element.getFirstChild();
-		if (entries.isEmpty() && first == null) return value("");
+		if (entries.isEmpty() && first == null) return bean ? value("") : mapping();
 		if (!bean && entries.isEmpty() && first != null && first.getNextSibling() == null
 				&& first.getNodeType() == Node.TEXT_NODE && !first.getNodeValue().isEmpty()) return value(first.getNodeValue());
 		for (Node child = first; child != null; child = child.getNextSibling()) entries.add(writeNode(child, directory, outputs, true));
