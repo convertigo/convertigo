@@ -168,9 +168,9 @@
 <div class="layout-y-low sm:layout-x-low" class:w-fit={fit} class:w-full={!fit}>
 	<div class="max-sm:self-stretch sm:grow">
 		{#if type == 'boolean'}
-			<CheckState {name} {...rest} bind:value tooltip={tooltipText} {tooltipPlacement}
-				>{label}</CheckState
-			>
+			<CheckState {name} {...rest} bind:value tooltip={tooltipText} {tooltipPlacement}>
+				{label}
+			</CheckState>
 		{:else if type == 'check'}
 			{#snippet switchControl()}
 				<Switch
@@ -187,8 +187,9 @@
 					<Switch.Control class="c8o-switch transition-surface {rest?.class ?? ''}">
 						<Switch.Thumb />
 					</Switch.Control>
-					<Switch.Label class="text-sm leading-tight font-medium text-current">{label}</Switch.Label
-					>
+					<Switch.Label class="text-sm leading-tight font-medium text-current">
+						{label}
+					</Switch.Label>
 					<Switch.HiddenInput />
 				</Switch>
 			{/snippet}
@@ -240,8 +241,10 @@
 									<code
 										{id}
 										class="flex h-9 input-common min-w-0 items-center overflow-hidden px-3 text-sm text-ellipsis whitespace-nowrap"
-										title={smartValue}>{smartValue || placeholder}</code
+										title={smartValue}
 									>
+										{smartValue || placeholder}
+									</code>
 								{:else if smartMode == 'script'}
 									<textarea
 										{id}
@@ -402,9 +405,9 @@
 						/>
 						<datalist id={`${id}-choices`}>
 							{#each item as option (option.value ?? option)}
-								<option value={option.value ?? option}
-									>{option.text ?? option['#text'] ?? ''}</option
-								>
+								<option value={option.value ?? option}>
+									{option.text ?? option['#text'] ?? ''}
+								</option>
 							{/each}
 						</datalist>
 					{:else if type == 'combo'}
@@ -421,9 +424,9 @@
 								{@const val = option.value ?? option}
 								{@const txt = option.text ?? option['#text'] ?? val}
 								{#if rest.multiple ?? true}
-									<option class="c8o-select-option" value={val} onmousedown={handleMultiple}
-										>{txt}</option
-									>
+									<option class="c8o-select-option" value={val} onmousedown={handleMultiple}>
+										{txt}
+									</option>
 								{:else}
 									<option class="c8o-select-option" value={val}>{txt}</option>
 								{/if}

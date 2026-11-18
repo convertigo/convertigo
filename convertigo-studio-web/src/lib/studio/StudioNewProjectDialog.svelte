@@ -175,29 +175,37 @@
 					role="tab"
 					aria-selected={mode === 'template'}
 					class={['studio-dialog__mode', mode === 'template' && 'studio-dialog__mode--active']}
-					onclick={() => (mode = 'template')}>From a template</button
+					onclick={() => (mode = 'template')}
 				>
+					From a template
+				</button>
 				<button
 					type="button"
 					role="tab"
 					aria-selected={mode === 'url'}
 					class={['studio-dialog__mode', mode === 'url' && 'studio-dialog__mode--active']}
-					onclick={() => (mode = 'url')}>From a URL</button
+					onclick={() => (mode = 'url')}
 				>
+					From a URL
+				</button>
 				<button
 					type="button"
 					role="tab"
 					aria-selected={mode === 'file'}
 					class={['studio-dialog__mode', mode === 'file' && 'studio-dialog__mode--active']}
-					onclick={() => (mode = 'file')}>From a file</button
+					onclick={() => (mode = 'file')}
 				>
+					From a file
+				</button>
 				<button
 					type="button"
 					role="tab"
 					aria-selected={mode === 'folder'}
 					class={['studio-dialog__mode', mode === 'folder' && 'studio-dialog__mode--active']}
-					onclick={() => (mode = 'folder')}>From a folder</button
+					onclick={() => (mode = 'folder')}
 				>
+					From a folder
+				</button>
 			</div>
 		</header>
 
@@ -271,10 +279,10 @@
 							autofocus
 							placeholder="/path/to/MyProject or /path/to/MyProject/c8oProject.yaml"
 						/>
-						<small
-							>The folder of a project, or its c8oProject.yaml, on the disk of the engine. The
-							project stays in its folder.</small
-						>
+						<small>
+							The folder of a project, or its c8oProject.yaml, on the disk of the engine. The
+							project stays in its folder.
+						</small>
 					</label>
 				{:else if mode === 'file'}
 					<label class="studio-dialog__field">
@@ -294,10 +302,10 @@
 							bind:value={archiveName}
 							placeholder="The name of the project of the archive"
 						/>
-						<small class:studio-dialog__error={archiveNameError}
-							>{archiveNameError ||
-								'Leave it empty to keep the name of the project of the archive; a project of the same name is replaced only once confirmed.'}</small
-						>
+						<small class:studio-dialog__error={archiveNameError}>
+							{archiveNameError ||
+								'Leave it empty to keep the name of the project of the archive; a project of the same name is replaced only once confirmed.'}
+						</small>
 					</label>
 				{:else}
 					<label class="studio-dialog__field">
@@ -325,11 +333,11 @@
 							{#if urlNameError}
 								<small class="studio-dialog__error">{urlNameError}</small>
 							{:else}
-								<small
-									>{archiveUrl
+								<small>
+									{archiveUrl
 										? 'Leave it empty to keep the name of the project of the archive.'
-										: 'The name of the project of the repository, as in its c8oProject.yaml.'}</small
-								>
+										: 'The name of the project of the repository, as in its c8oProject.yaml.'}
+								</small>
 							{/if}
 						</label>
 					{/if}
@@ -340,9 +348,9 @@
 			</fieldset>
 
 			<footer class="studio-dialog__footer">
-				<button type="button" class="button-secondary" disabled={busy} onclick={() => onClose?.()}
-					>Cancel</button
-				>
+				<button type="button" class="button-secondary" disabled={busy} onclick={() => onClose?.()}>
+					Cancel
+				</button>
 				<button type="submit" class="button-primary" disabled={!canCreate || busy}>
 					{#if busy}<Ico icon="mdi:sync" size={4} />{/if}
 					{mode === 'template' ? 'Create' : 'Import'}

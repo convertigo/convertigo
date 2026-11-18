@@ -349,16 +349,16 @@
 						{:else if row[def.key] == 'Running'}
 							<span class="inline-flex items-center justify-end gap-2">
 								<span class="inline-block size-4 rounded-full bg-success-500"></span>
-								<AutoPlaceholder loading={row[def.key] == null}
-									>{row[def.key] ?? ''}</AutoPlaceholder
-								>
+								<AutoPlaceholder loading={row[def.key] == null}>
+									{row[def.key] ?? ''}
+								</AutoPlaceholder>
 							</span>
 						{:else if row[def.key] == 'Stopped'}
 							<span class="inline-flex items-center justify-end gap-2">
 								<span class="inline-block size-4 rounded-full bg-error-500"></span>
-								<AutoPlaceholder loading={row[def.key] == null}
-									>{row[def.key] ?? ''}</AutoPlaceholder
-								>
+								<AutoPlaceholder loading={row[def.key] == null}>
+									{row[def.key] ?? ''}
+								</AutoPlaceholder>
 							</span>
 						{:else}
 							<AutoPlaceholder loading={row[def.key] == null}>{row[def.key] ?? ''}</AutoPlaceholder>

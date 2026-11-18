@@ -5595,6 +5595,8 @@ function responseForService(service, params, options = {}) {
 					tz: 'Europe/Paris'
 				}
 			};
+		case 'engine.JsonStatus':
+			return { product: 'Synthetic engine', cloud: false };
 		case 'projects.List':
 			return {
 				admin: {

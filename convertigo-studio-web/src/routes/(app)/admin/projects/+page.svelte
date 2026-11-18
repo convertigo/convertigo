@@ -196,14 +196,17 @@
 								bundleDependencies = value;
 								if (value === 'true') void loadBundleDependencies(names);
 							}
-						}>Include declared dependencies</CheckState
+						}
 					>
+						Include declared dependencies
+					</CheckState>
 					{#if bundleDependencies === 'true'}
 						{#if bundlePreviewReady}
 							{#each dependencyCandidates as dependency (dependency.name)}
-								<CheckState bind:value={dependencyChoices[dependency.name]}
-									>{dependency.name} {dependency.version}</CheckState
-								>
+								<CheckState bind:value={dependencyChoices[dependency.name]}>
+									{dependency.name}
+									{dependency.version}
+								</CheckState>
 							{/each}
 							<p role="status">
 								{names.length + includedDependencies.length} projects to export. Excluded dependencies:
@@ -325,9 +328,9 @@
 							: 'then press Deploy'}
 					/>
 				{/key}
-				<CheckState name="bAssembleXsl" value="false"
-					>Assemble XSL files included in style sheets when deploying</CheckState
-				>
+				<CheckState name="bAssembleXsl" value="false">
+					Assemble XSL files included in style sheets when deploying
+				</CheckState>
 				<ActionBar>
 					<Button
 						label="Deploy"
@@ -358,11 +361,11 @@
 			<fieldset disabled={waiting} class="layout-y-stretch">
 				<p>Import a project from url like:</p>
 				<p class="font-medium">
-					<project name
-						>=<git or http URL
-							>[:path=<optional subpath>][:branch=<optional branch>]</optional></optional></git
-						></project
-					>
+					<project name>
+						=<git or http URL>
+							[:path=<optional subpath>][:branch=<optional branch>]</optional></optional>
+						</git>
+					</project>
 				</p>
 				<p>Or a Convertigo Archive HTTP(S) URL.</p>
 				<PropertyType
@@ -554,8 +557,10 @@
 					bind:value={
 						() => selectedProjects[project] ?? 'false',
 						(value) => (selectedProjects[project] = value)
-					}><span class="sr-only">Select {project} for export</span></CheckState
+					}
 				>
+					<span class="sr-only">Select {project} for export</span>
+				</CheckState>
 			{:else if def?.name == 'Actions'}
 				<ResponsiveButtons
 					buttons={[

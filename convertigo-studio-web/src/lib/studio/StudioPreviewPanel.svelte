@@ -1235,8 +1235,10 @@
 						class="studio-preview__mode studio-preview__mode--development"
 						disabled={previewModeBusy}
 						title="The development build, which follows the changes of the project"
-						onclick={() => choosePreviewMode('development')}>Dev</button
+						onclick={() => choosePreviewMode('development')}
 					>
+						Dev
+					</button>
 					<button
 						type="button"
 						role="radio"
@@ -1244,8 +1246,10 @@
 						class="studio-preview__mode"
 						disabled={previewModeBusy}
 						title="The latest production build"
-						onclick={() => choosePreviewMode('production')}>Prod</button
+						onclick={() => choosePreviewMode('production')}
 					>
+						Prod
+					</button>
 				</div>
 				<div class="studio-preview__address">
 					<Ico icon="mdi:web" size={4} class="studio-preview__address-icon" />
@@ -1480,9 +1484,9 @@
 								{#each deviceGroups as group (group.id)}
 									<optgroup label={group.title}>
 										{#each group.devices as device (device.id)}
-											<option value={device.id}
-												>{device.id === 'none' ? 'Responsive' : device.title}</option
-											>
+											<option value={device.id}>
+												{device.id === 'none' ? 'Responsive' : device.title}
+											</option>
 										{/each}
 									</optgroup>
 								{/each}
@@ -1509,9 +1513,9 @@
 									/** @type {'auto' | 'android' | 'ios'} */ (event.currentTarget.value)
 								)}
 						>
-							<option value="auto"
-								>OS of the device ({effectiveOs === 'ios' ? 'iOS' : 'Android'})</option
-							>
+							<option value="auto">
+								OS of the device ({effectiveOs === 'ios' ? 'iOS' : 'Android'})
+							</option>
 							<option value="android">Android</option>
 							<option value="ios">iOS</option>
 						</select>
@@ -1637,17 +1641,19 @@
 					<div class="studio-preview__compile-error-text">
 						<span title={compileError.message}>{compileError.message}</span>
 						{#if compileError.file}
-							<span class="studio-preview__compile-error-file" title={compileError.file}
-								>{compileError.file}</span
-							>
+							<span class="studio-preview__compile-error-file" title={compileError.file}>
+								{compileError.file}
+							</span>
 						{/if}
 					</div>
 					<button
 						type="button"
 						class={labeledButtonClasses}
 						title="Show the error of the compilation over the application, as the development server shows it"
-						onclick={showCompileDetails}>Details</button
+						onclick={showCompileDetails}
 					>
+						Details
+					</button>
 				</div>
 			{/if}
 			{#if devStarting}

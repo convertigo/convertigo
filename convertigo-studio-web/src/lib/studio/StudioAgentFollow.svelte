@@ -226,9 +226,9 @@
 											</span>
 										{/if}
 									</span>
-									<span class="studio-agent-follow__entry-time"
-										>{elapsedLabel(entry.updatedAt, now)}</span
-									>
+									<span class="studio-agent-follow__entry-time">
+										{elapsedLabel(entry.updatedAt, now)}
+									</span>
 								</button>
 							</li>
 						{/each}

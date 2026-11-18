@@ -109,16 +109,18 @@
 										aria-label="Move {step.id} up"
 										disabled={index === 0}
 										onclick={() => (steps = moveStep(steps, index, -1))}
-										><Ico icon="mdi:chevron-up" size={3.5} /></button
 									>
+										<Ico icon="mdi:chevron-up" size={3.5} />
+									</button>
 									<button
 										type="button"
 										title="Replay it later"
 										aria-label="Move {step.id} down"
 										disabled={index === steps.length - 1}
 										onclick={() => (steps = moveStep(steps, index, 1))}
-										><Ico icon="mdi:chevron-down" size={3.5} /></button
 									>
+										<Ico icon="mdi:chevron-down" size={3.5} />
+									</button>
 								</div>
 								<select
 									class="studio-rebase__action"
@@ -138,9 +140,9 @@
 										rows="2"
 										bind:value={step.message}></textarea>
 								{:else}
-									<span class="studio-rebase__subject" title={step.body ?? step.subject}
-										>{step.subject}</span
-									>
+									<span class="studio-rebase__subject" title={step.body ?? step.subject}>
+										{step.subject}
+									</span>
 								{/if}
 							</li>
 						{/each}
@@ -160,8 +162,10 @@
 					type="button"
 					class="button-primary"
 					disabled={loading || !steps.length || Boolean(error)}
-					onclick={() => onStart(stepsParameter(steps))}>Start the rebase</button
+					onclick={() => onStart(stepsParameter(steps))}
 				>
+					Start the rebase
+				</button>
 			</footer>
 		</div>
 	</div>

@@ -170,15 +170,19 @@
 						role="tab"
 						aria-selected={tab === 'tree'}
 						class:studio-native-json__tab--active={tab === 'tree'}
-						onclick={() => (tab = 'tree')}>JSON tree</button
+						onclick={() => (tab = 'tree')}
 					>
+						JSON tree
+					</button>
 					<button
 						type="button"
 						role="tab"
 						aria-selected={tab === 'text'}
 						class:studio-native-json__tab--active={tab === 'text'}
-						onclick={() => (tab = 'text')}>JSON text</button
+						onclick={() => (tab = 'text')}
 					>
+						JSON text
+					</button>
 				</div>
 				<div class="studio-native-json__view" role="tabpanel">
 					{#if !detail || detail.loading}

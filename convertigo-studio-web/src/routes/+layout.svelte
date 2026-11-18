@@ -172,11 +172,11 @@
 	>
 		<Ico icon="mdi:alert-circle-outline" size={5} />
 		<strong>Instance {unreachable.instance} unreachable</strong>
-		<span
-			>{unreachable.local ? `from ${unreachable.local}` : ''}{unreachable.cause
+		<span>
+			{unreachable.local ? `from ${unreachable.local}` : ''}{unreachable.cause
 				? `: ${unreachable.cause}`
-				: ''}</span
-		>
+				: ''}
+		</span>
 		{#if unreachable.local}
 			<Button
 				label="Use {unreachable.local}"

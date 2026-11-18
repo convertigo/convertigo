@@ -108,9 +108,9 @@
 				</div>
 			</fieldset>
 			<footer class="studio-dialog__footer">
-				<button type="button" class="button-secondary" disabled={busy} onclick={() => onClose?.()}
-					>Close</button
-				>
+				<button type="button" class="button-secondary" disabled={busy} onclick={() => onClose?.()}>
+					Close
+				</button>
 				<button type="submit" class="button-primary" disabled={busy || !chosen.length}>
 					{#if busy}<Ico icon="mdi:sync" size={4} />{/if}
 					Import {chosen.length || ''} as transactions

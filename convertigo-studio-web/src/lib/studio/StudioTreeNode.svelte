@@ -1498,8 +1498,10 @@
 					{#if debugPaused}<span
 							class="studio-tree-node__pause"
 							title="Paused block"
-							aria-hidden="true">▶</span
-						>{/if}
+							aria-hidden="true"
+						>
+							▶
+						</span>{/if}
 					<span
 						class="studio-tree-node__label"
 						class:studio-tree-node__label--added={change?.status === 'added'}
@@ -1512,8 +1514,10 @@
 							projectNode && node.yamlFormat ? `YAML format: ${node.yamlFormat}` : ''
 						]
 							.filter(Boolean)
-							.join(' · ') || undefined}>{label}</span
+							.join(' · ') || undefined}
 					>
+						{label}
+					</span>
 					{#if node.tagGroup}
 						<span class="text-xs opacity-70">({tagGroupCount})</span>
 					{/if}
@@ -1521,15 +1525,17 @@
 						<span
 							class="studio-tree-tag"
 							title={`${tag.label} · ${tag.id}`}
-							style:border-color={tag.presentation?.color ?? 'currentColor'}>{tag.label}</span
+							style:border-color={tag.presentation?.color ?? 'currentColor'}
 						>
+							{tag.label}
+						</span>
 					{/each}
 					{#if marks.accessibility === 'Private' || marks.accessibility === 'Hidden' || marks.autoStart || marks.symbolError}
 						<span class="studio-tree-node__marks">
 							{#if marks.symbolError}
-								<span class="studio-tree-node__mark--error" title="Undefined global symbol"
-									><Ico icon="mdi:alert-circle-outline" size={3} /></span
-								>
+								<span class="studio-tree-node__mark--error" title="Undefined global symbol">
+									<Ico icon="mdi:alert-circle-outline" size={3} />
+								</span>
 							{/if}
 							{#if marks.accessibility === 'Private'}
 								<span title="Private"><Ico icon="mdi:lock-outline" size={3} /></span>
@@ -1537,9 +1543,9 @@
 								<span title="Hidden"><Ico icon="mdi:eye-off-outline" size={3} /></span>
 							{/if}
 							{#if marks.autoStart}
-								<span title="Starts with the project"
-									><Ico icon="mdi:lightbulb-on-outline" size={3} /></span
-								>
+								<span title="Starts with the project">
+									<Ico icon="mdi:lightbulb-on-outline" size={3} />
+								</span>
 							{/if}
 						</span>
 					{/if}
@@ -1557,8 +1563,10 @@
 										(conflict) =>
 											`${conflict.label ?? conflict.description}${conflict.resolution ? `: ${conflict.resolution}` : ''}`
 									)
-									.join('\n')}>{mergeUnresolved ? 'C' : '✓'}</span
+									.join('\n')}
 							>
+								{mergeUnresolved ? 'C' : '✓'}
+							</span>
 						{:else if mergeChange}
 							<span
 								class={[
@@ -1571,8 +1579,10 @@
 										? 'Moved'
 										: 'Changed'} by them{mergeChange.properties?.length
 									? `: ${mergeChange.properties.join(', ')}`
-									: ''}">{mergeChange.status === 'removed' ? 'D' : 'M'}</span
+									: ''}"
 							>
+								{mergeChange.status === 'removed' ? 'D' : 'M'}
+							</span>
 						{:else if merge.ancestors[node?.id ?? '']}
 							<span
 								class="studio-tree-node__diff-dot studio-tree-node__diff-dot--conflict"
@@ -1583,12 +1593,13 @@
 						<span
 							class={['studio-tree-node__diff', `studio-tree-node__diff--${change.status}`]}
 							title={diffTitle(change)}
-							>{change.status === 'added'
+						>
+							{change.status === 'added'
 								? 'A'
 								: change.oldName && !change.properties?.length
 									? 'R'
-									: 'M'}</span
-						>
+									: 'M'}
+						</span>
 					{:else if diffOf.ancestor}
 						<span class="studio-tree-node__diff-dot" title="Holds changes since {treeDiff.ref}"
 						></span>
@@ -1608,8 +1619,10 @@
 								? 'A JSON native sequence: it runs as JSON and its native steps build no XML'
 								: mark.startsWith('XML view')
 									? 'Reads the XML view of native steps, built at its first read'
-									: 'Reads the JSON of steps by a JSON path, without XML'}>[{mark}]</span
+									: 'Reads the JSON of steps by a JSON path, without XML'}
 						>
+							[{mark}]
+						</span>
 					{/each}
 					{#if comment}
 						<span class="studio-tree-node__comment" title={comment}>// {comment}</span>
@@ -1758,12 +1771,12 @@
 					>
 						<span class="studio-tree-node__toggle"></span>
 						<span class="studio-tree-node__content studio-tree-node__content--ghost">
-							<span class="studio-tree-node__icon"
-								><Ico
+							<span class="studio-tree-node__icon">
+								<Ico
 									icon={conflict ? 'mdi:alert-circle-outline' : 'mdi:plus-circle-outline'}
 									size={4}
-								/></span
-							>
+								/>
+							</span>
 							<span class="studio-tree-node__label">{ghost.name}</span>
 							<span class="studio-tree-node__ghost-type">{ghost.type ?? ''}</span>
 							<span
@@ -1774,8 +1787,10 @@
 											? 'studio-tree-node__diff--resolved'
 											: 'studio-tree-node__diff--conflict'
 										: 'studio-tree-node__diff--added'
-								]}>{conflict ? (ghost.resolution ? '✓' : 'C') : 'A'}</span
+								]}
 							>
+								{conflict ? (ghost.resolution ? '✓' : 'C') : 'A'}
+							</span>
 						</span>
 					</div>
 				{/each}
@@ -1815,9 +1830,9 @@
 					>
 						<span class="studio-tree-node__toggle"></span>
 						<span class="studio-tree-node__content studio-tree-node__content--ghost">
-							<span class="studio-tree-node__icon"
-								><Ico icon="mdi:minus-circle-outline" size={4} /></span
-							>
+							<span class="studio-tree-node__icon">
+								<Ico icon="mdi:minus-circle-outline" size={4} />
+							</span>
 							<span class="studio-tree-node__label">{ghost.name}</span>
 							<span class="studio-tree-node__ghost-type">{ghost.type ?? ''}</span>
 							<span class="studio-tree-node__diff studio-tree-node__diff--removed">D</span>

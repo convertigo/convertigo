@@ -111,8 +111,10 @@
 					<span
 						class="z-10 w-full text-[14px] {isSelected
 							? 'font-medium rail-active'
-							: 'font-normal text-strong'}">{displayName}</span
+							: 'font-normal text-strong'}"
 					>
+						{displayName}
+					</span>
 				</AutoPlaceholder>
 			</a>
 		{/each}

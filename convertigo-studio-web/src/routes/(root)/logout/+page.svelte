@@ -18,8 +18,8 @@
 			<Progress.CircleTrack class="stroke-surface-200-800/50" />
 			<Progress.CircleRange class="stroke-primary-500" />
 		</Progress.Circle>
-		<span class="absolute animate-pulse text-center text-sm font-medium"
-			>Disconnecting from<br />Convertigo …</span
-		>
+		<span class="absolute animate-pulse text-center text-sm font-medium">
+			Disconnecting from<br />Convertigo …
+		</span>
 	</Progress>
 </div>

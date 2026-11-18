@@ -175,9 +175,9 @@
 		}}
 	>
 		<header class="studio-json-picker__header">
-			<strong id="studio-json-picker-title"
-				>JSON picker{stepName && !onApply ? ` - ${stepName}` : ''}</strong
-			>
+			<strong id="studio-json-picker-title">
+				JSON picker{stepName && !onApply ? ` - ${stepName}` : ''}
+			</strong>
 			<p>
 				Pick a value in the JSON of a step of '{sequenceName}'{purpose ? ` for ${purpose}` : ''}.
 				The samples are the JSON of the last execution of the sequence in the Studio.
@@ -210,9 +210,9 @@
 													alt=""
 												/>
 											{/if}
-											<button type="button" onclick={() => selectStep(step, null)}
-												>{step.name}</button
-											>
+											<button type="button" onclick={() => selectStep(step, null)}>
+												{step.name}
+											</button>
 										</span>
 									</td>
 									<td>{step.variable}</td>

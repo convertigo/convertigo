@@ -132,8 +132,9 @@
 			</div>
 			<footer class="studio-dialog__footer">
 				<button type="button" class="button-secondary" onclick={() => onClose?.()}>Cancel</button>
-				<button type="submit" class="button-primary" disabled={!reference.projectName}>Apply</button
-				>
+				<button type="submit" class="button-primary" disabled={!reference.projectName}>
+					Apply
+				</button>
 			</footer>
 		</form>
 	</div>

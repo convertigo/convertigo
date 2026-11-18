@@ -946,8 +946,9 @@
 				aria-label={action === 'stage' ? `Stage ${parts.name}` : `Unstage ${parts.name}`}
 				disabled={Boolean(busy)}
 				onclick={() => move([file], action)}
-				><Ico icon={action === 'stage' ? 'mdi:plus' : 'mdi:minus'} size={4} /></button
 			>
+				<Ico icon={action === 'stage' ? 'mdi:plus' : 'mdi:minus'} size={4} />
+			</button>
 			{#if action === 'stage'}
 				<button
 					type="button"
@@ -955,12 +956,14 @@
 					title="Discard the changes"
 					aria-label={`Discard ${parts.name}`}
 					disabled={Boolean(busy)}
-					onclick={() => discard([file])}><Ico icon="mdi:undo" size={4} /></button
+					onclick={() => discard([file])}
 				>
+					<Ico icon="mdi:undo" size={4} />
+				</button>
 			{/if}
-			<span class={['studio-git__status', `studio-git__status--${file.kind}`]} title={file.kind}
-				>{STATUS_LETTERS[file.kind] ?? '?'}</span
-			>
+			<span class={['studio-git__status', `studio-git__status--${file.kind}`]} title={file.kind}>
+				{STATUS_LETTERS[file.kind] ?? '?'}
+			</span>
 		</div>
 		{#if diffPath === file.path}
 			<pre class="studio-git__diff">{#if diff}{#each diff.split('\n') as line, index (index)}<span
@@ -977,14 +980,14 @@
 			<small>Reading the commit…</small>
 		{:else}
 			<pre class="studio-git__commit-body">{commitDetails.commit?.body ?? ''}</pre>
-			<small
-				>{commitDetails.commit?.author}{commitDetails.commit?.email
+			<small>
+				{commitDetails.commit?.author}{commitDetails.commit?.email
 					? ` <${commitDetails.commit.email}>`
 					: ''} · {new Date(commitDetails.commit?.time ?? 0).toLocaleString()}{commitDetails.commit
 					?.parents?.length
 					? ` · parent ${commitDetails.commit.parents.join(', ')}`
-					: ''}</small
-			>
+					: ''}
+			</small>
 			{#each commitDetails.files as file (file.path)}
 				{@const parts = fileName(file.path)}
 				<div class={['studio-git__file', commitDiffPath === file.path && 'studio-git__file--open']}>
@@ -997,9 +1000,12 @@
 						<span>{parts.name}</span>
 						<small>{parts.dir}</small>
 					</button>
-					<span class={['studio-git__status', `studio-git__status--${file.kind}`]} title={file.kind}
-						>{STATUS_LETTERS[file.kind] ?? 'R'}</span
+					<span
+						class={['studio-git__status', `studio-git__status--${file.kind}`]}
+						title={file.kind}
 					>
+						{STATUS_LETTERS[file.kind] ?? 'R'}
+					</span>
 				</div>
 				{#if commitDiffPath === file.path}
 					<pre
@@ -1088,16 +1094,20 @@
 				title="Fetch all the remotes"
 				aria-label="Fetch"
 				disabled={Boolean(busy) || !status.remote}
-				onclick={() => run('fetch')}><Ico icon="mdi:cloud-download-outline" size={4} /></button
+				onclick={() => run('fetch')}
 			>
+				<Ico icon="mdi:cloud-download-outline" size={4} />
+			</button>
 			<button
 				type="button"
 				class="studio-git__icon"
 				title="Refresh"
 				aria-label="Refresh"
 				disabled={Boolean(busy)}
-				onclick={() => run('status')}><Ico icon="mdi:reload" size={4} /></button
+				onclick={() => run('status')}
 			>
+				<Ico icon="mdi:reload" size={4} />
+			</button>
 			<div class="studio-git__menu-host">
 				<button
 					type="button"
@@ -1105,8 +1115,10 @@
 					title={status.pullRebase ? 'Pull and rebase' : 'Pull and merge'}
 					aria-label="Pull"
 					disabled={Boolean(busy) || !status.remote || Boolean(operation)}
-					onclick={() => pull()}><Ico icon="mdi:arrow-down" size={4} /></button
+					onclick={() => pull()}
 				>
+					<Ico icon="mdi:arrow-down" size={4} />
+				</button>
 				<button
 					type="button"
 					class="studio-git__icon studio-git__icon--menu"
@@ -1116,8 +1128,9 @@
 					aria-expanded={menu === 'pull'}
 					disabled={Boolean(busy) || !status.remote || Boolean(operation)}
 					onclick={() => (menu = menu === 'pull' ? '' : 'pull')}
-					><Ico icon="mdi:chevron-down" size={3} /></button
 				>
+					<Ico icon="mdi:chevron-down" size={3} />
+				</button>
 				{#if menu === 'pull'}
 					<div class="studio-git__menu" role="menu">
 						<button type="button" role="menuitem" onclick={() => pull('merge')}>
@@ -1139,11 +1152,9 @@
 					aria-label="Push"
 					disabled={Boolean(busy) || !status.remote || Boolean(operation) || status.detached}
 					onclick={() => push()}
-					><Ico
-						icon={status.upstream ? 'mdi:arrow-up' : 'mdi:cloud-upload-outline'}
-						size={4}
-					/></button
 				>
+					<Ico icon={status.upstream ? 'mdi:arrow-up' : 'mdi:cloud-upload-outline'} size={4} />
+				</button>
 				<button
 					type="button"
 					class="studio-git__icon studio-git__icon--menu"
@@ -1161,8 +1172,10 @@
 							});
 							remotes = Array.isArray(listed?.remotes) ? listed.remotes : [];
 						}
-					}}><Ico icon="mdi:chevron-down" size={3} /></button
+					}}
 				>
+					<Ico icon="mdi:chevron-down" size={3} />
+				</button>
 				{#if menu === 'push'}
 					<div class="studio-git__menu" role="menu">
 						<button type="button" role="menuitem" onclick={() => push()}>
@@ -1198,13 +1211,13 @@
 				{#if described.detail}
 					<small title={described.detail}>{described.detail}</small>
 				{/if}
-				<small
-					>{operation.conflicts
+				<small>
+					{operation.conflicts
 						? `${operation.conflicts} file${operation.conflicts > 1 ? 's' : ''} in conflict`
 						: operation.kind === 'rebase'
 							? 'Stopped, no conflict left'
-							: 'No conflict left: commit to end it'}</small
-				>
+							: 'No conflict left: commit to end it'}
+				</small>
 				<div class="studio-git__operation-actions">
 					{#if operation.projectConflicts?.length}
 						<button
@@ -1212,8 +1225,9 @@
 							class="studio-git__action"
 							disabled={Boolean(busy)}
 							onclick={() => onMerging?.(projectName)}
-							><Ico icon="mdi:file-tree-outline" size={4} /> Resolve in the tree</button
 						>
+							<Ico icon="mdi:file-tree-outline" size={4} /> Resolve in the tree
+						</button>
 					{/if}
 					<span class="studio-git__spacer"></span>
 					{#if operation.canSkip}
@@ -1223,15 +1237,18 @@
 							title="Skip the commit the rebase stopped at"
 							disabled={Boolean(busy)}
 							onclick={() => endOperation('skip')}
-							><Ico icon="mdi:skip-next" size={4} /> Skip</button
 						>
+							<Ico icon="mdi:skip-next" size={4} /> Skip
+						</button>
 					{/if}
 					<button
 						type="button"
 						class="studio-git__action"
 						disabled={Boolean(busy)}
-						onclick={() => endOperation('abort')}><Ico icon="mdi:close" size={4} /> Abort</button
+						onclick={() => endOperation('abort')}
 					>
+						<Ico icon="mdi:close" size={4} /> Abort
+					</button>
 					<button
 						type="button"
 						class="studio-git__action studio-git__action--primary"
@@ -1240,9 +1257,10 @@
 							: 'Commit with the message above'}
 						disabled={Boolean(busy) || !operation.canContinue}
 						onclick={() => endOperation('continue')}
-						><Ico icon={operation.kind === 'rebase' ? 'mdi:play' : 'mdi:check'} size={4} />
-						{operation.kind === 'rebase' ? 'Continue' : 'Commit'}</button
 					>
+						<Ico icon={operation.kind === 'rebase' ? 'mdi:play' : 'mdi:check'} size={4} />
+						{operation.kind === 'rebase' ? 'Continue' : 'Commit'}
+					</button>
 				</div>
 			</div>
 		{/if}
@@ -1472,8 +1490,10 @@
 						title="Unstage all"
 						aria-label="Unstage all"
 						disabled={Boolean(busy)}
-						onclick={() => move(staged, 'unstage')}><Ico icon="mdi:minus" size={4} /></button
+						onclick={() => move(staged, 'unstage')}
 					>
+						<Ico icon="mdi:minus" size={4} />
+					</button>
 				{/if}
 			</div>
 			{@render fileList(staged, 'unstage')}
@@ -1487,16 +1507,20 @@
 						title="Stage all"
 						aria-label="Stage all"
 						disabled={Boolean(busy)}
-						onclick={() => move(changes, 'stage')}><Ico icon="mdi:plus" size={4} /></button
+						onclick={() => move(changes, 'stage')}
 					>
+						<Ico icon="mdi:plus" size={4} />
+					</button>
 					<button
 						type="button"
 						class="studio-git__icon"
 						title="Discard all the changes"
 						aria-label="Discard all the changes"
 						disabled={Boolean(busy)}
-						onclick={() => discard(changes)}><Ico icon="mdi:undo" size={4} /></button
+						onclick={() => discard(changes)}
 					>
+						<Ico icon="mdi:undo" size={4} />
+					</button>
 				{/if}
 				{#if changes.length || staged.length}
 					<button
@@ -1505,8 +1529,10 @@
 						title="Stash the changes: set them aside, the files given back as the last commit has them"
 						aria-label="Stash the changes"
 						disabled={Boolean(busy) || Boolean(operation)}
-						onclick={stashChanges}><Ico icon="mdi:archive-arrow-down-outline" size={4} /></button
+						onclick={stashChanges}
 					>
+						<Ico icon="mdi:archive-arrow-down-outline" size={4} />
+					</button>
 				{/if}
 			</div>
 			{@render fileList(changes, 'stage')}
@@ -1541,8 +1567,10 @@
 								type="button"
 								class="studio-git__commit-subject"
 								aria-expanded={commitOpen === key}
-								onclick={() => toggleCommit(key)}>{stash.subject}</button
+								onclick={() => toggleCommit(key)}
 							>
+								{stash.subject}
+							</button>
 							<small>{new Date(stash.time).toLocaleString()}</small>
 							<div class="studio-git__stash-actions">
 								<button
@@ -1552,8 +1580,9 @@
 									aria-label="Apply {key}"
 									disabled={Boolean(busy) || Boolean(operation)}
 									onclick={() => stashAction('stashApply', stash)}
-									><Ico icon="mdi:archive-arrow-up-outline" size={4} /></button
 								>
+									<Ico icon="mdi:archive-arrow-up-outline" size={4} />
+								</button>
 								<button
 									type="button"
 									class="studio-git__icon"
@@ -1561,8 +1590,9 @@
 									aria-label="Pop {key}"
 									disabled={Boolean(busy) || Boolean(operation)}
 									onclick={() => stashAction('stashPop', stash)}
-									><Ico icon="mdi:archive-outline" size={4} /></button
 								>
+									<Ico icon="mdi:archive-outline" size={4} />
+								</button>
 								<button
 									type="button"
 									class="studio-git__icon"
@@ -1570,8 +1600,9 @@
 									aria-label="Drop {key}"
 									disabled={Boolean(busy)}
 									onclick={() => stashAction('stashDrop', stash)}
-									><Ico icon="mdi:delete-outline" size={4} /></button
 								>
+									<Ico icon="mdi:delete-outline" size={4} />
+								</button>
 							</div>
 						</div>
 						{#if commitOpen === key}
@@ -1631,8 +1662,10 @@
 										'studio-git__ref',
 										ref.startsWith('tag: ') && 'studio-git__ref--tag',
 										ref.includes('/') && !ref.startsWith('tag: ') && 'studio-git__ref--remote'
-									]}>{ref.replace(/^tag: /, '')}</span
+									]}
 								>
+									{ref.replace(/^tag: /, '')}
+								</span>
 							{/each}
 							{entry.subject}
 						</button>
@@ -1646,8 +1679,9 @@
 								aria-haspopup="menu"
 								aria-expanded={menu === entry.id}
 								onclick={() => (menu = menu === entry.id ? '' : entry.id)}
-								><Ico icon="mdi:dots-horizontal" size={4} /></button
 							>
+								<Ico icon="mdi:dots-horizontal" size={4} />
+							</button>
 							{#if menu === entry.id}
 								<div class="studio-git__menu studio-git__menu--end" role="menu">
 									<button type="button" role="menuitem" onclick={() => compareWith(entry.id)}>

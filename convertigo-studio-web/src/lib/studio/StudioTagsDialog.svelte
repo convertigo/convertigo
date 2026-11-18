@@ -314,12 +314,12 @@
 					<Dialog.Title class="h4">Tags of {subject}</Dialog.Title>
 					<Button label="Close" cls="button-secondary" full={false} onclick={() => close()} />
 				</header>
-				<Dialog.Description class="studio-tags__hint"
-					>{targets.length === 1 ? 'Check its tags' : 'Check their tags'}, or type a new label to
+				<Dialog.Description class="studio-tags__hint">
+					{targets.length === 1 ? 'Check its tags' : 'Check their tags'}, or type a new label to
 					create one. All the {scope === 'workspaceProjects'
 						? 'projects of this workspace'
-						: `objects of ${project}`} share these tags.</Dialog.Description
-				>
+						: `objects of ${project}`} share these tags.
+				</Dialog.Description>
 				{#if error}<p role="alert">{error}</p>{/if}
 				{#each snapshot?.diagnostics ?? [] as message (message)}<p role="alert">{message}</p>{/each}
 				<form
@@ -365,9 +365,9 @@
 									style:background={tag.presentation?.color ?? 'currentColor'}
 								></span>
 								<span>{tag.label}</span>
-								<span class="studio-tags__hint" title="Members of this tag"
-									>({memberCount(tag.id)})</span
-								>
+								<span class="studio-tags__hint" title="Members of this tag">
+									({memberCount(tag.id)})
+								</span>
 							</label>
 							<Button
 								icon="mdi:pencil-outline"
@@ -414,11 +414,9 @@
 		{:else}
 			<div class="studio-tags">
 				<header class="layout-x-between-low">
-					<Dialog.Title class="h4"
-						>{scope === 'workspaceProjects'
-							? 'Project tags'
-							: `Object tags — ${project}`}</Dialog.Title
-					>
+					<Dialog.Title class="h4">
+						{scope === 'workspaceProjects' ? 'Project tags' : `Object tags — ${project}`}
+					</Dialog.Title>
 					<div class="layout-x-low">
 						{#if targets.length}
 							<Button
@@ -433,10 +431,10 @@
 						<Button label="Close" cls="button-secondary" full={false} onclick={() => close()} />
 					</div>
 				</header>
-				<Dialog.Description class="studio-tags__hint"
-					>Select a tag, then check the {scope === 'workspaceProjects' ? 'projects' : 'objects'} that
-					belong to it.</Dialog.Description
-				>
+				<Dialog.Description class="studio-tags__hint">
+					Select a tag, then check the {scope === 'workspaceProjects' ? 'projects' : 'objects'} that belong
+					to it.
+				</Dialog.Description>
 				{#if referenceProject}
 					<p class="studio-tags__hint">
 						Create a local tag for {referenceProject} and its direct and indirect project references.
@@ -449,14 +447,14 @@
 				{#each snapshot?.diagnostics ?? [] as message (message)}<p role="alert">{message}</p>{/each}
 				<div class="studio-tags__body">
 					<aside class="studio-tags__list" aria-label="Tags">
-						<label class="studio-tags__field"
-							>Find a tag<input
+						<label class="studio-tags__field">
+							Find a tag<input
 								class="input"
 								type="search"
 								bind:value={search}
 								placeholder="Search"
-							/></label
-						>
+							/>
+						</label>
 						<div class="studio-tags__choices">
 							{#each definitions as tag (tag.id)}
 								<button
@@ -493,16 +491,16 @@
 						>
 							<fieldset class="studio-tags__form" disabled={busy || snapshot?.readOnly}>
 								<div class="studio-tags__identity">
-									<label class="studio-tags__field"
-										>Label<input
+									<label class="studio-tags__field">
+										Label<input
 											class="input"
 											required
 											maxlength="256"
 											bind:value={definition.label}
-										/></label
-									>
-									<label class="studio-tags__field"
-										>Color<input
+										/>
+									</label>
+									<label class="studio-tags__field">
+										Color<input
 											type="color"
 											value={definition.presentation?.color ?? '#2563eb'}
 											oninput={(event) => {
@@ -511,16 +509,16 @@
 													color: event.currentTarget.value
 												};
 											}}
-										/></label
-									>
+										/>
+									</label>
 								</div>
-								<label class="studio-tags__field"
-									>Description<textarea
+								<label class="studio-tags__field">
+									Description<textarea
 										class="textarea"
 										rows="2"
 										maxlength="4096"
-										bind:value={definition.description}></textarea></label
-								>
+										bind:value={definition.description}></textarea>
+								</label>
 							</fieldset>
 							<div class="layout-x-start-low">
 								<Button
@@ -536,10 +534,10 @@
 									class="studio-tags__members"
 									disabled={busy || snapshot?.readOnly || !selected}
 								>
-									<legend
-										>{scope === 'workspaceProjects' ? 'Projects' : 'Objects'}
-										<span class="studio-tags__hint">({members.length})</span></legend
-									>
+									<legend>
+										{scope === 'workspaceProjects' ? 'Projects' : 'Objects'}
+										<span class="studio-tags__hint">({members.length})</span>
+									</legend>
 									<div class="studio-tags__member-list">
 										{#each availableTargets as target (target)}
 											<label class="studio-tags__member" title={target}>
@@ -551,9 +549,9 @@
 												/>
 												<span>{targetLabel(target)}</span>
 												{#if targetKind(target)}
-													<span class="studio-tags__hint studio-tags__kind"
-														>{targetKind(target)}</span
-													>
+													<span class="studio-tags__hint studio-tags__kind">
+														{targetKind(target)}
+													</span>
 												{/if}
 											</label>
 										{:else}<p class="studio-tags__hint">
@@ -568,8 +566,8 @@
 									<details class="studio-tags__advanced">
 										<summary>Sharing</summary>
 										<div class="studio-tags__form">
-											<label class="studio-tags__member"
-												><input
+											<label class="studio-tags__member">
+												<input
 													type="checkbox"
 													checked={definition.shared ?? false}
 													disabled={busy || snapshot?.readOnly}
@@ -578,8 +576,8 @@
 														await share();
 														checkbox.checked = definition.shared ?? false;
 													}}
-												/>Share with other workspaces</label
-											>
+												/>Share with other workspaces
+											</label>
 											<p class="studio-tags__hint">
 												Shared tags travel with their projects. Save each modified project to
 												publish changes.
@@ -641,8 +639,8 @@
 															{schema.description}
 														</p>{/if}
 												{:else}
-													<label class="layout-y-low"
-														>{schema.label}
+													<label class="layout-y-low">
+														{schema.label}
 														{#if schema.type === 'boolean'}
 															<input
 																type="checkbox"
@@ -662,11 +660,15 @@
 																			(value) => String(value) === event.currentTarget.value
 																		)
 																	)}
-																><option value="">Choose…</option
-																>{#each schema.enum as value (value)}<option value={String(value)}
-																		>{String(value)}</option
-																	>{/each}</select
 															>
+																<option value="">
+																	Choose…
+																</option>{#each schema.enum as value (value)}<option
+																		value={String(value)}
+																	>
+																		{String(value)}
+																	</option>{/each}
+															</select>
 														{:else}
 															<input
 																class="input"

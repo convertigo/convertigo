@@ -143,9 +143,9 @@
 					{/each}
 				</div>
 				<div class="studio-sql__options">
-					<label
-						><input type="checkbox" bind:checked={override} /> Replace the existing transactions</label
-					>
+					<label>
+						<input type="checkbox" bind:checked={override} /> Replace the existing transactions
+					</label>
 				</div>
 				<div class="studio-sql__options">
 					<label><input type="checkbox" bind:checked={wrap} /> Generate sequences</label>
@@ -155,16 +155,16 @@
 							<option value="Hidden">Hidden</option>
 							<option value="Private">Private</option>
 						</select>
-						<label
-							><input type="checkbox" bind:checked={authenticated} /> Authenticated session mandatory</label
-						>
+						<label>
+							<input type="checkbox" bind:checked={authenticated} /> Authenticated session mandatory
+						</label>
 					{/if}
 				</div>
 			</fieldset>
 			<footer class="studio-dialog__footer">
-				<button type="button" class="button-secondary" disabled={busy} onclick={() => onClose?.()}
-					>Close</button
-				>
+				<button type="button" class="button-secondary" disabled={busy} onclick={() => onClose?.()}>
+					Close
+				</button>
 				<button type="submit" class="button-primary" disabled={busy || !chosen.length}>
 					{#if busy}<Ico icon="mdi:sync" size={4} />{/if}
 					Import {chosen.length || ''} in the project

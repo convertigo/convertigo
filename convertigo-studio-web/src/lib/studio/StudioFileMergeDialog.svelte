@@ -169,10 +169,10 @@
 				<Ico icon="mdi:file-compare" size={4} />
 				<div>
 					<strong id="studio-file-merge-title">{conflict.name}</strong>
-					<small
-						>{conflicts.length} conflict{conflicts.length > 1 ? 's' : ''} · {chosen} resolved · the other
-						lines are merged</small
-					>
+					<small>
+						{conflicts.length} conflict{conflicts.length > 1 ? 's' : ''} · {chosen} resolved · the other
+						lines are merged
+					</small>
 				</div>
 			</header>
 			<div class="studio-file-merge__body">
@@ -185,8 +185,9 @@
 								type="button"
 								class="studio-file-merge__fold"
 								onclick={() => (unfolded = { ...unfolded, [position]: true })}
-								>{all.length - 6} lines merged</button
 							>
+								{all.length - 6} lines merged
+							</button>
 							{@render code(all.slice(-3).join('\n'), 'same')}
 						{:else}
 							{@render code(block.text, 'same')}
@@ -228,8 +229,10 @@
 											choice === option && 'studio-file-merge__choice--chosen'
 										]}
 										aria-pressed={choice === option}
-										onclick={() => choose(block.index, option)}>{LABELS[option]}</button
+										onclick={() => choose(block.index, option)}
 									>
+										{LABELS[option]}
+									</button>
 								{/each}
 								<button
 									type="button"
@@ -238,8 +241,10 @@
 										typeof choice === 'object' && 'studio-file-merge__choice--chosen'
 									]}
 									aria-pressed={typeof choice === 'object'}
-									onclick={() => edit(block)}>Edit…</button
+									onclick={() => edit(block)}
 								>
+									Edit…
+								</button>
 								{#if block.base}
 									<details class="studio-file-merge__base">
 										<summary>Base</summary>
@@ -252,15 +257,22 @@
 				{/each}
 			</div>
 			<footer class="studio-dialog__footer">
-				<button type="button" class="button-secondary" disabled={busy} onclick={() => apply('mine')}
-					>Keep my file</button
-				>
 				<button
 					type="button"
 					class="button-secondary"
 					disabled={busy}
-					onclick={() => apply('theirs')}>Take their file</button
+					onclick={() => apply('mine')}
 				>
+					Keep my file
+				</button>
+				<button
+					type="button"
+					class="button-secondary"
+					disabled={busy}
+					onclick={() => apply('theirs')}
+				>
+					Take their file
+				</button>
 				<span class="studio-file-merge__spacer"></span>
 				<button type="button" class="button-secondary" onclick={onClose}>Cancel</button>
 				<button
@@ -268,8 +280,10 @@
 					class="button-primary"
 					disabled={busy || chosen < conflicts.length}
 					title={chosen < conflicts.length ? 'Choose the lines of each conflict first' : ''}
-					onclick={() => apply('blocks')}>Apply the choices</button
+					onclick={() => apply('blocks')}
 				>
+					Apply the choices
+				</button>
 			</footer>
 		</div>
 	</div>

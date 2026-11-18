@@ -130,8 +130,10 @@
 										type="button"
 										class="studio-variables__add"
 										title="Add a {option.label}"
-										onclick={() => addCustom(option)}><Ico icon="mdi:plus" size={4} /></button
+										onclick={() => addCustom(option)}
 									>
+										<Ico icon="mdi:plus" size={4} />
+									</button>
 									<span>
 										<strong>{option.label}</strong>
 										<small>{option.description}</small>
@@ -177,8 +179,9 @@
 									title="Remove"
 									aria-label="Remove"
 									onclick={() => (customs = customs.filter((_, other) => other !== index))}
-									><Ico icon="mdi:close" size={4} /></button
 								>
+									<Ico icon="mdi:close" size={4} />
+								</button>
 							</div>
 						{/each}
 					</section>
@@ -188,9 +191,9 @@
 				{/if}
 			</fieldset>
 			<footer class="studio-dialog__footer">
-				<button type="button" class="button-secondary" disabled={busy} onclick={() => onClose?.()}
-					>Cancel</button
-				>
+				<button type="button" class="button-secondary" disabled={busy} onclick={() => onClose?.()}>
+					Cancel
+				</button>
 				<button type="submit" class="button-primary" disabled={busy || loading || !options.length}>
 					{#if busy}<Ico icon="mdi:sync" size={4} />{/if}
 					Apply

@@ -906,8 +906,10 @@ console.log(await response.text());`;
 							class="requestable-copy-as__preview requestable-copy-as__preview--link"
 							href={buildCopyPreset('url', source)}
 							target="_blank"
-							rel="noreferrer noopener">{buildCopyPreset('url', source)}</a
+							rel="noreferrer noopener"
 						>
+							{buildCopyPreset('url', source)}
+						</a>
 					</div>
 				</div>
 				<Popover.Arrow class="fill-primary-100-900" />
@@ -942,8 +944,10 @@ console.log(await response.text());`;
 			class="sr-only"
 			tabindex="-1"
 			aria-hidden="true"
-			disabled={disabled || responseView.loading}>Execute</button
+			disabled={disabled || responseView.loading}
 		>
+			Execute
+		</button>
 
 		{#if showIntro}
 			<div class="requestable-execution__intro">
@@ -1114,29 +1118,35 @@ console.log(await response.text());`;
 					title="Run the step and stop before the next one"
 					disabled={!debugState.paused}
 					onclick={() => debugAction('step')}
-					><Ico icon="mdi:debug-step-over" size={4} /> Step</button
 				>
+					<Ico icon="mdi:debug-step-over" size={4} /> Step
+				</button>
 				<button
 					type="button"
 					class="button-secondary"
 					title="Run without stopping"
 					disabled={!debugState.stepByStep}
-					onclick={() => debugAction('run')}><Ico icon="mdi:play" size={4} /> Run</button
+					onclick={() => debugAction('run')}
 				>
+					<Ico icon="mdi:play" size={4} /> Run
+				</button>
 				<button
 					type="button"
 					class="button-secondary"
 					title="Stop before the next step"
 					disabled={debugState.stepByStep}
-					onclick={() => debugAction('pause')}><Ico icon="mdi:pause" size={4} /> Pause</button
+					onclick={() => debugAction('pause')}
 				>
+					<Ico icon="mdi:pause" size={4} /> Pause
+				</button>
 				<button
 					type="button"
 					class="button-secondary"
 					title="Stop debugging, the sequence runs on"
 					onclick={() => debugAction('stop')}
-					><Ico icon="mdi:stop" size={4} /> Stop debugging</button
 				>
+					<Ico icon="mdi:stop" size={4} /> Stop debugging
+				</button>
 			</div>
 		{/if}
 
@@ -1179,12 +1189,12 @@ console.log(await response.text());`;
 				<summary>
 					Connector data
 					{#if rawData.kind === 'table'}
-						<small
-							>{rawData.total} row{rawData.total === 1 ? '' : 's'}{(rawData.rows?.length ?? 0) <
+						<small>
+							{rawData.total} row{rawData.total === 1 ? '' : 's'}{(rawData.rows?.length ?? 0) <
 							(rawData.total ?? 0)
 								? `, first ${rawData.rows?.length} shown`
-								: ''}</small
-						>
+								: ''}
+						</small>
 					{/if}
 				</summary>
 				{#if rawData.kind === 'table'}

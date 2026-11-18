@@ -149,22 +149,27 @@
 							title="Move up"
 							aria-label="Move up"
 							disabled={rowIndex === 0}
-							onclick={() => moveRow(rowIndex, -1)}><Ico icon="mdi:arrow-up" size={3} /></button
+							onclick={() => moveRow(rowIndex, -1)}
 						>
+							<Ico icon="mdi:arrow-up" size={3} />
+						</button>
 						<button
 							type="button"
 							title="Move down"
 							aria-label="Move down"
 							disabled={rowIndex === rows.length - 1}
-							onclick={() => moveRow(rowIndex, 1)}><Ico icon="mdi:arrow-down" size={3} /></button
+							onclick={() => moveRow(rowIndex, 1)}
 						>
+							<Ico icon="mdi:arrow-down" size={3} />
+						</button>
 						<button
 							type="button"
 							title="Remove the row"
 							aria-label="Remove the row"
 							onclick={() => change(rows.filter((_, index) => index !== rowIndex))}
-							><Ico icon="mdi:close" size={3} /></button
 						>
+							<Ico icon="mdi:close" size={3} />
+						</button>
 					</td>
 				</tr>
 			{:else}

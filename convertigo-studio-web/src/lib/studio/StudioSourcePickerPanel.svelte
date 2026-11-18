@@ -1189,9 +1189,9 @@
 						onchange={(event) => (chosenPriority = event.currentTarget.value)}
 					>
 						{#each sourceSteps as step (step.priority)}
-							<option value={step.priority} disabled={!step.pickable}
-								>{'\u00a0\u00a0'.repeat(step.depth)}{step.label}</option
-							>
+							<option value={step.priority} disabled={!step.pickable}>
+								{'\u00a0\u00a0'.repeat(step.depth)}{step.label}
+							</option>
 						{/each}
 					</select>
 				{:else}
@@ -1364,15 +1364,19 @@
 						role="tab"
 						aria-selected={sourceTab === 'json'}
 						class:studio-source-picker__tab--active={sourceTab === 'json'}
-						onclick={() => (sourceTab = 'json')}>JSON</button
+						onclick={() => (sourceTab = 'json')}
 					>
+						JSON
+					</button>
 					<button
 						type="button"
 						role="tab"
 						aria-selected={sourceTab === 'xml'}
 						class:studio-source-picker__tab--active={sourceTab === 'xml'}
-						onclick={() => (sourceTab = 'xml')}>XML</button
+						onclick={() => (sourceTab = 'xml')}
 					>
+						XML
+					</button>
 				</div>
 			{/if}
 			{#if jsonTabActive}

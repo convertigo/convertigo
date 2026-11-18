@@ -69,9 +69,10 @@
 		}}
 	>
 		<header class="studio-dialog__header">
-			<strong id="studio-archive-title"
-				>{mode === 'deploy' ? 'Deploy' : 'Export'} {projectName}</strong
-			>
+			<strong id="studio-archive-title">
+				{mode === 'deploy' ? 'Deploy' : 'Export'}
+				{projectName}
+			</strong>
 		</header>
 		<form class="studio-dialog__form" onsubmit={submit}>
 			<fieldset class="studio-dialog__body" disabled={busy || !loaded}>
@@ -112,9 +113,9 @@
 				{/if}
 			</fieldset>
 			<footer class="studio-dialog__footer">
-				<button type="button" class="button-secondary" disabled={busy} onclick={() => onClose?.()}
-					>Cancel</button
-				>
+				<button type="button" class="button-secondary" disabled={busy} onclick={() => onClose?.()}>
+					Cancel
+				</button>
 				<button type="submit" class="button-primary" disabled={busy || !loaded}>
 					{#if busy}<Ico icon="mdi:sync" size={4} />{/if}
 					{mode === 'deploy' ? 'Continue' : 'Export'}

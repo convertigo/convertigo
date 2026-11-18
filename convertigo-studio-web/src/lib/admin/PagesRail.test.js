@@ -10,7 +10,7 @@ vi.mock('#lib/common/Authentication.svelte.js', () => ({
 	}
 }));
 vi.mock('#lib/common/Status.svelte.js', () => ({ default: { cloud: false } }));
-vi.mock('#lib/utils/service', () => ({ getUrl: (path) => `/convertigo/${path}` }));
+vi.mock('#lib/utils/service.js', () => ({ getUrl: (path) => `/convertigo/${path}` }));
 
 describe('Admin page rail', () => {
 	beforeEach(() => {

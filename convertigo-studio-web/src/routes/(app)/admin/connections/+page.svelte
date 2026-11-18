@@ -348,9 +348,9 @@
 				{:else if def.name == 'Access'}
 					<span title={row.lastContextAccessDate}>{row.lastContextAccessDateCompact}</span>
 				{:else if def.name == 'Client Computer'}
-					<span class="inline-block max-w-72 truncate align-middle" title={row.clientComputer}
-						>{row.clientComputerCompact}</span
-					>
+					<span class="inline-block max-w-72 truncate align-middle" title={row.clientComputer}>
+						{row.clientComputerCompact}
+					</span>
 				{/if}
 			{/snippet}
 		</TableAutoCard>

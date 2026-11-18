@@ -538,9 +538,9 @@
 											{/if}
 										</span>
 										<span class="studio-palette__item-main">
-											<span class="studio-palette__item-name studio-ellipsis"
-												>{itemDisplayName(item)}</span
-											>
+											<span class="studio-palette__item-name studio-ellipsis">
+												{itemDisplayName(item)}
+											</span>
 										</span>
 										{#if paletteMemory.favorites.includes(itemKey(item))}
 											<span class="studio-palette__favorite" aria-label="Favorite">

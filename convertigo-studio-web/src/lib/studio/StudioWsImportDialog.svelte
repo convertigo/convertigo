@@ -95,15 +95,19 @@
 						role="radio"
 						aria-checked={type === 'rest'}
 						class={['studio-dialog__mode', type === 'rest' && 'studio-dialog__mode--active']}
-						onclick={() => (type = 'rest')}>REST (Swagger, OpenAPI)</button
+						onclick={() => (type = 'rest')}
 					>
+						REST (Swagger, OpenAPI)
+					</button>
 					<button
 						type="button"
 						role="radio"
 						aria-checked={type === 'soap'}
 						class={['studio-dialog__mode', type === 'soap' && 'studio-dialog__mode--active']}
-						onclick={() => (type = 'soap')}>SOAP (WSDL)</button
+						onclick={() => (type = 'soap')}
 					>
+						SOAP (WSDL)
+					</button>
 				</div>
 				<div class="studio-dialog__modes" role="radiogroup" aria-label="Source of the definition">
 					<button
@@ -111,15 +115,19 @@
 						role="radio"
 						aria-checked={source === 'url'}
 						class={['studio-dialog__mode', source === 'url' && 'studio-dialog__mode--active']}
-						onclick={() => (source = 'url')}>From a URL</button
+						onclick={() => (source = 'url')}
 					>
+						From a URL
+					</button>
 					<button
 						type="button"
 						role="radio"
 						aria-checked={source === 'file'}
 						class={['studio-dialog__mode', source === 'file' && 'studio-dialog__mode--active']}
-						onclick={() => (source = 'file')}>From a file</button
+						onclick={() => (source = 'file')}
 					>
+						From a file
+					</button>
 				</div>
 				{#if source === 'url'}
 					<label class="studio-dialog__field">
@@ -146,9 +154,9 @@
 							accept={type === 'rest' ? '.json,.yaml,.yml' : '.wsdl,.xml'}
 							onchange={(event) => (definition = event.currentTarget.files?.[0] ?? null)}
 						/>
-						<small
-							>The project keeps the file in its {type === 'rest' ? 'openapi' : 'wsdl'} folder.</small
-						>
+						<small>
+							The project keeps the file in its {type === 'rest' ? 'openapi' : 'wsdl'} folder.
+						</small>
 					</label>
 				{/if}
 				{#if source === 'url' && authenticated}
@@ -186,9 +194,9 @@
 				{/if}
 			</fieldset>
 			<footer class="studio-dialog__footer">
-				<button type="button" class="button-secondary" disabled={busy} onclick={() => onClose?.()}
-					>Cancel</button
-				>
+				<button type="button" class="button-secondary" disabled={busy} onclick={() => onClose?.()}>
+					Cancel
+				</button>
 				<button type="submit" class="button-primary" disabled={busy || !ready}>
 					{#if busy}<Ico icon="mdi:sync" size={4} />{/if}
 					Import

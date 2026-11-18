@@ -111,17 +111,19 @@
 					/>
 				</label>
 				<div class="studio-dialog__default">
-					<small
-						>An empty endpoint is the default endpoint of the engine: <code
-							>{defaultEndpoint || 'none'}</code
-						></small
-					>
+					<small>
+						An empty endpoint is the default endpoint of the engine: <code>
+							{defaultEndpoint || 'none'}
+						</code>
+					</small>
 					<button
 						type="button"
 						class="button-secondary"
 						disabled={busy || !endpoint.trim()}
-						onclick={updateDefault}>Make it the default endpoint</button
+						onclick={updateDefault}
 					>
+						Make it the default endpoint
+					</button>
 				</div>
 				<div class="studio-dialog__field" role="group" aria-label="Known endpoints">
 					<span>Known endpoints</span>

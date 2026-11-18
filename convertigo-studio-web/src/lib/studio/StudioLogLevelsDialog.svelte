@@ -65,15 +65,17 @@
 			{/each}
 		</div>
 		<footer class="studio-dialog__footer">
-			<button type="button" class="button-secondary" disabled={saving} onclick={() => onClose?.()}
-				>Cancel</button
-			>
+			<button type="button" class="button-secondary" disabled={saving} onclick={() => onClose?.()}>
+				Cancel
+			</button>
 			<button
 				type="button"
 				class="button-primary"
 				disabled={saving || !changed.length}
-				onclick={() => void save()}>Save</button
+				onclick={() => void save()}
 			>
+				Save
+			</button>
 		</footer>
 	</div>
 </div>

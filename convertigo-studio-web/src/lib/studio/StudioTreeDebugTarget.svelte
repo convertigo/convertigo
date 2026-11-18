@@ -39,8 +39,10 @@
 		disabled={busy}
 		title={error || (enabled ? 'Remove breakpoint' : 'Set breakpoint')}
 		onclick={toggle}
-		class={['tree-debug-target', { enabled }]}>●</button
+		class={['tree-debug-target', { enabled }]}
 	>
+		●
+	</button>
 {/if}
 
 <style>

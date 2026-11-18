@@ -210,8 +210,10 @@
 														<span class="layout-x-low min-w-0 items-center">
 															<span
 																class="cursor-text text-sm leading-tight font-semibold text-strong select-text"
-																{...selectableTextEvents}>{name}</span
+																{...selectableTextEvents}
 															>
+																{name}
+															</span>
 															{#if requestable.default == 'true'}
 																{@render defaultChip(defaultTitles.transaction)}
 															{/if}
@@ -219,8 +221,10 @@
 														{#if comment?.length}
 															<span
 																class="cursor-text truncate text-xs text-surface-600-400 transition-opacity duration-150 select-text group-data-[state=open]:opacity-70"
-																{...selectableTextEvents}>{commentSummary(comment)}</span
+																{...selectableTextEvents}
 															>
+																{commentSummary(comment)}
+															</span>
 														{/if}
 													</div>
 												</div>

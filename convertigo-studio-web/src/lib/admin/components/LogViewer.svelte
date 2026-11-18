@@ -1317,8 +1317,10 @@
 								<DraggableValue
 									class="cursor-col-resize"
 									bind:delta={conf.width}
-									bind:dragging={isDragging}><Ico icon="mdi:resize-horizontal" /></DraggableValue
+									bind:dragging={isDragging}
 								>
+									<Ico icon="mdi:resize-horizontal" />
+								</DraggableValue>
 								<Button
 									{size}
 									icon="mdi:filter"
@@ -1572,12 +1574,12 @@
 								Date/Time {start || '…'} → {end || '…'}
 							</span>
 						{:else}
-							<span class="max-w-xs overflow-hidden"
-								>{category}
+							<span class="max-w-xs overflow-hidden">
+								{category}
 								{not ? 'not' : ''}
 								{filterModeLabel(mode)}
-								{sensitive ? value : value.toLowerCase()}</span
-							>
+								{sensitive ? value : value.toLowerCase()}
+							</span>
 						{/if}
 						<Button
 							{size}
@@ -1727,9 +1729,12 @@
 											{#if idx == 0}
 												{log[4].substring(0, start)}{/if}{#if founds[foundsIndex] == found}<span
 													{@attach attachScrollIntoView}
-													class="searchedCurrent">{log[4].substring(start, end)}</span
-												>{:else}<span class="searched">{log[4].substring(start, end)}</span
-												>{/if}{#if idx < _founds.length - 1}{log[4].substring(
+													class="searchedCurrent"
+												>
+													{log[4].substring(start, end)}
+												</span>{:else}<span class="searched">
+													{log[4].substring(start, end)}
+												</span>{/if}{#if idx < _founds.length - 1}{log[4].substring(
 													end,
 													_founds[idx + 1].start
 												)}{:else}{log[4].substring(end)}{/if}{/each}{:else}

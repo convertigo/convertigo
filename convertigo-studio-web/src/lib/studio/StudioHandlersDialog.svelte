@@ -150,11 +150,11 @@
 										/>
 										{screenClass.name}
 										{#if screenClass.entry || screenClass.exit}
-											<small
-												>{[screenClass.entry && 'entry', screenClass.exit && 'exit']
+											<small>
+												{[screenClass.entry && 'entry', screenClass.exit && 'exit']
 													.filter(Boolean)
-													.join(' and ')} exists</small
-											>
+													.join(' and ')} exists
+											</small>
 										{/if}
 									</label>
 								{/each}
@@ -176,9 +176,9 @@
 				{/if}
 			</fieldset>
 			<footer class="studio-dialog__footer">
-				<button type="button" class="button-secondary" disabled={busy} onclick={() => onClose?.()}
-					>Cancel</button
-				>
+				<button type="button" class="button-secondary" disabled={busy} onclick={() => onClose?.()}>
+					Cancel
+				</button>
 				<button type="submit" class="button-primary" disabled={busy || loading || !canCreate}>
 					{#if busy}<Ico icon="mdi:sync" size={4} />{/if}
 					Create

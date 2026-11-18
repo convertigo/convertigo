@@ -81,14 +81,14 @@
 							bind:value={password}
 						/>
 					</label>
-					<small class="studio-credentials__note"
-						>Kept in memory for this remote until the Studio stops, never written.</small
-					>
+					<small class="studio-credentials__note">
+						Kept in memory for this remote until the Studio stops, never written.
+					</small>
 				</div>
 				<footer class="studio-dialog__footer">
-					<button type="button" class="button-secondary" onclick={() => onAnswer(null)}
-						>Cancel</button
-					>
+					<button type="button" class="button-secondary" onclick={() => onAnswer(null)}>
+						Cancel
+					</button>
 					<button type="submit" class="button-primary" disabled={!password}>Sign in</button>
 				</footer>
 			</form>

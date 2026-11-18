@@ -26,9 +26,9 @@
 			aria-label={label || undefined}
 			onchange={(event) => onChange(event.currentTarget.checked ? 'true' : 'false')}
 		/>
-		<span class="studio-boolean__value" class:studio-boolean__value--off={!checked}
-			>{checked ? 'true' : 'false'}</span
-		>
+		<span class="studio-boolean__value" class:studio-boolean__value--off={!checked}>
+			{checked ? 'true' : 'false'}
+		</span>
 	</label>
 	{#each buttons as button (button.title)}
 		<StudioIconButton

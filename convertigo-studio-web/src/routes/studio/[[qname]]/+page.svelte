@@ -4718,9 +4718,9 @@
 		>
 			<header class="studio-source-choice__header layout-x-between-low">
 				<div class="layout-y-none">
-					<strong id="studio-rename-choice-title"
-						>Update {renameChoice.request.objectType} references</strong
-					>
+					<strong id="studio-rename-choice-title">
+						Update {renameChoice.request.objectType} references
+					</strong>
 					<span class="studio-source-choice__target">
 						Replace '{renameChoice.request.oldName}' by '{renameChoice.request.newName}'
 					</span>

@@ -185,27 +185,33 @@
 				</datalist>
 			</div>
 			<div class="studio-json-list__actions">
-				<button type="button" class="button-secondary" disabled={mode !== 'list'} onclick={addRow}
-					>Add</button
-				>
+				<button type="button" class="button-secondary" disabled={mode !== 'list'} onclick={addRow}>
+					Add
+				</button>
 				<button
 					type="button"
 					class="button-secondary"
 					disabled={mode !== 'list' || selectedIndex < 0}
-					onclick={removeRow}>Remove</button
+					onclick={removeRow}
 				>
+					Remove
+				</button>
 				<button
 					type="button"
 					class="button-secondary"
 					disabled={mode !== 'list' || selectedIndex <= 0}
-					onclick={() => moveRow(-1)}>Up</button
+					onclick={() => moveRow(-1)}
 				>
+					Up
+				</button>
 				<button
 					type="button"
 					class="button-secondary"
 					disabled={mode !== 'list' || selectedIndex < 0 || selectedIndex >= rows.length - 1}
-					onclick={() => moveRow(1)}>Down</button
+					onclick={() => moveRow(1)}
 				>
+					Down
+				</button>
 			</div>
 			<label class="studio-json-list__expression">
 				<span>Expression</span>

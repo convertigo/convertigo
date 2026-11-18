@@ -98,9 +98,9 @@
 											iCat % classCat[iClass].length
 										]}"
 									>
-										used {total - remaining} / {total}<span class="ml text-xs"
-											>({remaining} left)</span
-										>
+										used {total - remaining} / {total}<span class="ml text-xs">
+											({remaining} left)
+										</span>
 									</div>
 								</div>
 							</AutoPlaceholder>
@@ -129,12 +129,12 @@
 						}}
 					/>
 				{:else if name == 'Key'}
-					<AutoPlaceholder loading={text == null}
-						>{text}
-						{#if evaluation == 'true'}<span class="ml text-xs">(demo)</span
-							>{/if}{#if expired == 'true'}<span class="ml text-xs">(expired)</span
-							>{/if}</AutoPlaceholder
-					>
+					<AutoPlaceholder loading={text == null}>
+						{text}
+						{#if evaluation == 'true'}<span class="ml text-xs">
+								(demo)
+							</span>{/if}{#if expired == 'true'}<span class="ml text-xs">(expired)</span>{/if}
+					</AutoPlaceholder>
 				{/if}
 			{/snippet}
 		</TableAutoCard>

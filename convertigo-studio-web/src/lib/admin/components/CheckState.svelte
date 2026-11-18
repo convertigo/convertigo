@@ -76,9 +76,9 @@
 		{:else}
 			{@render switchControl()}
 		{/if}
-		<Switch.Label class="text-sm leading-tight font-medium text-current"
-			>{@render children?.()}</Switch.Label
-		>
+		<Switch.Label class="text-sm leading-tight font-medium text-current">
+			{@render children?.()}
+		</Switch.Label>
 		<Switch.HiddenInput />
 		{#if value != values[1] && Array.isArray(values)}
 			<input type="hidden" {name} value={values[0]} />

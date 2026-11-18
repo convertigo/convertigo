@@ -159,9 +159,9 @@
 														</span>
 													{:else if value == 0}
 														<span class="layout-x-none gap-1">
-															<span aria-hidden="true" class="text-base leading-none font-semibold"
-																>↔</span
-															>
+															<span aria-hidden="true" class="text-base leading-none font-semibold">
+																↔
+															</span>
 															<span class="sr-only">Both</span>
 														</span>
 													{:else}
@@ -234,9 +234,9 @@
 														</span>
 													{:else if value == 0}
 														<span class="layout-x-none gap-1">
-															<span aria-hidden="true" class="text-base leading-none font-semibold"
-																>↔</span
-															>
+															<span aria-hidden="true" class="text-base leading-none font-semibold">
+																↔
+															</span>
 															<span class="sr-only">Both</span>
 														</span>
 													{:else}
@@ -290,12 +290,12 @@
 					transition:fade
 				>
 					<div class="layout-x-p-low justify-between! py-1!">
-						<span class="text-md truncate font-semibold"
-							><AutoPlaceholder {loading}>{name}</AutoPlaceholder></span
-						>
-						<span class="truncate text-sm opacity-50"
-							><AutoPlaceholder {loading}>{version}</AutoPlaceholder></span
-						>
+						<span class="text-md truncate font-semibold">
+							<AutoPlaceholder {loading}>{name}</AutoPlaceholder>
+						</span>
+						<span class="truncate text-sm opacity-50">
+							<AutoPlaceholder {loading}>{version}</AutoPlaceholder>
+						</span>
 					</div>
 					<div class="relative">
 						{#if name}

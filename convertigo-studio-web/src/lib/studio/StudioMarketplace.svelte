@@ -148,16 +148,18 @@
 					<button
 						type="submit"
 						class="button-secondary"
-						disabled={!projectPath.trim() || Boolean(installing)}>Import</button
+						disabled={!projectPath.trim() || Boolean(installing)}
 					>
+						Import
+					</button>
 				</form>
 			{:else}
 				<span class="studio-marketplace__spacer"></span>
 			{/if}
 			{#if installing}
-				<span class="studio-marketplace__status"
-					><Ico icon="mdi:sync" size={4} /> Installing {installing}…</span
-				>
+				<span class="studio-marketplace__status">
+					<Ico icon="mdi:sync" size={4} /> Installing {installing}…
+				</span>
 			{/if}
 			<button
 				type="button"
@@ -165,23 +167,28 @@
 				title="Home"
 				aria-label="Home"
 				onclick={() => (src = `${MARKETPLACE_URL}?home=${Date.now()}`)}
-				><Ico icon="mdi:home-outline" size={4} /></button
 			>
+				<Ico icon="mdi:home-outline" size={4} />
+			</button>
 			<a
 				class="studio-marketplace__icon"
 				href={MARKETPLACE_URL}
 				target="_blank"
 				rel="noopener"
 				title="Open in a new tab"
-				aria-label="Open in a new tab"><Ico icon="mdi:open-in-new" size={4} /></a
+				aria-label="Open in a new tab"
 			>
+				<Ico icon="mdi:open-in-new" size={4} />
+			</a>
 			<button
 				type="button"
 				class="studio-marketplace__icon"
 				title="Close"
 				aria-label="Close"
-				onclick={() => onClose?.()}><Ico icon="mdi:close" size={4} /></button
+				onclick={() => onClose?.()}
 			>
+				<Ico icon="mdi:close" size={4} />
+			</button>
 		</header>
 		<!-- the site talks to its parent with messages; told "init", it calls window.java instead, which only
 		     the frame of the desktop Studio has -->

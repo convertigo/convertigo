@@ -228,12 +228,12 @@
 									/>
 								{/if}
 								<span class="studio-device-panel__device-text layout-y-none">
-									<strong class="studio-ellipsis"
-										>{isResponsive ? 'Responsive' : device.title}</strong
-									>
-									<small class="studio-ellipsis"
-										>{device.iframe?.width ?? '-'} x {device.iframe?.height ?? '-'}</small
-									>
+									<strong class="studio-ellipsis">
+										{isResponsive ? 'Responsive' : device.title}
+									</strong>
+									<small class="studio-ellipsis">
+										{device.iframe?.width ?? '-'} x {device.iframe?.height ?? '-'}
+									</small>
 								</span>
 								{#if isCustom}
 									<span
@@ -252,8 +252,10 @@
 												event.stopPropagation();
 												removeDevice(device.id);
 											}
-										}}><Ico icon="mdi:close" size={4} /></span
+										}}
 									>
+										<Ico icon="mdi:close" size={4} />
+									</span>
 								{/if}
 							</button>
 						{/each}

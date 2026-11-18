@@ -52,9 +52,9 @@
 	}
 </script>
 
-<span class="draggable {cls}" onmousedown={startDrag} ontouchstart={startDrag} {...rest}
-	>{@render children?.()}</span
->
+<span class="draggable {cls}" onmousedown={startDrag} ontouchstart={startDrag} {...rest}>
+	{@render children?.()}
+</span>
 
 <style>
 	.draggable {

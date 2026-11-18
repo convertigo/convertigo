@@ -194,8 +194,9 @@
 						what === choice.value && 'studio-search__what-choice--on'
 					]}
 					onclick={() => (what = /** @type {'objects' | 'files'} */ (choice.value))}
-					>{choice.label}</button
 				>
+					{choice.label}
+				</button>
 			{/each}
 		</div>
 		<div class="studio-search__query">
@@ -210,15 +211,19 @@
 				class={['studio-search__toggle', matchCase && 'studio-search__toggle--on']}
 				title="Match case"
 				aria-pressed={matchCase}
-				onclick={() => (matchCase = !matchCase)}>Aa</button
+				onclick={() => (matchCase = !matchCase)}
 			>
+				Aa
+			</button>
 			<button
 				type="button"
 				class={['studio-search__toggle', regExp && 'studio-search__toggle--on']}
 				title="Use a regular expression"
 				aria-pressed={regExp}
-				onclick={() => (regExp = !regExp)}>.*</button
+				onclick={() => (regExp = !regExp)}
 			>
+				.*
+			</button>
 		</div>
 		<div class="studio-search__options">
 			{#if what === 'objects'}

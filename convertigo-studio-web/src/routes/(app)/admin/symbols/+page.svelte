@@ -268,9 +268,9 @@
 	{/snippet}
 
 	<p>
-		Symbols are defined here. Their values can be used in Convertigo objects using the <strong
-			>{'${symbolName}'}</strong
-		>
+		Symbols are defined here. Their values can be used in Convertigo objects using the <strong>
+			{'${symbolName}'}
+		</strong>
 		or <strong class="text-nowrap">{'${symbolName=default value}'}</strong> syntax.
 	</p>
 	<p>

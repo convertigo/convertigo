@@ -312,9 +312,9 @@
 											{row[def.key] ?? ''}
 										{/if}
 									{:else}
-										<AutoPlaceholder loading={row[def.key] == null}
-											>{row[def.key] ?? ''}</AutoPlaceholder
-										>
+										<AutoPlaceholder loading={row[def.key] == null}>
+											{row[def.key] ?? ''}
+										</AutoPlaceholder>
 									{/if}
 								</td>
 							{/each}

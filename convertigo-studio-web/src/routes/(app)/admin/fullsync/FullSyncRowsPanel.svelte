@@ -106,8 +106,9 @@
 						</div>
 						<div class="mango-json-card">
 							<header class="mango-json-card-header">
-								<span class="mango-json-id" title={jsonHeaderTitle(row)}>{jsonHeaderText(row)}</span
-								>
+								<span class="mango-json-id" title={jsonHeaderTitle(row)}>
+									{jsonHeaderText(row)}
+								</span>
 								{#if showJsonOpenButton}
 									<button
 										type="button"

@@ -7,9 +7,9 @@
 	<thead class="bg-surface-100-900">
 		<tr>
 			{#each columns as column (column)}
-				<th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-muted uppercase"
-					>{column}</th
-				>
+				<th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-muted uppercase">
+					{column}
+				</th>
 			{/each}
 		</tr>
 	</thead>

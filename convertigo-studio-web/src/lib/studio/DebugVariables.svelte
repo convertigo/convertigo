@@ -80,19 +80,24 @@
 							aria-label={`${row?.open ? 'Collapse' : 'Expand'} ${variable.name}`}
 							aria-expanded={row?.open ?? false}
 							onclick={() => expand(variable, key)}
-							><Ico icon={row?.open ? 'mdi:chevron-down' : 'mdi:chevron-right'} /></button
 						>
+							<Ico icon={row?.open ? 'mdi:chevron-down' : 'mdi:chevron-right'} />
+						</button>
 					{:else}<span class="spacer"></span>{/if}
 					<span class="variable-name" title={variable.name}>{variable.name}</span><span
-						class="colon">:</span
+						class="colon"
 					>
+						:
+					</span>
 					<button
 						class="value"
 						data-type={variable.type}
 						title={`${variable.type ?? ''}: ${variable.value}`}
 						aria-label={`Show value of ${variable.name}`}
-						onclick={() => showValue(variable)}>{variable.value}</button
+						onclick={() => showValue(variable)}
 					>
+						{variable.value}
+					</button>
 					<span class="type">{variable.type ?? ''}</span>
 				</div>
 				{#if variable.limited}<p class="variable-message">
@@ -103,16 +108,20 @@
 					{#if row.loading}<p class="variable-message">Loading properties…</p>{/if}
 					{#if row.error}<div class="variable-message">
 							<span role="alert">{row.error}</span>
-							<button class="more" onclick={() => fetchPage(variable.ref, key, row.children.length)}
-								>Retry</button
+							<button
+								class="more"
+								onclick={() => fetchPage(variable.ref, key, row.children.length)}
 							>
+								Retry
+							</button>
 						</div>{/if}
 					{#if row.next >= 0}<button
 							class="more"
 							disabled={row.loading}
 							onclick={() => fetchPage(variable.ref, key, row.next)}
-							>Load next 100 properties of {variable.name}</button
-						>{/if}
+						>
+							Load next 100 properties of {variable.name}
+						</button>{/if}
 				{/if}
 			</li>
 		{/each}
@@ -122,17 +131,19 @@
 <div class="variables" aria-label="Variables">
 	{@render tree([...variables, ...extra])}
 	{#if !variables.length && !extra.length}<p class="empty">No variables in this scope.</p>{/if}
-	{#if more >= 0}<button class="more" disabled={rootLoading} onclick={loadMore}
-			>Load next 100 properties</button
-		>{/if}
+	{#if more >= 0}<button class="more" disabled={rootLoading} onclick={loadMore}>
+			Load next 100 properties
+		</button>{/if}
 	{#if error}<p role="alert">{error}</p>{/if}
 	{#if full}
 		<div class="full-value" role="region" aria-label={`Value of ${full.name}`}>
 			<div class="full-heading">
 				<strong>{full.name}</strong><button
 					aria-label="Close full value"
-					onclick={() => (full = null)}>×</button
+					onclick={() => (full = null)}
 				>
+					×
+				</button>
 			</div>
 			<pre>{full.value}</pre>
 		</div>

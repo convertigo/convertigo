@@ -155,8 +155,10 @@
 					onclick={() => {
 						name = '';
 						namespace = '';
-					}}>No {what}</button
+					}}
 				>
+					No {what}
+				</button>
 				<span class="studio-qname__spacer"></span>
 				<button type="button" class="button-secondary" onclick={() => onClose?.()}>Cancel</button>
 				<button type="submit" class="button-primary">Apply</button>

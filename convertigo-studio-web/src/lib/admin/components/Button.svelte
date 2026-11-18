@@ -46,9 +46,8 @@
 							class={[cls, 'h-full min-h-fit text-wrap', full && 'w-full']}
 							aria-label={computedAriaLabel}
 						>
-							{#if icon}<span><Ico {icon} {size} /></span>{/if}{#if label}<span>{label}</span
-								>{/if}</a
-						>
+							{#if icon}<span><Ico {icon} {size} /></span>{/if}{#if label}<span>{label}</span>{/if}
+						</a>
 					{:else}
 						<button
 							{...triggerAttributes}
@@ -59,9 +58,8 @@
 							{value}
 							aria-label={computedAriaLabel}
 						>
-							{#if icon}<span><Ico {icon} {size} /></span>{/if}{#if label}<span>{label}</span
-								>{/if}</button
-						>
+							{#if icon}<span><Ico {icon} {size} /></span>{/if}{#if label}<span>{label}</span>{/if}
+						</button>
 					{/if}
 				{/snippet}
 			</Tooltip.Trigger>
@@ -86,8 +84,8 @@
 			aria-label={computedAriaLabel}
 			{...rest}
 		>
-			{#if icon}<span><Ico {icon} {size} /></span>{/if}{#if label}<span>{label}</span>{/if}</a
-		>
+			{#if icon}<span><Ico {icon} {size} /></span>{/if}{#if label}<span>{label}</span>{/if}
+		</a>
 	{:else}
 		<button
 			{disabled}
@@ -98,7 +96,7 @@
 			aria-label={computedAriaLabel}
 			{...rest}
 		>
-			{#if icon}<span><Ico {icon} {size} /></span>{/if}{#if label}<span>{label}</span>{/if}</button
-		>
+			{#if icon}<span><Ico {icon} {size} /></span>{/if}{#if label}<span>{label}</span>{/if}
+		</button>
 	{/if}
 {/if}

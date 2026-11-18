@@ -218,23 +218,31 @@
 		<button
 			class="button-primary"
 			disabled={Boolean(busy) || !currentBuilder?.available}
-			onclick={() => void execute('serve')}><Ico icon="mdi:play" size={4} /> Build and serve</button
+			onclick={() => void execute('serve')}
 		>
+			<Ico icon="mdi:play" size={4} /> Build and serve
+		</button>
 		<button
 			class="button-secondary"
 			disabled={Boolean(busy) || currentBuilder?.commands?.build?.enabled !== true}
-			onclick={() => void execute('build')}>Production build</button
+			onclick={() => void execute('build')}
 		>
+			Production build
+		</button>
 		<button
 			class="button-secondary"
 			disabled={Boolean(busy) || currentBuilder?.commands?.stop?.enabled !== true}
-			onclick={() => void execute('stop')}><Ico icon="mdi:stop" size={4} /> Stop</button
+			onclick={() => void execute('stop')}
 		>
+			<Ico icon="mdi:stop" size={4} /> Stop
+		</button>
 		<button
 			class="button-secondary"
 			disabled={Boolean(busy) || currentBuilder?.commands?.open?.enabled !== true}
-			onclick={() => void execute('open')}>Open</button
+			onclick={() => void execute('open')}
 		>
+			Open
+		</button>
 		<StudioShareQr
 			resolveUrl={shareUrl}
 			available={Boolean(shareUrl())}
@@ -243,15 +251,15 @@
 				? 'QR code of the development server, to open it on a phone: it follows the edits (hot reload)'
 				: 'QR code of the built application, to open it on a phone'}
 		/>
-		<span role="status"
-			>{projectName} — {busy
+		<span role="status">
+			{projectName} — {busy
 				? `${busy}…`
 				: failed
 					? 'Build failed'
 					: currentBuilder?.state?.serving
 						? 'Serving in development mode'
-						: 'Ready'}</span
-		>
+						: 'Ready'}
+		</span>
 	</div>
 	<div class="output p-low" aria-label="Build output">
 		{#each lines as line, index (index)}<pre>{line}</pre>{:else}<p>

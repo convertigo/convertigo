@@ -1321,10 +1321,11 @@
 						'studio-tree-merge__count',
 						merge.unresolved ? 'studio-tree-merge__count--open' : 'studio-tree-merge__count--done'
 					]}
-					>{merge.unresolved
-						? `${merge.unresolved} conflict${merge.unresolved > 1 ? 's' : ''}`
-						: 'no conflict left'}</span
 				>
+					{merge.unresolved
+						? `${merge.unresolved} conflict${merge.unresolved > 1 ? 's' : ''}`
+						: 'no conflict left'}
+				</span>
 				<span class="studio-tree-merge__auto">· {merge.changes.length} merged automatically</span>
 				<button
 					type="button"
@@ -1362,11 +1363,11 @@
 							>
 								<span class="studio-tree-merge__mark">{conflict.resolution ? '✓' : 'C'}</span>
 								<span class="studio-tree-merge__name">{conflict.name}</span>
-								<span class="studio-tree-merge__what"
-									>{conflict.label ?? conflict.description}{conflict.resolution
+								<span class="studio-tree-merge__what">
+									{conflict.label ?? conflict.description}{conflict.resolution
 										? ` · ${conflict.resolution}`
-										: ''}</span
-								>
+										: ''}
+								</span>
 							</button>
 						</li>
 					{/each}
@@ -1378,15 +1379,19 @@
 					class="studio-tree-merge__action"
 					title={merge.ours ? `Keep the version of ${merge.ours}` : 'Keep my version'}
 					disabled={!merge.unresolved || Boolean(mergeBusy)}
-					onclick={() => void resolveAllConflicts(projectName, 'mine')}>Keep all mine</button
+					onclick={() => void resolveAllConflicts(projectName, 'mine')}
 				>
+					Keep all mine
+				</button>
 				<button
 					type="button"
 					class="studio-tree-merge__action"
 					title={merge.theirs ? `Take the version of ${merge.theirs}` : 'Take their version'}
 					disabled={!merge.unresolved || Boolean(mergeBusy)}
-					onclick={() => void resolveAllConflicts(projectName, 'theirs')}>Take all theirs</button
+					onclick={() => void resolveAllConflicts(projectName, 'theirs')}
 				>
+					Take all theirs
+				</button>
 				<span class="studio-tree-merge__spacer"></span>
 				{#if merge.operation?.canSkip}
 					<button
@@ -1394,15 +1399,19 @@
 						class="studio-tree-merge__action"
 						title="Skip the commit the rebase stopped at, and go on with the next ones"
 						disabled={Boolean(mergeBusy)}
-						onclick={() => void endMerge(projectName, 'skip')}>Skip</button
+						onclick={() => void endMerge(projectName, 'skip')}
 					>
+						Skip
+					</button>
 				{/if}
 				<button
 					type="button"
 					class="studio-tree-merge__action"
 					disabled={Boolean(mergeBusy)}
-					onclick={() => void endMerge(projectName, 'abort')}>Abort</button
+					onclick={() => void endMerge(projectName, 'abort')}
 				>
+					Abort
+				</button>
 				<button
 					type="button"
 					class="studio-tree-merge__action studio-tree-merge__action--complete"
@@ -1413,8 +1422,9 @@
 							? 'Write the merged project, ready to commit'
 							: 'Write the project resolved and go on'}
 					onclick={() => void endMerge(projectName, 'complete')}
-					>{mergeBusy === 'complete' ? 'Completing…' : operation.complete}</button
 				>
+					{mergeBusy === 'complete' ? 'Completing…' : operation.complete}
+				</button>
 			</div>
 		</div>
 	{/each}
@@ -1452,8 +1462,10 @@
 			{:else if diffProject?.error}
 				<span
 					class="studio-tree-diff__counts studio-tree-diff__counts--error"
-					title={diffProject.error}>{diffProject.error}</span
+					title={diffProject.error}
 				>
+					{diffProject.error}
+				</span>
 			{:else if diffProject && !diffProject.repository}
 				<span class="studio-tree-diff__counts">Not in a Git repository</span>
 			{:else if diffProject}
@@ -1464,9 +1476,9 @@
 						: 'No commit yet'}
 				>
 					<span class="studio-tree-diff__count--added">{diffProject.counts.added} added</span> ·
-					<span class="studio-tree-diff__count--modified"
-						>{diffProject.counts.modified} modified</span
-					>
+					<span class="studio-tree-diff__count--modified">
+						{diffProject.counts.modified} modified
+					</span>
 					·
 					<span class="studio-tree-diff__count--removed">{diffProject.counts.removed} removed</span>
 				</span>

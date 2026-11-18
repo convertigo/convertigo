@@ -145,9 +145,9 @@
 				{/if}
 			</fieldset>
 			<footer class="studio-dialog__footer">
-				<button type="button" class="button-secondary" disabled={busy} onclick={() => onClose?.()}
-					>Cancel</button
-				>
+				<button type="button" class="button-secondary" disabled={busy} onclick={() => onClose?.()}>
+					Cancel
+				</button>
 				<button type="submit" class="button-primary" disabled={busy || loading || !name.trim()}>
 					{#if busy}<Ico icon="mdi:sync" size={4} />{/if}
 					Create

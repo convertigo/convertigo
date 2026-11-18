@@ -125,15 +125,19 @@
 					role="tab"
 					aria-selected={mode === 'xml'}
 					class={['studio-dialog__mode', mode === 'xml' && 'studio-dialog__mode--active']}
-					onclick={() => (mode = 'xml')}>From XML</button
+					onclick={() => (mode = 'xml')}
 				>
+					From XML
+				</button>
 				<button
 					type="button"
 					role="tab"
 					aria-selected={mode === 'xsd'}
 					class={['studio-dialog__mode', mode === 'xsd' && 'studio-dialog__mode--active']}
-					onclick={() => (mode = 'xsd')}>From an XSD schema</button
+					onclick={() => (mode = 'xsd')}
 				>
+					From an XSD schema
+				</button>
 			</div>
 		</header>
 		<form class="studio-dialog__form" onsubmit={submit}>
@@ -155,8 +159,9 @@
 							bind:value={xml}
 							spellcheck="false"
 							placeholder={'<person name="">\n\t<address city=""/>\n</person>'}></textarea>
-						<small>Each element becomes an element step and each attribute an attribute step.</small
-						>
+						<small>
+							Each element becomes an element step and each attribute an attribute step.
+						</small>
 					</label>
 				{:else}
 					<div class="studio-dialog__choices" role="radiogroup" aria-label="Schema">
@@ -204,8 +209,10 @@
 							type="button"
 							class="button-secondary"
 							disabled={!hasSchema || busy}
-							onclick={readElements}>Read the elements</button
+							onclick={readElements}
 						>
+							Read the elements
+						</button>
 						{#if elements.length}
 							<select class="select-common" aria-label="Element" bind:value={element}>
 								{#each elements as qname (qname)}
@@ -220,9 +227,9 @@
 				{/if}
 			</fieldset>
 			<footer class="studio-dialog__footer">
-				<button type="button" class="button-secondary" disabled={busy} onclick={() => onClose?.()}
-					>Cancel</button
-				>
+				<button type="button" class="button-secondary" disabled={busy} onclick={() => onClose?.()}>
+					Cancel
+				</button>
 				<button type="submit" class="button-primary" disabled={busy || !canCreate}>
 					{#if busy}<Ico icon="mdi:sync" size={4} />{/if}
 					Create the steps

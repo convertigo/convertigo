@@ -215,9 +215,9 @@
 				{/if}
 			</div>
 			<footer class="studio-dialog__footer">
-				<button type="button" class="button-secondary" onclick={() => (fontId = '')}
-					>Inherit the font</button
-				>
+				<button type="button" class="button-secondary" onclick={() => (fontId = '')}>
+					Inherit the font
+				</button>
 				<span class="studio-font__spacer"></span>
 				<button type="button" class="button-secondary" onclick={() => onClose?.()}>Cancel</button>
 				<button type="submit" class="button-primary">Apply</button>

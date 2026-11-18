@@ -1055,8 +1055,10 @@
 									type="button"
 									class="studio-properties__versions-wide"
 									aria-label="Close"
-									onclick={() => (wideConflict = null)}><Ico icon="mdi:close" size={4} /></button
+									onclick={() => (wideConflict = null)}
 								>
+									<Ico icon="mdi:close" size={4} />
+								</button>
 							</header>
 							<StudioMergeTrees
 								trees={wideConflict.versions.trees}
@@ -1118,15 +1120,17 @@
 											role="radio"
 											aria-checked={versionsView === 'differences'}
 											onclick={() => setVersionsView('differences')}
-											><Ico icon="mdi:format-list-bulleted" size={3.5} /> Differences</button
 										>
+											<Ico icon="mdi:format-list-bulleted" size={3.5} /> Differences
+										</button>
 										<button
 											type="button"
 											role="radio"
 											aria-checked={versionsView === 'trees'}
 											onclick={() => setVersionsView('trees')}
-											><Ico icon="mdi:file-tree-outline" size={3.5} /> Two trees</button
 										>
+											<Ico icon="mdi:file-tree-outline" size={3.5} /> Two trees
+										</button>
 									</div>
 									{#if conflict.versions.trees}
 										<button
@@ -1135,8 +1139,9 @@
 											title="Show the two trees over the whole window"
 											aria-label="Show the two trees over the whole window"
 											onclick={() => (wideConflict = conflict)}
-											><Ico icon="mdi:window-maximize" size={3.5} /></button
 										>
+											<Ico icon="mdi:window-maximize" size={3.5} />
+										</button>
 									{/if}
 								</div>
 								{#if versionsView === 'trees' && conflict.versions.trees && conflict.resolution !== 'merge'}
@@ -1178,8 +1183,10 @@
 									<button
 										type="button"
 										class="studio-properties__merge-choice"
-										onclick={() => (mergeEditing = '')}>Cancel</button
+										onclick={() => (mergeEditing = '')}
 									>
+										Cancel
+									</button>
 								</form>
 							{:else}
 								<div class="studio-properties__merge-choices">
@@ -1196,8 +1203,10 @@
 												} else {
 													void resolve(conflict, choice);
 												}
-											}}>{CHOICE_LABELS[choice] ?? choice}</button
+											}}
 										>
+											{CHOICE_LABELS[choice] ?? choice}
+										</button>
 									{/each}
 									{#if conflict.resolution}
 										<button
@@ -1245,9 +1254,9 @@
 					{/if}
 					{#each diffChange.properties ?? [] as property (property.name)}
 						<div class="studio-properties__diff-row">
-							<span class="studio-properties__diff-name" title={property.name}
-								>{property.label}</span
-							>
+							<span class="studio-properties__diff-name" title={property.name}>
+								{property.label}
+							</span>
 							<span class="studio-properties__diff-values">
 								{#if property.old}<del>{property.old}</del>{:else}<em>default</em>{/if}
 								→
@@ -1322,14 +1331,14 @@
 											</div>
 											<div class="studio-properties__field-control">
 												{#if isReadOnlyRow(row, category)}
-													<span class="studio-properties__static"
-														>{row.isMasked === true && value ? '••••••••' : value}</span
-													>
+													<span class="studio-properties__static">
+														{row.isMasked === true && value ? '••••••••' : value}
+													</span>
 												{:else if row.isNull}
 													<div class="studio-properties__fallback layout-x-low">
-														<code class="studio-properties__fallback-value studio-properties__null"
-															>null</code
-														>
+														<code class="studio-properties__fallback-value studio-properties__null">
+															null
+														</code>
 														<div class="studio-properties__fallback-actions layout-x-low">
 															<StudioIconButton
 																icon="mdi:null"
@@ -1388,8 +1397,9 @@
 														<code
 															class="studio-properties__fallback-value"
 															class:studio-properties__fallback-value--compact={!wideField}
-															>{previewValue(row)}</code
 														>
+															{previewValue(row)}
+														</code>
 														<div class="studio-properties__fallback-actions layout-x-low">
 															<StudioIconButton
 																icon="mdi:format-font"
@@ -1405,8 +1415,9 @@
 														<code
 															class="studio-properties__fallback-value"
 															class:studio-properties__fallback-value--compact={!wideField}
-															>{previewValue(row)}</code
 														>
+															{previewValue(row)}
+														</code>
 														<div class="studio-properties__fallback-actions layout-x-low">
 															<StudioIconButton
 																icon="mdi:file-tree-outline"
@@ -1440,9 +1451,9 @@
 														/>
 													{:else}
 														<div class="studio-properties__fallback layout-x-low">
-															<code class="studio-properties__fallback-value"
-																>{flowBindingPreview(row.value)}</code
-															>
+															<code class="studio-properties__fallback-value">
+																{flowBindingPreview(row.value)}
+															</code>
 															<StudioIconButton
 																icon="mdi:hub"
 																size="xs"
@@ -1494,8 +1505,9 @@
 														<code
 															class="studio-properties__fallback-value"
 															class:studio-properties__fallback-value--compact={!wideField}
-															>{previewValue(row)}</code
 														>
+															{previewValue(row)}
+														</code>
 														<div class="studio-properties__fallback-actions layout-x-low">
 															{#if canOpenCodeProperty(row, selectedId)}
 																<StudioIconButton
@@ -1529,14 +1541,16 @@
 												<small
 													class="studio-properties__compiled"
 													title="The value of the global symbols of this property"
-													>⇒ {row.compiledValue}</small
 												>
+													⇒ {row.compiledValue}
+												</small>
 											{:else if !changed && row.undefinedSymbols}
 												<small
 													class="studio-properties__compiled studio-properties__compiled--undefined"
 													title="A global symbol of this property has no value"
-													>Undefined global symbol</small
 												>
+													Undefined global symbol
+												</small>
 											{/if}
 											{#if isPickerOpen(row)}
 												<div class="studio-properties__inline-picker">

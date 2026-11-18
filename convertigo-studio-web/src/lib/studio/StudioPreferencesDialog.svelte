@@ -79,10 +79,10 @@
 					<input type="checkbox" bind:checked={gitRepositoryForNewProjects} />
 					<span>
 						Create a Git repository for the new projects
-						<small
-							>With an initial commit, for the projects created, or started from a Marketplace
-							starter.</small
-						>
+						<small>
+							With an initial commit, for the projects created, or started from a Marketplace
+							starter.
+						</small>
 					</span>
 				</label>
 				<label class="studio-dialog__check">
@@ -96,10 +96,10 @@
 					<input type="checkbox" bind:checked={experimentalFeatures} />
 					<span>
 						Show new experimental features
-						<small
-							>Native JSON sequences, native JSON steps and JSON path sources, in the palette, the
-							properties and the pickers.</small
-						>
+						<small>
+							Native JSON sequences, native JSON steps and JSON path sources, in the palette, the
+							properties and the pickers.
+						</small>
 					</span>
 				</label>
 				<label class="studio-dialog__field">
@@ -132,10 +132,10 @@
 						<option value="always">In every profile</option>
 						<option value="never">Never</option>
 					</select>
-					<small
-						>With the Reveal mode of the Assistant on, the objects its agent creates or changes are
-						selected in the tree, with the Flow of their sequence or the preview of their page.</small
-					>
+					<small>
+						With the Reveal mode of the Assistant on, the objects its agent creates or changes are
+						selected in the tree, with the Flow of their sequence or the preview of their page.
+					</small>
 				</label>
 				<label class="studio-dialog__field">
 					<span>Assistant URL</span>
@@ -159,11 +159,11 @@
 					<div class="studio-dialog__field">
 						<span>Personal Studio Configuration</span>
 						<div class="studio-dialog__row">
-							<small
-								>{registration.state.registered
+							<small>
+								{registration.state.registered
 									? `Registered for ${registration.state.owner}`
-									: 'Not registered: the Convertigo agent of the Assistant needs it'}</small
-							>
+									: 'Not registered: the Convertigo agent of the Assistant needs it'}
+							</small>
 							<button type="button" class="button-secondary" onclick={openRegistration}>
 								{registration.state.registered ? 'Change…' : 'Register…'}
 							</button>

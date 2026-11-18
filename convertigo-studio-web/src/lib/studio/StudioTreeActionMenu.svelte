@@ -419,9 +419,9 @@
 	>
 		<Ico {icon} size={4} />
 		<Menu.ItemText>{text}</Menu.ItemText>
-		<kbd class="studio-tree-action-menu__shortcut" aria-hidden="true"
-			>{treeActionShortcuts[/** @type {keyof typeof treeActionShortcuts} */ (value)] ?? ''}</kbd
-		>
+		<kbd class="studio-tree-action-menu__shortcut" aria-hidden="true">
+			{treeActionShortcuts[/** @type {keyof typeof treeActionShortcuts} */ (value)] ?? ''}
+		</kbd>
 	</Menu.Item>
 {/snippet}
 

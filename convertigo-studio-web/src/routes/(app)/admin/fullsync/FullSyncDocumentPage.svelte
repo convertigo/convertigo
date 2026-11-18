@@ -401,9 +401,9 @@
 				>
 					<Ico icon="mdi:arrow-left-bold-outline" size={5} />
 				</a>
-				<a href={fullSyncDbTabHref(database, 'all')} class="doc-db-link" title={database}
-					>{database}</a
-				>
+				<a href={fullSyncDbTabHref(database, 'all')} class="doc-db-link" title={database}>
+					{database}
+				</a>
 				<Ico icon="mdi:chevron-right" size={4} class="text-strong" />
 				<span class="doc-id-text" title={documentTitle}>{documentTitle}</span>
 			</div>

@@ -45,9 +45,9 @@
 					</label>
 				</div>
 				<footer class="studio-dialog__footer">
-					<button type="button" class="button-secondary" onclick={() => answerStudioPrompt(null)}
-						>Cancel</button
-					>
+					<button type="button" class="button-secondary" onclick={() => answerStudioPrompt(null)}>
+						Cancel
+					</button>
 					<button type="submit" class="button-primary">OK</button>
 				</footer>
 			</form>

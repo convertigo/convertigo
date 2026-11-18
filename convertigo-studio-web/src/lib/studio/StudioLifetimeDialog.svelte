@@ -97,9 +97,9 @@
 				<p class="studio-dialog__result" role="status">{result}</p>
 			</div>
 			<footer class="studio-dialog__footer">
-				<button type="button" class="button-secondary" onclick={() => onApply?.('')}
-					>No lifetime</button
-				>
+				<button type="button" class="button-secondary" onclick={() => onApply?.('')}>
+					No lifetime
+				</button>
 				<span class="studio-dialog__spacer"></span>
 				<button type="button" class="button-secondary" onclick={() => onClose?.()}>Cancel</button>
 				<button type="submit" class="button-primary">Apply</button>

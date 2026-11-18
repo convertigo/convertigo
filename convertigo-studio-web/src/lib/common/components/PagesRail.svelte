@@ -75,8 +75,10 @@
 					<span
 						class="w-full text-left text-[14px] {isSelected
 							? 'font-medium rail-active'
-							: 'font-normal text-strong'}">{title}</span
+							: 'font-normal text-strong'}"
 					>
+						{title}
+					</span>
 					{#if subtitle}
 						{#if subtitleTooltip}
 							<Tooltip positioning={{ placement: 'top-start' }}>

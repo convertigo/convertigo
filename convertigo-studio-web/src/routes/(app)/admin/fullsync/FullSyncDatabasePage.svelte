@@ -2381,8 +2381,9 @@
 											}}
 										>
 											{#each FULLSYNC_PAGE_OPTIONS_WITH_500_AND_NONE as pageSizeOption (pageSizeOption)}
-												<option value={pageSizeOption}>{fullSyncOptionLabel(pageSizeOption)}</option
-												>
+												<option value={pageSizeOption}>
+													{fullSyncOptionLabel(pageSizeOption)}
+												</option>
 											{/each}
 										</select>
 									</label>
@@ -2521,9 +2522,9 @@
 				<div class="fullsync-footer">
 					<div class="layout-x-wrap items-center gap-2 text-sm text-muted">
 						{#if currentLayout == 'table' && documentRows.length > 0}
-							<span
-								>Showing {docsVisibleColumns.length} of {docsDisplayableColumns.length} columns.</span
-							>
+							<span>
+								Showing {docsVisibleColumns.length} of {docsDisplayableColumns.length} columns.
+							</span>
 							<Switch
 								name="docs-show-all-columns"
 								aria-label="Show all columns"
@@ -2537,10 +2538,10 @@
 							</Switch>
 							<span>Show all columns.</span>
 						{/if}
-						<span
-							>Showing document {documentRows.length > 0 ? docsSkip + 1 : 0} - {docsSkip +
-								documentRows.length}.</span
-						>
+						<span>
+							Showing document {documentRows.length > 0 ? docsSkip + 1 : 0} - {docsSkip +
+								documentRows.length}.
+						</span>
 					</div>
 					<div class="layout-x-wrap items-center gap-2">
 						<label class="docs-per-page-control layout-x-low items-center text-sm text-muted">
@@ -2595,9 +2596,9 @@
 					>
 						<Ico icon="mdi:arrow-left" size={5} />
 					</a>
-					<a href={fullSyncDbTabHref(database, 'all')} class="mango-db-link" title={database}
-						>{database}</a
-					>
+					<a href={fullSyncDbTabHref(database, 'all')} class="mango-db-link" title={database}>
+						{database}
+					</a>
 					<Ico icon="mdi:chevron-right" size={4} class="text-strong" />
 					<span class="mango-title-text">Mango Query</span>
 				</div>
@@ -2787,9 +2788,9 @@
 						<footer class="fullsync-footer mango-footer">
 							<div class="layout-x-wrap items-center gap-2 text-sm text-muted">
 								{#if hasMangoDocs && mangoResultLayout == 'table'}
-									<span
-										>Showing {mangoVisibleColumns.length} of {mangoDisplayableColumns.length} columns.</span
-									>
+									<span>
+										Showing {mangoVisibleColumns.length} of {mangoDisplayableColumns.length} columns.
+									</span>
 									<Switch
 										name="mango-show-all-columns"
 										aria-label="Show all columns"
@@ -2858,9 +2859,9 @@
 					<a href={fullSyncDbAllDocsHref(database)} class="mango-back-link" title="All Documents">
 						<Ico icon="mdi:arrow-left" size={5} />
 					</a>
-					<a href={fullSyncDbAllDocsHref(database)} class="mango-db-link" title={database}
-						>{database}</a
-					>
+					<a href={fullSyncDbAllDocsHref(database)} class="mango-db-link" title={database}>
+						{database}
+					</a>
 					<Ico icon="mdi:chevron-right" size={4} class="text-strong" />
 					<span class="mango-title-text">Mango</span>
 				</div>

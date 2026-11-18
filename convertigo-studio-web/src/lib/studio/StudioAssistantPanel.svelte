@@ -522,10 +522,10 @@
 	{/if}
 	{#if unregistered}
 		<div class="studio-assistant-bar" role="region" aria-label="Studio registration">
-			<span class="studio-assistant-bar__text" role="status"
-				>The Studio is not registered: the Convertigo agent of the Assistant needs its Personal
-				Studio Configuration (PSC).</span
-			>
+			<span class="studio-assistant-bar__text" role="status">
+				The Studio is not registered: the Convertigo agent of the Assistant needs its Personal
+				Studio Configuration (PSC).
+			</span>
 			<button type="button" class="button-primary" onclick={() => (registration.open = true)}>
 				Register…
 			</button>

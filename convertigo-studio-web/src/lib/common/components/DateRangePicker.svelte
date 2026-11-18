@@ -73,8 +73,10 @@
 							class:hover:no-underline={!live}
 							class:line-through={!live}
 							aria-label={liveTooltip}
-							onclick={() => (live = !live)}>live</button
+							onclick={() => (live = !live)}
 						>
+							live
+						</button>
 					{/snippet}
 				</Tooltip.Trigger>
 				<Portal>
@@ -104,16 +106,20 @@
 								<DatePicker.PrevTrigger
 									class="btn-icon preset-filled-primary-500"
 									title="Previous month"
-									aria-label="Previous month">❮</DatePicker.PrevTrigger
+									aria-label="Previous month"
 								>
+									❮
+								</DatePicker.PrevTrigger>
 								<DatePicker.ViewTrigger class="text-lg font-medium">
 									<DatePicker.RangeText />
 								</DatePicker.ViewTrigger>
 								<DatePicker.NextTrigger
 									class="btn-icon preset-filled-primary-500"
 									title="Next month"
-									aria-label="Next month">❯</DatePicker.NextTrigger
+									aria-label="Next month"
 								>
+									❯
+								</DatePicker.NextTrigger>
 							</DatePicker.ViewControl>
 							<DatePicker.Table class="mt-4 w-full border-separate border-spacing-1 select-none">
 								<DatePicker.TableHead>

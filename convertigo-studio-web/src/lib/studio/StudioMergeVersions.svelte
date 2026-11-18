@@ -105,9 +105,9 @@
 					onclick={() => node.objectId && onSelect?.(node.objectId)}
 				>
 					{#if present}
-						<span class="studio-versions__mark"
-							>{node.status === 'modified' ? '~' : node.status === 'same' ? '=' : '+'}</span
-						>
+						<span class="studio-versions__mark">
+							{node.status === 'modified' ? '~' : node.status === 'same' ? '=' : '+'}
+						</span>
 						<span class="studio-versions__name">{node.name}</span>
 						{#if node.type}<small>{node.type}</small>{/if}
 					{:else}
@@ -137,16 +137,18 @@
 							]}
 							aria-pressed={chosen === side}
 							title="Take the {property.label} of this side"
-							onclick={() => choose(id, side)}><small>{property.label}</small>{value || '—'}</button
+							onclick={() => choose(id, side)}
 						>
+							<small>{property.label}</small>{value || '—'}
+						</button>
 					{/each}
 				{:else}
-					<span class="studio-versions__value" title={property.old}
-						><small>{property.label}</small>{property.old || '—'}</span
-					>
-					<span class="studio-versions__value" title={property.new}
-						><small>{property.label}</small>{property.new || '—'}</span
-					>
+					<span class="studio-versions__value" title={property.old}>
+						<small>{property.label}</small>{property.old || '—'}
+					</span>
+					<span class="studio-versions__value" title={property.new}>
+						<small>{property.label}</small>{property.new || '—'}
+					</span>
 				{/if}
 			</div>
 		{/each}

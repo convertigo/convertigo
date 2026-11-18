@@ -429,8 +429,9 @@
 													class="z-10 text-[13px] leading-tight {isSelected
 														? 'font-medium rail-active'
 														: 'font-normal text-strong'}"
-													>{title}<br /><small>{width} x {height}</small></span
 												>
+													{title}<br /><small>{width} x {height}</small>
+												</span>
 											</a>
 										{/each}
 									</div>
@@ -473,8 +474,9 @@
 											class="z-10 text-[13px] leading-tight {isSelected
 												? 'font-medium rail-active'
 												: 'font-normal text-strong'}"
-											>{title}<br /><small>{width} x {height}</small></span
 										>
+											{title}<br /><small>{width} x {height}</small>
+										</span>
 									</a>
 								{/each}
 							</div>
@@ -535,9 +537,9 @@
 				onclick={() => adjustZoom(1)}
 				cls={iconButtonClasses}
 			/>
-			<span class="text-xs font-semibold text-muted"
-				>{Math.round((zoomMode === 'fit' ? 1 : zoom) * 100)}%</span
-			>
+			<span class="text-xs font-semibold text-muted">
+				{Math.round((zoomMode === 'fit' ? 1 : zoom) * 100)}%
+			</span>
 			<Button
 				icon="mdi:camera-rotate-outline"
 				title="Rotate"

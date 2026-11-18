@@ -940,9 +940,9 @@
 						title={tab.debugLabel ?? `${tab.displayName} - ${tab.id}`}
 						onclick={() => selectEditorTab(tab)}
 					>
-						<span class="studio-editor__tab-dirty"
-							>{tab.content !== tab.originalValue ? '*' : ''}</span
-						>
+						<span class="studio-editor__tab-dirty">
+							{tab.content !== tab.originalValue ? '*' : ''}
+						</span>
 						<span class="studio-editor__tab-label studio-ellipsis">{tab.displayName}</span>
 					</button>
 					<button
@@ -964,14 +964,14 @@
 	{#if activeTab}
 		<div class="studio-editor__toolbar layout-x-between-low">
 			<div class="studio-editor__title">
-				<strong class="studio-ellipsis" title={activeTab.debugLabel}
-					>{activeTab.debugLabel ?? activeTab.displayName}</strong
-				>
-				<span class="studio-ellipsis"
-					>{activeTab.sourceDocument
+				<strong class="studio-ellipsis" title={activeTab.debugLabel}>
+					{activeTab.debugLabel ?? activeTab.displayName}
+				</strong>
+				<span class="studio-ellipsis">
+					{activeTab.sourceDocument
 						? activeTab.propertyName.replace(/^source:/, '')
-						: (activeTab.debugLabel ?? activeTab.id)}</span
-				>
+						: (activeTab.debugLabel ?? activeTab.id)}
+				</span>
 			</div>
 			<div class="studio-editor__actions layout-x-low">
 				{#if debuggable && breakpointNotice}
@@ -1038,9 +1038,9 @@
 											<strong>{zone.label}</strong>
 											<small>{zone.hint || zone.name}</small>
 										</span>
-										<span class="studio-editor__zone-lines"
-											>{lines ? `${lines} line${lines > 1 ? 's' : ''}` : 'empty'}</span
-										>
+										<span class="studio-editor__zone-lines">
+											{lines ? `${lines} line${lines > 1 ? 's' : ''}` : 'empty'}
+										</span>
 									</button>
 								{/each}
 							</div>
@@ -1056,9 +1056,9 @@
 						onclick={toggleZonesFocus}
 					>
 						<Ico icon={zonesFocus ? 'mdi:eye-outline' : 'mdi:eye-off-outline'} size={3.4} />
-						<span class="studio-editor__zones-label"
-							>{zonesFocus ? 'Show generated code' : 'Fold generated code'}</span
-						>
+						<span class="studio-editor__zones-label">
+							{zonesFocus ? 'Show generated code' : 'Fold generated code'}
+						</span>
 					</button>
 				{/if}
 				{#if formattedJson}

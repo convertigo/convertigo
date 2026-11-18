@@ -46,8 +46,10 @@
 			<div class="layout-y-start-low w-full">
 				<label
 					class="label-common text-left text-sm font-medium text-surface-600-400"
-					for="login-username">Username</label
+					for="login-username"
 				>
+					Username
+				</label>
 				<InputGroup
 					id="login-username"
 					name="authUserName"
@@ -64,8 +66,10 @@
 			<div class="layout-y-start-low w-full">
 				<label
 					class="label-common text-left text-sm font-medium text-surface-600-400"
-					for="login-password">Password</label
+					for="login-password"
 				>
+					Password
+				</label>
 				<InputGroup
 					id="login-password"
 					name="authPassword"

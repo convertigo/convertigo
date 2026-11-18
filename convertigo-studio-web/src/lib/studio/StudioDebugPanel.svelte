@@ -373,8 +373,9 @@
 					class="debug-help"
 					disabled={busy || debugState.running || debugState.rhinoRequested}
 					onclick={() => command('attach', { target: target.id })}
-					>Attach to running request: {target.label}</button
 				>
+					Attach to running request: {target.label}
+				</button>
 			{/if}
 		{/each}
 	{/if}
@@ -429,9 +430,9 @@
 					onchange={(event) => openSource(event.currentTarget.value)}
 				>
 					<option value="" disabled>Choose a script</option>
-					{#each debugState.sources as url (url)}<option value={url}
-							>{debugState.sourceLocations?.[url]?.label ?? url}</option
-						>{/each}
+					{#each debugState.sources as url (url)}<option value={url}>
+							{debugState.sourceLocations?.[url]?.label ?? url}
+						</option>{/each}
 				</select>
 				<div class="min-h-64 min-w-0 grow" aria-label="Source editor">
 					{#if source}<Editor
@@ -549,9 +550,9 @@
 							title={`${item.location?.label ?? item.url}:${item.line}`}
 							onclick={() => selectFrame(index)}
 						>
-							<strong>{item.function || 'Script'}</strong><span class="frame-source"
-								>{item.location?.label ?? item.url}</span
-							><span class="frame-line">:{item.line}</span>
+							<strong>{item.function || 'Script'}</strong><span class="frame-source">
+								{item.location?.label ?? item.url}
+							</span><span class="frame-line">:{item.line}</span>
 						</button>
 					{/each}
 				{:else}<p class="debug-help debug-empty">
@@ -581,8 +582,10 @@
 						<div class={['debug-evaluation', { 'evaluation-error': evaluation.error }]}>
 							<div class="evaluation-input">
 								<span aria-hidden="true">›</span><code>{evaluation.expression}</code><span
-									class="evaluation-context">{evaluation.context}</span
+									class="evaluation-context"
 								>
+									{evaluation.context}
+								</span>
 							</div>
 							<div class="evaluation-output">
 								<span aria-hidden="true">‹</span>

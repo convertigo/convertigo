@@ -140,8 +140,9 @@
 							class="button-secondary"
 							disabled={busy}
 							onclick={() => onCapture()}
-							><Ico icon="mdi:camera-outline" size={4} /> Capture the preview</button
 						>
+							<Ico icon="mdi:camera-outline" size={4} /> Capture the preview
+						</button>
 					{/if}
 					<label class="studio-capture__file button-secondary">
 						<Ico icon="mdi:image-outline" size={4} /> Choose a picture
@@ -164,23 +165,25 @@
 							class="button-primary"
 							disabled={busy || !picture}
 							onclick={() => run({ action: 'save', slot: capture.slot, data: picture })}
-							>Save as {LABELS[capture.slot].toLowerCase()}</button
 						>
+							Save as {LABELS[capture.slot].toLowerCase()}
+						</button>
 						<button
 							type="button"
 							class="button-secondary"
 							disabled={busy || !capture.data}
 							onclick={() => run({ action: 'delete', slot: capture.slot })}
-							><Ico icon="mdi:delete-outline" size={4} /> Delete</button
 						>
+							<Ico icon="mdi:delete-outline" size={4} /> Delete
+						</button>
 					</section>
 				{/each}
 			</div>
 		</div>
 		<footer class="studio-dialog__footer">
-			<button type="button" class="button-secondary" disabled={busy} onclick={() => onClose?.()}
-				>Close</button
-			>
+			<button type="button" class="button-secondary" disabled={busy} onclick={() => onClose?.()}>
+				Close
+			</button>
 		</footer>
 	</div>
 </div>

@@ -155,9 +155,9 @@
 			ondblclick={() => node.objectId && onSelect?.(node.objectId)}
 		>
 			{#if node.icon}
-				<span class="studio-trees__icon"
-					><AutoSvg class="h-4 w-4" fill="currentColor" src="{getUrl()}{node.icon}" alt="" /></span
-				>
+				<span class="studio-trees__icon">
+					<AutoSvg class="h-4 w-4" fill="currentColor" src="{getUrl()}{node.icon}" alt="" />
+				</span>
 			{/if}
 			<span class="studio-trees__name">{node.name}</span>
 			{#if node.status === 'only'}
@@ -207,8 +207,9 @@
 						type="button"
 						class="studio-trees__select"
 						onclick={() => pair?.left?.objectId && onSelect?.(pair.left.objectId)}
-						>Select in the tree</button
 					>
+						Select in the tree
+					</button>
 				{/if}
 			</div>
 			{#each rows as row (row.name)}
