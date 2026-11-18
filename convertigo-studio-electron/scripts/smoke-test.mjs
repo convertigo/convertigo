@@ -15,7 +15,10 @@ const NAME = 'Convertigo Studio';
 // an engine without Jasper does not find the JspServlet of the default web.xml of Tomcat
 const KNOWN_ERRORS = [
 	/ClassNotFoundException: org\.apache\.jasper\.servlet\.JspServlet/,
-	/Servlet \[jsp\] in web application \[\/convertigo\] threw load\(\) exception/
+	/Servlet \[jsp\] in web application \[\/convertigo\] threw load\(\) exception/,
+	// A client may abandon its request when the application closes.
+	/^SEVERE: Servlet\.service\(\) for servlet \[AdminServlet\] in context with path \[\/convertigo\] threw exception \[org\.apache\.catalina\.connector\.ClientAbortException: java\.io\.IOException: Broken pipe\] with root cause\r?$/,
+	/^java\.io\.IOException: Broken pipe\r?$/
 ];
 
 /**
