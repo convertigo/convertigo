@@ -132,6 +132,82 @@ public class ProjectBundleLifecycleTest {
 		assertNoLoadingContext();
 	}
 
+	@Test public void optionalHttpHeaderStaysAbsentAfterImportAndEngineReload() throws Exception {
+		assertHttpHeadersAfterReload(false);
+	}
+
+	@Test public void attributeOnlyHttpHeaderIsRepairedOnImportAndEngineReload() throws Exception {
+		assertHttpHeadersAfterReload(true);
+	}
+
+	private void assertHttpHeadersAfterReload(boolean attributeOnly) throws Exception {
+		var received = new java.util.concurrent.CopyOnWriteArrayList<Map<String, List<String>>>();
+		var server = com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress("127.0.0.1", 0), 0);
+		server.createContext("/", exchange -> {
+			var headers = new java.util.TreeMap<String, List<String>>(String.CASE_INSENSITIVE_ORDER);
+			headers.putAll(exchange.getRequestHeaders());
+			received.add(headers);
+			byte[] response = "{}".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+			exchange.sendResponseHeaders(200, response.length);
+			exchange.getResponseBody().write(response);
+			exchange.close();
+		});
+		server.start();
+		try {
+			var descriptor = projects.resolve("HeaderFixture/c8oProject.yaml");
+			Files.createDirectories(descriptor.getParent());
+			Files.writeString(descriptor, "↑convertigo: 8.4.0.m006\n↓HeaderFixture [core.Project]: \n"
+					+ "  ↓http [connectors.HttpConnector]: \n    server: 127.0.0.1\n    port: " + server.getAddress().getPort() + "\n"
+					+ "    ↓Echo [transactions.JsonHttpTransaction]: \n"
+					+ "      ↓__header_X_Optional [variables.RequestableHttpVariable-1]: \n"
+					+ (attributeOnly ? "        value: \n          - ↑traceable: false\n" : "")
+					+ "      ↓__header_X_Empty [variables.RequestableHttpVariable-2]: \n        value: ''\n"
+					+ "      ↓__header_X_Populated [variables.RequestableHttpVariable-3]: \n        value: synthetic-header-value\n");
+			var first = manager.importProject(descriptor.toFile(), true);
+			callHeaderEcho(first);
+			manager.exportProject(first);
+			// Discard all loaded objects and HTTP state, then import only the persisted YAML.
+			manager.destroy();
+			Engine.theApp = new Engine();
+			Engine.theApp.databaseObjectsManager = manager = new Manager();
+			Engine.theApp.referencedProjectManager = references;
+			Engine.theApp.contextManager = new ContextManager();
+			manager.init();
+			var reloaded = manager.importProject(descriptor.toFile(), true);
+			assertNotSame(first, reloaded);
+			callHeaderEcho(reloaded);
+			assertEquals(2, received.size());
+			for (var headers : received) {
+				assertFalse("An absent value must not send a header", headers.containsKey("X_optional"));
+				assertEquals(List.of(""), headers.get("X_empty"));
+				assertEquals(List.of("synthetic-header-value"), headers.get("X_populated"));
+			}
+		} finally {
+			server.stop(0);
+		}
+	}
+
+	private void callHeaderEcho(Project project) throws Exception {
+		var connector = (com.twinsoft.convertigo.beans.connectors.HttpConnector) project.getConnectorByName("http");
+		var transaction = (com.twinsoft.convertigo.beans.transactions.JsonHttpTransaction) connector.getTransactionByName("Echo");
+		var context = new Context("header-fixture");
+		context.project = project;
+		context.connector = connector;
+		context.requestedObject = context.transaction = transaction;
+		connector.context = transaction.context = context;
+		transaction.setHttpPool(com.twinsoft.convertigo.engine.enums.HttpPool.no);
+		transaction.createRequestableThread();
+		Engine.theApp.pluginsManager = new PluginsManager();
+		Engine.theApp.proxyManager = new ProxyManager() {
+			@Override public void setProxy(org.apache.commons.httpclient.HostConfiguration host,
+					org.apache.commons.httpclient.HttpState state, java.net.URL url) { }
+		};
+		context.nativeParameters = Map.of();
+		transaction.parseInputDocument(context);
+		connector.prepareForTransaction(context);
+		assertEquals("{}", new String(connector.getData(context), java.nio.charset.StandardCharsets.UTF_8));
+	}
+
 	@Test public void reusesACompletedNestedImportWithoutAnotherSynchronization() throws Exception {
 		nested = "B";
 		try (var scope = manager.openProjectImportGroup(Set.of("A", "B"))) {

@@ -271,10 +271,14 @@ public class YamlConverter {
 				String key = groups[P_KEY];
 				String value = groups[P_VALUE];
 				String textIndent = groups[P_ARRAY] == null ? indent : (indent + inc);
+				boolean hasValue = !value.isEmpty();
 				value = readYalmText(value, textIndent);
 				Element nElt = doc.createElement(key);
 				elt.appendChild(nElt);
-				nElt.setTextContent(value);
+				if (hasValue) {
+					// A quoted empty scalar is a value, even when attributes follow it.
+					nElt.appendChild(doc.createTextNode(value));
+				}
 				readYamlElement(nElt, indent + inc, false);
 			}
 		}
