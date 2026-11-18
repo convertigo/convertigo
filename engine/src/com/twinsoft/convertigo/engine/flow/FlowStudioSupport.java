@@ -30,7 +30,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.text.StringEscapeUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -3004,8 +3003,25 @@ public class FlowStudioSupport {
 		return list.length() == 0 ? "" : "<ul>" + list + "</ul>";
 	}
 
-	private static String html(String text) {
-		return StringEscapeUtils.escapeHtml4(text == null ? "" : text);
+	// Used only in HTML text content (never inside attributes): escape the markup
+	// characters and keep every other character (accents included) as is, in UTF-8.
+	static String html(String text) {
+		if (text == null || text.isEmpty()) {
+			return "";
+		}
+		var out = new StringBuilder(text.length() + 16);
+		for (int i = 0; i < text.length(); i++) {
+			var c = text.charAt(i);
+			switch (c) {
+			case '<' -> out.append("&lt;");
+			case '>' -> out.append("&gt;");
+			case '&' -> out.append("&amp;");
+			case '"' -> out.append("&quot;");
+			case '\'' -> out.append("&#39;");
+			default -> out.append(c);
+			}
+		}
+		return out.toString();
 	}
 
 	private static void addDefaultProperties(DatabaseObject root, String blockName, JSONObject node) throws Exception {
