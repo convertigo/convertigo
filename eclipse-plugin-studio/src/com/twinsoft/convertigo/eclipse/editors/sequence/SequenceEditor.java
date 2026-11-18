@@ -25,7 +25,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.ISaveablePart2;
@@ -122,11 +121,8 @@ public class SequenceEditor extends ExtensionBasedTextEditor implements ISaveabl
 
 	@Override
 	public int promptToSaveOnClose() {
-		MessageBox messageBox = new MessageBox(Display.getCurrent().getActiveShell(), SWT.ICON_WARNING);
-		messageBox.setText("Convertigo");
-		messageBox.setMessage("A sequence is currently running.\nThe sequence editor can't be closed.");
-		messageBox.open();
-		return CANCEL;
+		// The dirty flag marks a running execution in this read-only results editor.
+		return NO;
 	}
 
 	@Override
