@@ -986,7 +986,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 			return installProjectArchive(filename, projectName, true, false, false, (file, directory, prefix) ->
 					com.twinsoft.convertigo.engine.util.ProjectBundleZip.extractProject(archive, Path.of(directory), entries, budget, projectName));
 		} catch (EngineException failure) {
-			throw failure;
+			Throwable cause = failure;
+			for (int depth = 0; depth < 20 && cause.getCause() != null; depth++) cause = cause.getCause();
+			// The bundle summary needs the project and cause, not local archive or installation paths.
+			throw new EngineException("Unable to deploy project \"" + projectName + "\" (" + cause.getClass().getSimpleName() + ").", failure);
 		} catch (Exception failure) {
 			throw new EngineException("Unable to install the prepared project archive", failure);
 		}

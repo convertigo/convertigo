@@ -112,6 +112,30 @@ public class ProjectBundleZipTest {
 		assertThrows(IOException.class, () -> ProjectBundleZip.extract(archive, target, entries, budget, name -> false));
 	}
 
+	@Test public void replacesInstalledFilesWithoutChangingStagingOrLocalMetadata() throws Exception {
+		var archive = archive("App/payload.txt", "new", "App/.project", "archive metadata");
+		var target = folder.newFolder().toPath();
+		Files.writeString(target.resolve("payload.txt"), "old contents longer than the replacement");
+		Files.writeString(target.resolve(".project"), "local metadata");
+		var budget = new Budget(Limits.defaults());
+		var entries = ProjectBundleZip.inspect(archive, budget);
+		ProjectBundleZip.extractProject(archive, target, entries, budget, "App");
+		assertEquals("new", Files.readString(target.resolve("payload.txt")));
+		assertEquals("local metadata", Files.readString(target.resolve(".project")));
+	}
+
+	@Test public void refusesToReplaceAnInstalledSymbolicLink() throws Exception {
+		var archive = archive("App/payload.txt", "new");
+		var target = folder.newFolder().toPath();
+		var outside = Files.writeString(folder.newFile().toPath(), "unchanged");
+		Files.createSymbolicLink(target.resolve("payload.txt"), outside);
+		var budget = new Budget(Limits.defaults());
+		var entries = ProjectBundleZip.inspect(archive, budget);
+		assertThrows(IOException.class, () -> ProjectBundleZip.extractProject(archive, target, entries, budget, "App"));
+		assertEquals("unchanged", Files.readString(outside));
+		assertTrue(Files.isSymbolicLink(target.resolve("payload.txt")));
+	}
+
 	@Test public void acceptsZip64DirectoryAndEntrySizes() throws Exception {
 		byte[] name = "a.txt".getBytes(java.nio.charset.StandardCharsets.UTF_8);
 		byte[] content = "ZIP64 content".getBytes(java.nio.charset.StandardCharsets.UTF_8);

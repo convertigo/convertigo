@@ -41,6 +41,7 @@ public class ProjectBundleLifecycleTest {
 	private final Map<String, Integer> syncs = new HashMap<>();
 	private String nested, failed;
 	private boolean absorbNestedFailure, failSave;
+	private Runnable afterDelete;
 	private final Map<String, File> declared = new HashMap<>();
 
 	@Before public void setup() throws Exception {
@@ -323,6 +324,141 @@ public class ProjectBundleLifecycleTest {
 		}
 	}
 
+	@Test public void replacesAnExistingBundleWithTheSameVersions() throws Exception {
+		assertBundleReplacement("fixture");
+	}
+
+	@Test public void replacesAnExistingBundleWithDifferentVersions() throws Exception {
+		assertBundleReplacement("next");
+	}
+
+	private void assertBundleReplacement(String version) throws Exception {
+		for (var name : List.of("A", "B")) {
+			var old = install(name, null, "8.4.0.m006");
+			old.load(); old.finish();
+			Files.writeString(projects.resolve(name + "/payload.txt"), "old payload");
+			Files.writeString(projects.resolve(name + "/obsolete.txt"), "old only");
+			Files.writeString(projects.resolve(name + "/.project"), "workspace metadata");
+			Files.createDirectory(projects.resolve(name + "/.git"));
+			Files.writeString(projects.resolve(name + "/.git/config"), "local vcs metadata");
+		}
+		var archive = folder.newFile("replacement.zip").toPath();
+		writeArchive(archive, Map.of("A/c8oProject.yaml", yaml("A", null, "8.4.0.m006").replace("version: fixture", "version: " + version),
+				"A/payload.txt", "new A", "B/c8oProject.yaml", yaml("B", "A", "8.4.0.m006").replace("version: fixture", "version: " + version),
+				"B/payload.txt", "new B"));
+		var response = deployBundle(archive);
+		assertEquals("true", ((org.w3c.dom.Element) response.getElementsByTagName("deployment").item(0)).getAttribute("success"));
+		for (var name : List.of("A", "B")) {
+			assertEquals(version, manager.getCachedProject(name).getVersion());
+			assertEquals("new " + name, Files.readString(projects.resolve(name + "/payload.txt")));
+			assertFalse(Files.exists(projects.resolve(name + "/obsolete.txt")));
+			assertEquals("workspace metadata", Files.readString(projects.resolve(name + "/.project")));
+			assertEquals("local vcs metadata", Files.readString(projects.resolve(name + "/.git/config")));
+			List<Path> backups;
+			try (var files = Files.list(projects)) { backups = files.filter(path -> path.getFileName().toString().matches(name + "_.*\\.zip")).toList(); }
+			assertEquals(1, backups.size());
+			try (var zip = new ZipFile(backups.get(0).toFile())) {
+				assertEquals("old payload", new String(zip.getInputStream(zip.getEntry(name + "/payload.txt")).readAllBytes(), java.nio.charset.StandardCharsets.UTF_8));
+			}
+		}
+		assertEquals(Map.of("A", 2, "B", 2), syncs);
+	}
+
+	@Test public void replacesABundleWhileKeepingAnExcludedDependency() throws Exception {
+		var external = install("External", null, "8.4.0.m006");
+		var dependency = external.load(); external.finish();
+		var app = install("App", "External", "8.4.0.m006");
+		app.load(); app.finish();
+		var descriptor = Files.readAllBytes(projects.resolve("External/c8oProject.yaml"));
+		var archive = folder.getRoot().toPath().resolve("excluded.zip");
+		var plan = com.twinsoft.convertigo.engine.util.ProjectBundle.export(archive, List.of("App"), true, List.of(), List.of("External"),
+				com.twinsoft.convertigo.engine.enums.ArchiveExportOption.all);
+		assertEquals(List.of("App"), plan.projects().stream().map(com.twinsoft.convertigo.engine.util.ProjectBundlePlan.ProjectInfo::name).toList());
+		var response = deployBundle(archive);
+		assertEquals("true", ((org.w3c.dom.Element) response.getElementsByTagName("deployment").item(0)).getAttribute("success"));
+		assertArrayEquals(descriptor, Files.readAllBytes(projects.resolve("External/c8oProject.yaml")));
+		assertSame(dependency, manager.getCachedProject("External"));
+		assertEquals(Map.of("External", 1, "App", 2), syncs);
+	}
+
+	@Test public void replacesMobileFilesRecreatedDuringTemplateReload() throws Exception {
+		var oldTemplates = Engine.TEMPLATES_PATH;
+		try {
+			var templates = folder.newFolder("templates").toPath();
+			Engine.TEMPLATES_PATH = templates.toString();
+			Files.createDirectories(templates.resolve("base/Flashupdate"));
+			Files.writeString(templates.resolve("base/Flashupdate/index.html"), "generated flash update");
+			Files.writeString(templates.resolve("base/index_mb.html"), "generated mobile page longer than replacement");
+			var old = install("App", null, "8.4.0.m006");
+			var project = old.load(); old.finish();
+			var mobile = new com.twinsoft.convertigo.beans.core.MobileApplication();
+			project.add(mobile);
+			var application = new com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent();
+			mobile.add(application);
+			var index = projects.resolve("App/DisplayObjects/mobile/index-fu.html");
+			assertTrue(Files.isRegularFile(index));
+			// Template notifications reload mobile beans independently of bundle installation.
+			afterDelete = () -> {
+				assertFalse(Files.exists(index));
+				application.checkFolder();
+				assertTrue(Files.isRegularFile(index));
+			};
+			var archive = folder.newFile("mobile.zip").toPath();
+			writeArchive(archive, Map.of("App/c8oProject.yaml", yaml("App", null, "8.4.0.m006"),
+					"App/DisplayObjects/mobile/index-fu.html", "archive page"));
+			var response = deployBundle(archive);
+			assertEquals("true", ((org.w3c.dom.Element) response.getElementsByTagName("deployment").item(0)).getAttribute("success"));
+			assertEquals("archive page", Files.readString(index));
+		} finally {
+			Engine.TEMPLATES_PATH = oldTemplates;
+			afterDelete = null;
+		}
+	}
+
+	@Test public void retriesAPartialInstallationLikeASingleCarDeployment() throws Exception {
+		var directory = Files.createDirectory(projects.resolve("App"));
+		Files.createDirectory(directory.resolve("Flashupdate"));
+		Files.writeString(directory.resolve("Flashupdate/index.html"), "previous generated contents");
+		Files.writeString(directory.resolve(".project"), "workspace metadata");
+		var archive = folder.newFile("partial.zip").toPath();
+		writeArchive(archive, Map.of("App/c8oProject.yaml", yaml("App", null, "8.4.0.m006"),
+				"App/Flashupdate/index.html", "new"));
+		var response = deployBundle(archive);
+		assertEquals("true", ((org.w3c.dom.Element) response.getElementsByTagName("deployment").item(0)).getAttribute("success"));
+		assertEquals("new", Files.readString(directory.resolve("Flashupdate/index.html")));
+		assertEquals("workspace metadata", Files.readString(directory.resolve(".project")));
+	}
+
+	@Test public void reportsTheProjectAndInstallationCauseWithoutLocalPaths() throws Exception {
+		var directory = Files.createDirectory(projects.resolve("App"));
+		Files.writeString(directory.resolve("assets"), "blocks the archive directory");
+		var archive = folder.newFile("unwritable.zip").toPath();
+		writeArchive(archive, Map.of("App/c8oProject.yaml", yaml("App", null, "8.4.0.m006"), "App/assets/file.txt", "new"));
+		var response = deployBundle(archive);
+		assertEquals("false", ((org.w3c.dom.Element) response.getElementsByTagName("deployment").item(0)).getAttribute("success"));
+		var result = (org.w3c.dom.Element) response.getElementsByTagName("project").item(0);
+		assertEquals("App", result.getAttribute("name"));
+		assertEquals("failed", result.getAttribute("status"));
+		var detail = result.getAttribute("detail");
+		assertTrue(detail, detail.contains("App"));
+		assertTrue(detail, detail.contains("FileAlreadyExistsException"));
+		assertFalse(detail, detail.contains(folder.getRoot().getAbsolutePath()));
+		assertFalse(detail, detail.contains("convertigo-project-upload-"));
+	}
+
+	private org.w3c.dom.Document deployBundle(Path archive) throws Exception {
+		Engine.theApp.schemaManager = new SchemaManager();
+		var request = new com.twinsoft.convertigo.engine.servlets.GenericServletMultipartTest.Multipart()
+				.file("file", "bundle.zip", Files.readAllBytes(archive)).request("/");
+		var document = com.twinsoft.convertigo.engine.util.XMLUtils.createDom();
+		document.appendChild(document.createElement("admin"));
+		class Deployment extends com.twinsoft.convertigo.engine.admin.services.projects.DeployBundle {
+			void run() throws Exception { getServiceResult(request, document); }
+		}
+		new Deployment().run();
+		return document;
+	}
+
 	private static void assertNoLoadingContext() throws Exception {
 		// get() creates an empty value when none is present; remove that observation afterwards.
 		var name = DatabaseObjectsManager.ProjectLoadingData.class.getDeclaredField("projectName");
@@ -360,6 +496,10 @@ public class ProjectBundleLifecycleTest {
 	}
 
 	private class Manager extends DatabaseObjectsManager {
+		@Override public void deleteProject(String name, com.twinsoft.convertigo.engine.enums.DeleteProjectOption... options) throws EngineException {
+			super.deleteProject(name, options);
+			if (afterDelete != null) afterDelete.run();
+		}
 		@Override protected void synchronizeFullSyncDocuments(Project project) { syncs.merge(project.getName(), 1, Integer::sum); }
 		@Override public void exportProject(Project project) throws EngineException {
 			if (failSave) throw new EngineException("synthetic read-only descriptor");
