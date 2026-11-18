@@ -74,6 +74,10 @@ public class DeployBundle extends XmlService {
 						.collect(java.util.stream.Collectors.toSet()));
 	}
 
+	protected boolean projectAvailable(String name) {
+		return Engine.theApp.databaseObjectsManager.existsProject(name);
+	}
+
 	@Override
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		if (!ServletFileUpload.isMultipartContent(request)) throw new IOException("A multipart project upload is required");
@@ -104,6 +108,7 @@ public class DeployBundle extends XmlService {
 			}
 			boolean assembleXsl = assemble;
 			try (var prepared = ProjectBundleImport.prepare(files, temporary, limits)) {
+				prepared.checkDependencies(this::projectAvailable);
 				for (var warning : prepared.warnings()) ServiceUtils.addMessage(document, document.getDocumentElement(), warning, "warning", false);
 				var results = ProjectBundleDeployment.apply(prepared, new ProjectBundleDeployment.Installer() {
 					@Override public ProjectBundleDeployment.Completion install(String name, Path archive) throws Exception {

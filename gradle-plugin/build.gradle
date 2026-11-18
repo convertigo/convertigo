@@ -9,6 +9,7 @@ group = 'com.convertigo'
 version = version.replace('beta', 'SNAPSHOT')
 
 sourceSets {
+	test { java.srcDirs = ['test'] }
 	main {
 		java {
 			srcDirs = ['src']
@@ -22,6 +23,7 @@ sourceSets {
 compileJava.dependsOn ':engine:publish'
 
 dependencies {
+	testImplementation 'junit:junit:4.13.2'
 	implementation project(':engine'), {
 		exclude group: 'convertigo', module: 'placeholders'
 	}
@@ -44,4 +46,11 @@ tasks['compileJava'].dependsOn(tasks.getByPath(':engine:publishToMavenLocal'))
 tasks['publish'].dependsOn(tasks.getByPath(':engine:publish'))
 tasks['eclipse'].doLast {
 	mkdir 'build/pluginUnderTestMetadata'
+}
+// ProjectBuilder creates decorated task types in the test JVM.
+test {
+	jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED'
+	// ProjectBuilder shares a flat classpath with the engine; use Gradle's Groovy modules here.
+	classpath = classpath.filter { !it.name.startsWith('dependencies-') } +
+		project(':engine').configurations.compileFlat.filter { !it.name.startsWith('groovy-') }
 }

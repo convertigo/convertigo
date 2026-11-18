@@ -25,6 +25,7 @@
 		deploy,
 		deployBundle,
 		exportBundle,
+		previewBundle,
 		exportProject,
 		importURL,
 		remove,
@@ -41,7 +42,37 @@
 	let selectingExport = $state(false);
 	let selectedProjects = $state({});
 	let bundleDependencies = $state('false');
+	let dependencyCandidates = $state([]);
+	let dependencyChoices = $state({});
+	let bundlePreviewReady = $state(false);
+	/** @type {{ projects: string[], excluded: string[] } | null} */
+	let bundleExportReport = $state(null);
+	let includedDependencies = $derived(
+		dependencyCandidates
+			.filter((project) => dependencyChoices[project.name] === 'true')
+			.map((project) => project.name)
+	);
+	let excludedDependencies = $derived(
+		dependencyCandidates
+			.filter((project) => dependencyChoices[project.name] !== 'true')
+			.map((project) => project.name)
+	);
+
+	const loadBundleDependencies = async (names) => {
+		bundlePreviewReady = false;
+		const preview = await previewBundle({
+			projects: JSON.stringify(names),
+			includeDependencies: 'true'
+		});
+		if (!preview) return;
+		dependencyCandidates = preview.filter((project) => !names.includes(project.name));
+		dependencyChoices = Object.fromEntries(
+			dependencyCandidates.map((project) => [project.name, 'true'])
+		);
+		bundlePreviewReady = true;
+	};
 	let bundleDeploy = $state('false');
+	/** @type {{ success?: boolean | string, project?: unknown } | null} */
 	let deploymentReport = $state(null);
 	let deploymentWarnings = $state([]);
 	let selectedNames = $derived(
@@ -55,6 +86,9 @@
 		const options = await exportOptions(selectedNames[0]);
 		exportChoices = Object.fromEntries(options.map((option) => [option.name, 'true']));
 		bundleDependencies = 'false';
+		dependencyCandidates = [];
+		dependencyChoices = {};
+		bundlePreviewReady = false;
 		modalExport.open({ bundle: true, names: [...selectedNames], options });
 	};
 
@@ -156,7 +190,37 @@
 		>
 			<fieldset disabled={waiting} class="layout-y-stretch">
 				{#if bundle}
-					<CheckState bind:value={bundleDependencies}>Include declared dependencies</CheckState>
+					<CheckState
+						bind:value={
+							() => bundleDependencies,
+							(value) => {
+								bundleDependencies = value;
+								if (value === 'true') void loadBundleDependencies(names);
+							}
+						}>Include declared dependencies</CheckState
+					>
+					{#if bundleDependencies === 'true'}
+						{#if bundlePreviewReady}
+							{#each dependencyCandidates as dependency (dependency.name)}
+								<CheckState bind:value={dependencyChoices[dependency.name]}
+									>{dependency.name} {dependency.version}</CheckState
+								>
+							{/each}
+							<p role="status">
+								{names.length + includedDependencies.length} projects to export. Excluded dependencies:
+								{excludedDependencies.join(', ') || 'none'}.
+							</p>
+							{#if excludedDependencies.length}<p class="text-sm text-muted">
+									Excluded dependencies must already be available on the destination server.
+								</p>{/if}
+						{:else}
+							<p role="status">
+								{waiting
+									? 'Loading dependencies...'
+									: 'Dependencies could not be listed. Disable and re-enable this option to retry.'}
+							</p>
+						{/if}
+					{/if}
 					<p class="text-sm text-muted">
 						A ZIP bundle contains one CAR per project and a manifest with versions and dependency
 						order.
@@ -170,13 +234,19 @@
 						icon={waiting ? 'mdi:sync' : 'mdi:export'}
 						label={waiting ? 'Exporting...' : 'Export'}
 						class="button-primary w-fit!"
-						disabled={waiting}
+						disabled={waiting || (bundle && bundleDependencies === 'true' && !bundlePreviewReady)}
 						onclick={async () => {
 							if (
 								await (bundle
 									? exportBundle({
 											projects: JSON.stringify(names),
 											includeDependencies: bundleDependencies,
+											includeProjects: JSON.stringify(
+												bundleDependencies === 'true' ? includedDependencies : []
+											),
+											excludeProjects: JSON.stringify(
+												bundleDependencies === 'true' ? excludedDependencies : []
+											),
 											exportOptions: JSON.stringify(exportChoices)
 										})
 									: exportProject({
@@ -185,6 +255,13 @@
 										}))
 							) {
 								if (bundle) {
+									bundleExportReport = {
+										projects: [
+											...names,
+											...(bundleDependencies === 'true' ? includedDependencies : [])
+										],
+										excluded: bundleDependencies === 'true' ? [...excludedDependencies] : []
+									};
 									selectingExport = false;
 									selectedProjects = {};
 								}
@@ -409,6 +486,12 @@
 			{project.migrationSaveError}
 		</p>
 	{/each}
+	{#if bundleExportReport}
+		<Card title="Bundle export result">
+			<p role="status">Exported projects: {bundleExportReport.projects.join(', ')}.</p>
+			<p>Excluded dependencies: {bundleExportReport.excluded.join(', ') || 'none'}.</p>
+		</Card>
+	{/if}
 	{#if deploymentReport}
 		<Card title="Bundle deployment result">
 			<p role="status">

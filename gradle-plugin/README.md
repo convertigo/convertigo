@@ -10,6 +10,8 @@ projectBundle {
     // Defaults to the current project when this list is empty.
     projects = ['Application', 'OtherApplication']
     includeDependencies = true
+    includeProjects = ['ExtraTools'] // Additional roots, even without a declared reference.
+    excludeProjects = ['RemoteLibrary'] // Omit dependencies already installed on the target.
     destinationFile = file('build/applications-bundle.zip')
 
     // The same archive options as the car task are available.
@@ -25,8 +27,18 @@ Run `./gradlew projectBundle`. The task saves the current project first, as the
 `car` task does. Selected projects and included references must be available to
 the engine used by the build. Dependency selection follows declared project
 references; unrelated loaded projects are omitted. Without
-`includeDependencies`, only the selected projects are exported. Missing
-references must already be available on the destination server.
+`includeDependencies`, only the selected and explicitly included projects are exported.
+`includeProjects` adds roots; their references also participate in dependency closure
+when enabled. `excludeProjects` skips matching dependencies and does not traverse
+their references. Other explicitly included projects remain included independently.
+A selected or included root cannot also be excluded. Missing or excluded references
+must already be available on the destination server; exclusions do not make a
+reference optional and do not edit project descriptors.
+
+The admin lists the dependency closure when the dependency option is enabled.
+Each dependency is checked initially and can be unchecked independently; the
+remaining checked dependencies are explicit inclusions. The export summary and
+manifest `excludedProjects` list record the deliberate exclusions.
 
 The manifest lists project names, versions, archive names, declared references
 and dependency order. Project names are unique across platforms. Conflicting
@@ -45,6 +57,10 @@ or a ZIP of project folders. Only one outer bundle level is expanded: ZIP and
 JAR files inside a project remain project assets. `bundle.json` is optional;
 project descriptors determine names, versions and references. Differences from
 the manifest are reported as warnings.
+
+Declared dependencies outside the bundle are checked on the destination before
+replacing any project. A missing dependency produces an error naming both the
+required project and its referring project.
 
 The complete selection is validated in a fresh staging directory before any
 project is replaced. Duplicate project names and incompatible portable paths

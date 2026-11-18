@@ -54,6 +54,15 @@ let values = {
 			waiting = false;
 		}
 	},
+	async previewBundle(params) {
+		try {
+			waiting = true;
+			const res = await call('projects.PreviewBundle', params);
+			return res?.isError || !res?.admin?.bundle ? null : checkArray(res.admin.bundle.project);
+		} finally {
+			waiting = false;
+		}
+	},
 	async exportBundle(params) {
 		return await doCall('ExportBundle', params);
 	},

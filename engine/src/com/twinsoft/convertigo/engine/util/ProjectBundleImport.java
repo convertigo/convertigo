@@ -83,6 +83,17 @@ public final class ProjectBundleImport implements AutoCloseable {
 		}
 	}
 
+	/** All declared references remain required, even when deliberately excluded from an export. */
+	public void checkDependencies(java.util.function.Predicate<String> available) throws IOException {
+		var included = plan.projects().stream().map(ProjectInfo::name).collect(java.util.stream.Collectors.toSet());
+		for (var project : plan.projects()) for (var dependency : project.dependencies()) {
+			if (!included.contains(dependency) && !available.test(dependency)) {
+				throw new IOException("Required project " + dependency + " referenced by " + project.name()
+						+ " is absent from the bundle and the destination server");
+			}
+		}
+	}
+
 	public ProjectBundlePlan plan() { return plan; }
 	public List<String> warnings() { return List.copyOf(warnings); }
 	public Path archive(String name) { return archives.get(name); }

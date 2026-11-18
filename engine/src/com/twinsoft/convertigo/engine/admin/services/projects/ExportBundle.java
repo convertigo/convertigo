@@ -42,18 +42,30 @@ import com.twinsoft.convertigo.engine.util.ProjectBundle;
 @ServiceDefinition(name = "ExportBundle", roles = { Role.WEB_ADMIN, Role.PROJECTS_CONFIG }, parameters = {}, returnValue = "")
 public class ExportBundle extends DownloadService {
 	protected void export(Path destination, java.util.List<String> names, boolean dependencies,
-			java.util.Set<ArchiveExportOption> options) throws Exception {
-		ProjectBundle.export(destination, names, dependencies, options);
+			java.util.List<String> includeProjects, java.util.List<String> excludeProjects, java.util.Set<ArchiveExportOption> options) throws Exception {
+		ProjectBundle.export(destination, names, dependencies, includeProjects, excludeProjects, options);
+	}
+
+	static java.util.List<String> projectNames(HttpServletRequest request, String parameter, boolean required) throws Exception {
+		String selection = request.getParameter(parameter);
+		if (selection == null && !required) return java.util.List.of();
+		if (selection == null || selection.length() > 64 * 1024) throw new IOException("Invalid project selection: " + parameter);
+		var json = new JSONArray(selection);
+		if ((required && json.length() == 0) || json.length() > 200) throw new IOException("Choose between 1 and 200 projects");
+		var names = new ArrayList<String>();
+		for (int i = 0; i < json.length(); i++) {
+			String name = json.getString(i);
+			com.twinsoft.convertigo.engine.util.ProjectBundlePlan.validateName(name);
+			names.add(name);
+		}
+		return names;
 	}
 
 	@Override
 	protected void writeResponseResult(HttpServletRequest request, HttpServletResponse response) throws Exception {
-		String selection = request.getParameter("projects");
-		if (selection == null || selection.length() > 64 * 1024) throw new IOException("Choose projects to export");
-		var json = new JSONArray(selection);
-		if (json.length() == 0 || json.length() > 200) throw new IOException("Choose between 1 and 200 projects");
-		var names = new ArrayList<String>();
-		for (int i = 0; i < json.length(); i++) names.add(json.getString(i));
+		var names = projectNames(request, "projects", true);
+		var included = projectNames(request, "includeProjects", false);
+		var excluded = projectNames(request, "excludeProjects", false);
 		var options = new HashSet<>(ArchiveExportOption.all);
 		String configured = request.getParameter("exportOptions");
 		if (configured != null) {
@@ -64,7 +76,7 @@ public class ExportBundle extends DownloadService {
 		var temporary = Files.createTempDirectory("convertigo-project-export-");
 		try {
 			var output = temporary.resolve("projects-bundle.zip");
-			export(output, names, Boolean.parseBoolean(request.getParameter("includeDependencies")), options);
+			export(output, names, Boolean.parseBoolean(request.getParameter("includeDependencies")), included, excluded, options);
 			response.setContentType(MimeType.Zip.value());
 			HeaderName.ContentDisposition.setHeader(response, "attachment; filename=\"projects-bundle.zip\"");
 			HeaderName.ContentLength.setHeader(response, Long.toString(Files.size(output)));

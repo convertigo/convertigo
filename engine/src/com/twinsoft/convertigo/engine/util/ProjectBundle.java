@@ -65,41 +65,91 @@ public final class ProjectBundle {
 		return new ProjectInfo(project.getName(), project.getVersion(), dependencies);
 	}
 
+	public record Selection(ProjectBundlePlan plan, Set<String> roots, Set<String> excludedProjects) {
+		public Selection {
+			roots = java.util.Collections.unmodifiableSet(new TreeSet<>(roots));
+			excludedProjects = java.util.Collections.unmodifiableSet(new TreeSet<>(excludedProjects));
+		}
+	}
+
+	private record Resolved(Selection selection, Map<String, Project> projects) {}
+
+	private static Project resolve(String name) throws Exception {
+		return Engine.theApp.databaseObjectsManager.getOriginalProjectByName(name, false);
+	}
+
+	public static Selection preview(Collection<String> selected, boolean includeDependencies,
+			Collection<String> includeProjects, Collection<String> excludeProjects) throws Exception {
+		return preview(selected, includeDependencies, includeProjects, excludeProjects, ProjectBundle::resolve);
+	}
+
+	public static Selection preview(Collection<String> selected, boolean includeDependencies,
+			Collection<String> includeProjects, Collection<String> excludeProjects, ProjectResolver resolver) throws Exception {
+		return resolveSelection(selected, includeDependencies, includeProjects, excludeProjects, resolver).selection();
+	}
+
 	public static ProjectBundlePlan export(Path destination, Collection<String> selected, boolean includeDependencies,
 			Set<ArchiveExportOption> options) throws Exception {
-		return export(destination, selected, includeDependencies, options,
-				name -> Engine.theApp.databaseObjectsManager.getOriginalProjectByName(name, false));
+		return export(destination, selected, includeDependencies, options, ProjectBundle::resolve);
 	}
 
 	public static ProjectBundlePlan export(Path destination, Collection<String> selected, boolean includeDependencies,
 			Set<ArchiveExportOption> options, ProjectResolver resolver) throws Exception {
+		return export(destination, selected, includeDependencies, java.util.List.of(), java.util.List.of(), options, resolver);
+	}
+
+	public static ProjectBundlePlan export(Path destination, Collection<String> selected, boolean includeDependencies,
+			Collection<String> includeProjects, Collection<String> excludeProjects, Set<ArchiveExportOption> options) throws Exception {
+		return export(destination, selected, includeDependencies, includeProjects, excludeProjects, options, ProjectBundle::resolve);
+	}
+
+	public static ProjectBundlePlan export(Path destination, Collection<String> selected, boolean includeDependencies,
+			Collection<String> includeProjects, Collection<String> excludeProjects, Set<ArchiveExportOption> options,
+			ProjectResolver resolver) throws Exception {
 		synchronized (EXPORT_LOCK) {
-			var projects = new HashMap<String, Project>();
-			var descriptions = new ArrayList<ProjectInfo>();
-			var pending = new TreeSet<>(selected);
-			if (pending.size() != selected.size()) throw new IOException("The project selection contains a duplicate name");
-			while (!pending.isEmpty()) {
-				var name = pending.pollFirst();
-				ProjectBundlePlan.validateName(name);
-				if (projects.containsKey(name)) continue;
-				if (projects.size() >= 200) throw new IOException("A bundle may contain at most 200 projects");
-				var project = resolver.resolve(name);
-				if (project == null || !name.equals(project.getName())) {
-					throw new IOException("The selected project is unavailable: " + name);
-				}
-				var description = describe(project);
-				projects.put(name, project);
-				descriptions.add(description);
-				if (includeDependencies) pending.addAll(description.dependencies());
-			}
-			var plan = ProjectBundlePlan.create(descriptions);
-			write(destination, plan, projects, Set.copyOf(options));
-			return plan;
+			var resolved = resolveSelection(selected, includeDependencies, includeProjects, excludeProjects, resolver);
+			write(destination, resolved.selection(), resolved.projects(), Set.copyOf(options));
+			return resolved.selection().plan();
 		}
 	}
 
-	private static void write(Path destination, ProjectBundlePlan plan, Map<String, Project> projects,
+	private static TreeSet<String> names(Collection<String> names) throws IOException {
+		if (names.size() > 200) throw new IOException("Choose at most 200 projects per selection");
+		var result = new TreeSet<String>();
+		for (var name : names) {
+			ProjectBundlePlan.validateName(name);
+			if (!result.add(name)) throw new IOException("The project selection contains a duplicate name: " + name);
+		}
+		return result;
+	}
+
+	private static Resolved resolveSelection(Collection<String> selected, boolean includeDependencies,
+			Collection<String> includeProjects, Collection<String> excludeProjects, ProjectResolver resolver) throws Exception {
+		var roots = names(selected);
+		if (roots.isEmpty()) throw new IOException("Choose at least one project");
+		roots.addAll(names(includeProjects));
+		var excluded = names(excludeProjects);
+		for (var name : roots) if (excluded.contains(name)) throw new IOException("A selected or included project cannot be excluded: " + name);
+		var projects = new HashMap<String, Project>();
+		var descriptions = new ArrayList<ProjectInfo>();
+		var pending = new TreeSet<>(roots);
+		while (!pending.isEmpty()) {
+			var name = pending.pollFirst();
+			if (excluded.contains(name) || projects.containsKey(name)) continue;
+			if (projects.size() >= 200) throw new IOException("A bundle may contain at most 200 projects");
+			var project = resolver.resolve(name);
+			if (project == null || !name.equals(project.getName())) throw new IOException("The selected project is unavailable: " + name);
+			var description = describe(project);
+			projects.put(name, project);
+			descriptions.add(description);
+			if (includeDependencies) pending.addAll(description.dependencies());
+		}
+		return new Resolved(new Selection(ProjectBundlePlan.create(descriptions), roots, excluded), projects);
+	}
+
+	private static void write(Path destination, Selection selection, Map<String, Project> projects,
 			Set<ArchiveExportOption> options) throws Exception {
+		var plan = selection.plan();
 		var target = destination.toAbsolutePath().normalize();
 		Files.createDirectories(target.getParent());
 		var realTarget = target.getParent().toRealPath().resolve(target.getFileName());
@@ -122,6 +172,7 @@ public final class ProjectBundle {
 			}
 			var manifest = new JSONObject();
 			manifest.put("formatVersion", 1);
+			manifest.put("excludedProjects", new JSONArray(selection.excludedProjects()));
 			var entries = new JSONArray();
 			var order = new JSONArray();
 			var output = staging.resolve("bundle.zip");
