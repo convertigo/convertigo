@@ -75,6 +75,18 @@ public class ProjectBundleImportTest {
 		assertEmpty(root);
 	}
 
+	@Test public void readsYamlReferencesWithAndWithoutSerializedPriorities() throws Exception {
+		var root = folder.newFolder().toPath();
+		var descriptor = Files.writeString(root.resolve("c8oProject.yaml"),
+				"↑convertigo: 8.4.0.m006\n↓App [core.Project]: \n  version: 1\n"
+				+ "  ↓Stored [references.ProjectSchemaReference-1736958610130]: \n    projectName: Shared\n"
+					+ "  ↓Other [references.ProjectSchemaReference]: \n    projectName: Other\n"
+					+ "  ↓Schema [references.ImportXsdSchemaReference-123]: \n    projectName: Ignored\n");
+		var info = ProjectBundleDescriptor.read(descriptor);
+		assertEquals("App", info.name());
+		assertEquals(java.util.Set.of("Shared", "Other"), info.dependencies());
+	}
+
 	@Test public void ignoresManifestPathsAndUsesTheDescriptorsForNamesVersionsAndOrder() throws Exception {
 		var root = folder.newFolder().toPath();
 		var upload = zip(Map.of("App.car", Files.readAllBytes(car("App", "1", null)), "bundle.json",
