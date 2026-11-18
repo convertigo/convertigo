@@ -455,7 +455,7 @@ public class HttpConnector extends Connector {
 		List<String> logHiddenPathValues = new ArrayList<>();
 		List<String> urlPathVariableList = AbstractHttpTransaction.getPathVariableList(sUrl);
 		if (!urlPathVariableList.isEmpty()) {
-			Engine.logBeans.debug("(HttpConnector) Defined URL: " + sUrl);
+			Engine.logBeans.debug("(HttpConnector) Defined URL: " + logUrl(context, sUrl));
 			for (String varName : urlPathVariableList) {
 				RequestableHttpVariable rVariable = (RequestableHttpVariable) httpTransaction.getVariable(varName);
 				httpObjectVariableValue = rVariable == null ? "":httpTransaction.getParameterValue(varName);
@@ -515,10 +515,7 @@ public class HttpConnector extends Connector {
 		}
 
 		if (Engine.logBeans.isDebugEnabled()) {
-			int queryStart = sUrl.indexOf('?');
-			String logUrl = queryStart < 0 ? sUrl : sUrl.substring(0, queryStart + 1)
-					+ Visibility.Logs.replaceVariables(httpTransaction.getVariablesList(), sUrl.substring(queryStart + 1));
-			Engine.logBeans.debug("(HttpConnector) URL: " + Visibility.Logs.replaceValues(logHiddenPathValues, logUrl));
+			Engine.logBeans.debug("(HttpConnector) URL: " + Visibility.Logs.replaceValues(logHiddenPathValues, logUrl(context, sUrl)));
 			Engine.logBeans.debug("(HttpConnector) GET query: " + Visibility.Logs.replaceVariables(httpTransaction.getVariablesList(), queryString));
 		}
 		
@@ -867,7 +864,7 @@ public class HttpConnector extends Connector {
 
 		try {
 			Engine.logBeans.trace("(HttpConnector) Retrieving data as a bytes array...");
-			Engine.logBeans.debug("(HttpConnector) Connecting to: " + sUrl);
+			Engine.logBeans.debug("(HttpConnector) Connecting to: " + logUrl(context, sUrl));
 
 			// Setting the referer
 			referer = sUrl;
@@ -904,7 +901,7 @@ public class HttpConnector extends Connector {
 				}
 				
 				sUrl = url.getFile();
-				Engine.logBeans.debug("(HttpConnector) Updated URL for SSL purposes: " + sUrl);
+				Engine.logBeans.debug("(HttpConnector) Updated URL for SSL purposes: " + logUrl(context, sUrl));
 			} else {
 				Engine.logBeans.debug("(HttpConnector) Host: " + host + ":" + port);
 				hostConfiguration.setHost(host, port);
@@ -1245,7 +1242,8 @@ public class HttpConnector extends Connector {
 			context.setResponseHeaders(responseHeaders);
 			if (Engine.logBeans.isTraceEnabled())
 				Engine.logBeans.trace("(HttpConnector) Response headers:\n"
-						+ Arrays.asList(responseHeaders).toString());
+						+ Arrays.stream(responseHeaders).map(header -> header.getName() + ": "
+								+ logUrl(context, header.getValue())).toList());
 
 			if (statuscode != -1) {
 				InputStream in = method.getResponseBodyAsStream();
@@ -1379,8 +1377,8 @@ public class HttpConnector extends Connector {
 								: hostConfiguration.getProtocol().getScheme() + "://" + hostConfiguration.getHost()
 										+ ":" + hostConfiguration.getPort() + method.getURI().getEscapedURI();
 						checkRedirectDestination(transaction, source, newuri);
-						redirectUrl = getAbsoluteUrl(method, newuri);
-						Engine.logBeans.debug("(HttpConnector) Redirecting to : " + redirectUrl);
+						redirectUrl = getAbsoluteUrl(context, method, newuri);
+						Engine.logBeans.debug("(HttpConnector) Redirecting to : " + logUrl(context, redirectUrl));
 						result = getData(context, redirectUrl, statuscode < HttpStatus.SC_TEMPORARY_REDIRECT);
 					} else {
 						Engine.logBeans.debug("(HttpConnector) Invalid redirect!");
@@ -1529,9 +1527,9 @@ public class HttpConnector extends Connector {
 				return statuscode;
 			}
 			HttpUtils.logCurrentHttpConnection(httpClient, hostConfiguration, httpPool);
-			Engine.logBeans.warn("(HttpConnector) HttpClient: connection error to " + sUrl + ": " + e.getMessage());
+			Engine.logBeans.warn("(HttpConnector) HttpClient: connection error to " + logUrl(context, sUrl) + ": " + logUrl(context, e.getMessage()));
 		} catch (OAuthException eee) {
-			throw new ConnectionException("OAuth Connection error to " + sUrl, eee);
+			throw new ConnectionException("OAuth Connection error to " + logUrl(context, sUrl), eee);
 		}
 		return statuscode;
 	}
@@ -1580,7 +1578,7 @@ public class HttpConnector extends Connector {
 		return uri.getPort() == -1 ? ("https".equalsIgnoreCase(uri.getScheme()) ? 443 : 80) : uri.getPort();
 	}
 
-	private String getAbsoluteUrl(HttpMethod method, String givenUrl) throws URIException,
+	private String getAbsoluteUrl(Context context, HttpMethod method, String givenUrl) throws URIException,
 			MalformedURLException, EngineException {
 		String absoluteUrl = givenUrl;
 		if (method != null) {
@@ -1623,7 +1621,7 @@ public class HttpConnector extends Connector {
 						}
 
 						// absoluteUrl = url.getFile();
-						Engine.logBeans.debug("(HttpConnector) Updated URL for SSL purposes: " + absoluteUrl);
+						Engine.logBeans.debug("(HttpConnector) Updated URL for SSL purposes: " + logUrl(context, absoluteUrl));
 					} else {
 						url = java.net.URI.create(absoluteUrl).toURL();
 						host = url.getHost();

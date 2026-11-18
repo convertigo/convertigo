@@ -721,7 +721,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 
 	public static boolean handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException {
 		String requestURI = HttpUtils.originalRequestURI(request);
-		Engine.logSiteClipper.trace("(SiteClipperConnector) requestURI : " + requestURI);
+		Engine.logSiteClipper.trace("(SiteClipperConnector) requestURI : " + logUrl(null, requestURI));
 
 		Matcher url_matcher = url_pattern.matcher(requestURI);
 		if (!url_matcher.matches()) {
@@ -744,7 +744,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		Engine.logSiteClipper.trace("(SiteClipperConnector) Retrieve connector name : " + connector.getName());
 
 		String requestURL = HttpUtils.originalRequestURL(context.httpServletRequest);
-		Engine.logSiteClipper.debug("(SiteClipperConnector) Retrieve requestURL to modify : " + requestURL);
+		Engine.logSiteClipper.debug("(SiteClipperConnector) Retrieve requestURL to modify : " + logUrl(context, requestURL));
 
 		targetURL = convertUrl(targetURL);
 
@@ -755,7 +755,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		}
 		String location = requestURL + '/' + tail_url;
 
-		Engine.logSiteClipper.debug("(SiteClipperConnector) Computed location for SiteClipper : " + location);
+		Engine.logSiteClipper.debug("(SiteClipperConnector) Computed location for SiteClipper : " + logUrl(context, location));
 		return location;
 	}
 
@@ -786,7 +786,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			String uri = shuttle.getRequest(QueryPart.uri);
 
 			Engine.logSiteClipper.info("Preparing " + shuttle.request.getMethod() + " "
-					+ shuttle.getRequestUrl());
+					+ logUrl(context, shuttle.getRequestUrl()));
 
 			HttpMethod httpMethod = null;
 			try {
@@ -831,7 +831,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 					Engine.logSiteClipper.trace("(SiteClipperConnector) Ignoring request header " + name);
 				} else {
 					String value = shuttle.request.getHeader(name);
-					Engine.logSiteClipper.trace("(SiteClipperConnector) Copying request header " + name + "=" + value);
+					Engine.logSiteClipper.trace("(SiteClipperConnector) Copying request header " + name + "=" + logUrl(context, value));
 					shuttle.setRequestCustomHeader(name, value);
 				}
 			}
@@ -849,7 +849,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			}
 
 			for (Entry<String, String> header : shuttle.requestCustomHeaders.entrySet()) {
-				Engine.logSiteClipper.trace("(SiteClipperConnector) Push request header " + header.getKey() + "=" + header.getValue());
+				Engine.logSiteClipper.trace("(SiteClipperConnector) Push request header " + header.getKey() + "=" + logUrl(context, header.getValue()));
 				httpMethod.addRequestHeader(header.getKey(), header.getValue());
 			}
 
@@ -870,16 +870,16 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 								newQuery.append('=').append(URLEncoder.encode(URLDecoder.decode(pair[1], "UTF-8"), "UTF-8"));
 							}
 						} catch (UnsupportedEncodingException ee) {
-							Engine.logSiteClipper.trace("(SiteClipperConnector) failed to encode query part : " + part);
+							Engine.logSiteClipper.trace("(SiteClipperConnector) failed to encode query part : " + logUrl(context, "?" + part).substring(1));
 						}
 					}
 
 					queryString = newQuery.length() > 0 ? newQuery.substring(1) : newQuery.toString();
-					Engine.logSiteClipper.trace("(SiteClipperConnector) re-encode query : " + queryString);
+					Engine.logSiteClipper.trace("(SiteClipperConnector) re-encode query : " + logUrl(context, "?" + queryString).substring(1));
 				}
 			}
 
-			Engine.logSiteClipper.debug("(SiteClipperConnector) Copying the query string : " + queryString);
+			Engine.logSiteClipper.debug("(SiteClipperConnector) Copying the query string : " + logUrl(context, "?" + queryString).substring(1));
 			httpMethod.setQueryString(queryString);
 
 			//				if (context.httpState == null) {
@@ -900,7 +900,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 
 			Engine.logSiteClipper.info("Requesting " + httpMethod.getName() + " "
 					+ hostConfiguration.getHostURL()
-					+ httpMethod.getURI().toString());
+					+ logUrl(context, httpMethod.getURI().toString()));
 
 			HttpClient httpClient = context.getHttpClient3(shuttle.getHttpPool());
 			HttpUtils.logCurrentHttpConnection(httpClient, hostConfiguration, shuttle.getHttpPool());
@@ -931,7 +931,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 					Engine.logSiteClipper.trace("(SiteClipperConnector) Ignoring response header " + name);
 				} else {
 					String value = header.getValue();
-					Engine.logSiteClipper.trace("(SiteClipperConnector) Copying response header " + name + "=" + value);
+					Engine.logSiteClipper.trace("(SiteClipperConnector) Copying response header " + name + "=" + logUrl(context, value));
 					shuttle.responseCustomHeaders.put(name, value);
 				}
 			}
@@ -951,7 +951,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			}
 
 			for (Entry<String, String> header : shuttle.responseCustomHeaders.entrySet()) {
-				Engine.logSiteClipper.trace("(SiteClipperConnector) Push request header " + header.getKey() + "=" + header.getValue());
+				Engine.logSiteClipper.trace("(SiteClipperConnector) Push request header " + header.getKey() + "=" + logUrl(context, header.getValue()));
 				shuttle.response.addHeader(header.getKey(), header.getValue());
 			}
 

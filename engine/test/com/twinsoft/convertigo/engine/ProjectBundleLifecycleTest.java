@@ -321,6 +321,47 @@ public class ProjectBundleLifecycleTest {
 		}
 	}
 
+	@Test public void exportsAndReloadsStoredPrioritizedReferencesButRejectsUnsavedChanges() throws Exception {
+		var shared = install("Shared", null, "8.4.0.m006");
+		shared.load(); shared.finish();
+		var appDirectory = Files.createDirectory(projects.resolve("App"));
+		var descriptor = Files.writeString(appDirectory.resolve("c8oProject.yaml"),
+				yaml("App", "Shared", "8.4.0.m006").replace(
+						"[references.ProjectSchemaReference]", "[references.ProjectSchemaReference-1736958610130]"));
+		var original = Files.readAllBytes(descriptor);
+		var app = manager.importProject(descriptor.toFile(), true);
+		assertArrayEquals(original, Files.readAllBytes(descriptor));
+		assertEquals(1, app.getReferenceList().size());
+		assertEquals(1736958610130L, app.getReferenceList().get(0).priority);
+		var output = folder.getRoot().toPath().resolve("prioritized.zip");
+		var plan = com.twinsoft.convertigo.engine.util.ProjectBundle.export(output, List.of("App"), true,
+				com.twinsoft.convertigo.engine.enums.ArchiveExportOption.all);
+		assertEquals(List.of("Shared", "App"), plan.projects().stream()
+				.map(com.twinsoft.convertigo.engine.util.ProjectBundlePlan.ProjectInfo::name).toList());
+		assertArrayEquals(original, Files.readAllBytes(descriptor));
+		var savedBundle = Files.readAllBytes(output);
+		app.setVersion("unsaved");
+		assertThrows(java.io.IOException.class, () -> com.twinsoft.convertigo.engine.util.ProjectBundle.export(
+				output, List.of("App"), true, com.twinsoft.convertigo.engine.enums.ArchiveExportOption.all));
+		assertArrayEquals(savedBundle, Files.readAllBytes(output));
+		app.setVersion("fixture");
+		try (var bundle = com.twinsoft.convertigo.engine.util.ProjectBundleImport.prepare(List.of(output),
+				folder.newFolder().toPath(), com.twinsoft.convertigo.engine.util.ProjectBundleZip.Limits.defaults())) {
+			assertEquals(plan.projects(), bundle.plan().projects());
+			assertTrue(bundle.warnings().isEmpty());
+			for (var info : bundle.plan().projects()) {
+				var deployment = manager.installPreparedProjectArchive(bundle.archive(info.name()).toString(), info.name());
+				var reloaded = deployment.load();
+				deployment.finish();
+				if (info.name().equals("App")) {
+					assertNotSame(app, reloaded);
+					assertEquals(1736958610130L, reloaded.getReferenceList().get(0).priority);
+					assertEquals(Set.of("Shared"), com.twinsoft.convertigo.engine.util.ProjectBundle.describe(reloaded).dependencies());
+				}
+			}
+		}
+	}
+
 	private static void assertNoLoadingContext() throws Exception {
 		// get() creates an empty value when none is present; remove that observation afterwards.
 		var name = DatabaseObjectsManager.ProjectLoadingData.class.getDeclaredField("projectName");

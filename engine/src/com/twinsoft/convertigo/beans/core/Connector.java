@@ -60,6 +60,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.RequestableUnavailableException;
 import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.FolderType;
+import com.twinsoft.convertigo.engine.enums.Visibility;
 
 /**
  * The Connector class is the base class for all connectors.
@@ -78,6 +79,21 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty 
 	 * responsible for updating relevantly this context.
 	 */
 	transient public Context context = null;
+
+	/** Keeps the destination readable while applying variable visibility to a logged query only. */
+	protected static String logUrl(Context context, String url) {
+		if (url == null) return null;
+		int queryStart = url.indexOf('?');
+		if (queryStart < 0) return url;
+		String prefix = url.substring(0, queryStart + 1);
+		try {
+			var variables = context != null && context.requestedObject instanceof IVariableContainer container
+					? container.getVariables() : null;
+			return prefix + Visibility.Logs.replaceVariables(variables, url.substring(queryStart + 1));
+		} catch (Exception e) {
+			return prefix + Visibility.STRING_MASK;
+		}
+	}
 
 	public Connector() {
 		super();

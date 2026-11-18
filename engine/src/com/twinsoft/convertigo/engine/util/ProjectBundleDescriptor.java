@@ -61,7 +61,8 @@ final class ProjectBundleDescriptor {
 			name = key.substring(0, key.length() - " [core.Project]".length());
 			version = directText(project, "version");
 			for (var node = project.getFirstChild(); node != null; node = node.getNextSibling()) {
-				if (node instanceof Element element && element.getAttribute("yaml_key").endsWith(" [references.ProjectSchemaReference]")) {
+				if (node instanceof Element element && element.getAttribute("yaml_key")
+						.matches(".* \\[references\\.ProjectSchemaReference(?:-\\d+)?\\]")) {
 					dependencies.add(reference(directText(element, "projectName")));
 				}
 			}

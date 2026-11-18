@@ -1340,75 +1340,120 @@ test('admin bundle deploy preserves the complete selection after cancelling and 
 	await expect(page.getByText('Not attempted', { exact: true })).toBeVisible();
 });
 
-test('admin bundle export sends the checked projects and dependency option', async ({ page }) => {
-	await page.setViewportSize({ width: 390, height: 844 });
-	await mockStudioServices(page);
-	await page.route('**/admin/services/projects.List*', (route) =>
-		route.fulfill({
-			status: 200,
-			contentType: 'application/json',
-			body: JSON.stringify({
-				admin: {
-					projects: {
-						project: [
-							{ name: 'App', comment: '', ref: [] },
-							{ name: 'Shared', comment: '', ref: [] }
-						]
+for (const excludeShared of [false, true]) {
+	test(`admin bundle export selects dependencies individually (${excludeShared ? 'exclude' : 'include'})`, async ({
+		page
+	}) => {
+		await page.setViewportSize({ width: 390, height: 844 });
+		await mockStudioServices(page);
+		await page.route('**/admin/services/projects.List*', (route) =>
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					admin: {
+						projects: {
+							project: [
+								{ name: 'App', comment: '', ref: [] },
+								{ name: 'Shared', comment: '', ref: [] }
+							]
+						}
 					}
-				}
+				})
 			})
-		})
-	);
-	await page.route('**/admin/services/projects.ExportOptions*', (route) =>
-		route.fulfill({
-			status: 200,
-			contentType: 'application/json',
-			body: JSON.stringify({
-				admin: {
-					options: {
-						option: [
-							{ name: 'includeTestCase', display: 'Include test cases' },
-							{ name: 'includeStubs', display: 'Include stubs' }
-						]
+		);
+		await page.route('**/admin/services/projects.ExportOptions*', (route) =>
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					admin: {
+						options: {
+							option: [
+								{ name: 'includeTestCase', display: 'Include test cases' },
+								{ name: 'includeStubs', display: 'Include stubs' }
+							]
+						}
 					}
-				}
+				})
 			})
-		})
-	);
-	const exports = [];
-	await page.route('**/admin/services/projects.ExportBundle*', async (route) => {
-		const params = new URLSearchParams(route.request().postData() ?? '');
-		exports.push({
-			names: JSON.parse(params.get('projects') ?? '[]'),
-			dependencies: params.get('includeDependencies')
+		);
+		await page.route('**/admin/services/projects.PreviewBundle*', (route) => {
+			const params = new URLSearchParams(route.request().postData() ?? '');
+			expect(JSON.parse(params.get('projects') ?? '[]')).toEqual(['App']);
+			expect(params.get('includeDependencies')).toBe('true');
+			return route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					admin: {
+						bundle: {
+							project: [
+								{ name: 'App', version: '1', selected: 'true' },
+								{ name: 'Shared', version: '2', selected: 'false' },
+								{ name: 'Remote', version: '3', selected: 'false' }
+							]
+						}
+					}
+				})
+			});
 		});
-		await route.fulfill({
-			status: 200,
-			headers: {
-				'content-type': 'application/zip',
-				'content-disposition': 'attachment; filename="projects-bundle.zip"'
-			},
-			body: Buffer.from('synthetic bundle')
+		const exports = [];
+		await page.route('**/admin/services/projects.ExportBundle*', async (route) => {
+			const params = new URLSearchParams(route.request().postData() ?? '');
+			exports.push({
+				names: JSON.parse(params.get('projects') ?? '[]'),
+				dependencies: params.get('includeDependencies'),
+				included: JSON.parse(params.get('includeProjects') ?? '[]'),
+				excluded: JSON.parse(params.get('excludeProjects') ?? '[]')
+			});
+			await route.fulfill({
+				status: 200,
+				headers: {
+					'content-type': 'application/zip',
+					'content-disposition': 'attachment; filename="projects-bundle.zip"'
+				},
+				body: Buffer.from('synthetic bundle')
+			});
 		});
+		await page.goto('/admin/projects/');
+		await page.getByRole('button', { name: 'Export projects', exact: true }).click();
+		await page
+			.getByRole('checkbox', { name: 'Select App for export', exact: true })
+			.locator('..')
+			.click();
+		await page.getByRole('button', { name: 'Export [1]', exact: true }).click();
+		const dialog = page.getByRole('dialog');
+		await dialog.getByText('Include declared dependencies', { exact: true }).click();
+		const shared = dialog.getByRole('checkbox', { name: 'Shared 2', exact: true });
+		await expect(shared).toBeChecked();
+		await expect(dialog.getByRole('checkbox', { name: 'Remote 3', exact: true })).toBeChecked();
+		if (excludeShared) await shared.locator('..').click();
+		await expect(dialog.getByRole('status')).toHaveText(
+			`${excludeShared ? 2 : 3} projects to export. Excluded dependencies: ${excludeShared ? 'Shared' : 'none'}.`
+		);
+		const [download] = await Promise.all([
+			page.waitForEvent('download'),
+			dialog.getByRole('button', { name: 'Export', exact: true }).click()
+		]);
+		expect(download.suggestedFilename()).toBe('projects-bundle.zip');
+		expect(exports).toEqual([
+			{
+				names: ['App'],
+				dependencies: 'true',
+				included: excludeShared ? ['Remote'] : ['Shared', 'Remote'],
+				excluded: excludeShared ? ['Shared'] : []
+			}
+		]);
+		await expect(page.getByRole('dialog')).toHaveCount(0);
+		await expect(
+			page.getByText(`Excluded dependencies: ${excludeShared ? 'Shared' : 'none'}.`, {
+				exact: true
+			})
+		).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Export projects', exact: true })).toBeVisible();
 	});
-	await page.goto('/admin/projects/');
-	await page.getByRole('button', { name: 'Export projects', exact: true }).click();
-	await page
-		.getByRole('checkbox', { name: 'Select App for export', exact: true })
-		.locator('..')
-		.click();
-	await page.getByRole('button', { name: 'Export [1]', exact: true }).click();
-	const dialog = page.getByRole('dialog');
-	await dialog.getByText('Include declared dependencies', { exact: true }).click();
-	const [download] = await Promise.all([
-		page.waitForEvent('download'),
-		dialog.getByRole('button', { name: 'Export', exact: true }).click()
-	]);
-	expect(download.suggestedFilename()).toBe('projects-bundle.zip');
-	expect(exports).toEqual([{ names: ['App'], dependencies: 'true' }]);
-	await expect(page.getByRole('dialog')).toHaveCount(0);
-	await expect(page.getByRole('button', { name: 'Export projects', exact: true })).toBeVisible();
-});
+}
 
 test('admin deploy accepts archives after cancelling and choosing the same file or another', async ({
 	page

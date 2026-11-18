@@ -86,9 +86,11 @@ public class ProjectBundleServicesTest {
 
 	@Test public void exportsTheSelectionAndOptionsThroughTheSharedAdapter() throws Exception {
 		var service = new ExportBundle() {
-			@Override protected void export(Path output, List<String> names, boolean dependencies, Set<ArchiveExportOption> options) throws Exception {
+			@Override protected void export(Path output, List<String> names, boolean dependencies, List<String> included, List<String> excluded, Set<ArchiveExportOption> options) throws Exception {
 				assertEquals(List.of("A", "B"), names);
 				assertTrue(dependencies);
+				assertEquals(List.of("Extra"), included);
+				assertEquals(List.of("Remote"), excluded);
 				assertFalse(options.contains(ArchiveExportOption.includeTestCase));
 				assertTrue(options.contains(ArchiveExportOption.includeStubs));
 				Files.write(output, text("bundle bytes"));
@@ -96,15 +98,50 @@ public class ProjectBundleServicesTest {
 		};
 		var response = new Response();
 		service.writeResponseResult(parameters(Map.of("projects", "[\"A\",\"B\"]", "includeDependencies", "true",
-				"exportOptions", "{\"includeTestCase\":false}")), response.proxy());
+				"includeProjects", "[\"Extra\"]", "excludeProjects", "[\"Remote\"]", "exportOptions", "{\"includeTestCase\":false}")), response.proxy());
 		assertEquals("bundle bytes", response.text());
 		assertEquals("attachment; filename=\"projects-bundle.zip\"", response.headers.get("Content-Disposition"));
 		assertEquals("12", response.headers.get("Content-Length"));
 	}
 
+	@Test public void refusesMissingExternalReferencesBeforeReplacingAnyProject() throws Exception {
+		var service = new Deployment();
+		var request = new Multipart().file("file", "App.car", car("App", "Remote")).request("/");
+		var error = assertThrows(IOException.class, () -> service.getServiceResult(request, document()));
+		assertTrue(error.getMessage().contains("Required project Remote referenced by App"));
+		assertTrue(service.calls.isEmpty());
+		assertFalse(Files.exists(service.temporary));
+		var existing = new Deployment() { @Override protected boolean projectAvailable(String name) { return name.equals("Remote"); } };
+		existing.getServiceResult(new Multipart().file("file", "App.car", car("App", "Remote")).request("/"), document());
+		assertEquals(List.of("App"), existing.calls);
+	}
+
+	@Test public void previewListsSelectedProjectsAndDependenciesWithExplicitExclusions() throws Exception {
+		var service = new PreviewBundle() {
+			@Override protected com.twinsoft.convertigo.engine.util.ProjectBundle.Selection preview(List<String> selected, boolean dependencies, List<String> included, List<String> excluded) throws Exception {
+				assertEquals(List.of("App"), selected);assertTrue(dependencies);
+				assertEquals(List.of("Extra"), included);assertEquals(List.of("Remote"), excluded);
+				return new com.twinsoft.convertigo.engine.util.ProjectBundle.Selection(
+					com.twinsoft.convertigo.engine.util.ProjectBundlePlan.create(List.of(
+						new com.twinsoft.convertigo.engine.util.ProjectBundlePlan.ProjectInfo("App", "1", Set.of("Shared", "Remote")),
+						new com.twinsoft.convertigo.engine.util.ProjectBundlePlan.ProjectInfo("Shared", "2", Set.of()))), Set.of("App"), Set.of("Remote"));
+			}
+		};
+		var document = document();
+		service.getServiceResult(parameters(Map.of("projects", "[\"App\"]", "includeDependencies", "true", "includeProjects", "[\"Extra\"]", "excludeProjects", "[\"Remote\"]")), document);
+		var projects = document.getElementsByTagName("project");
+		assertEquals(2, projects.getLength());
+		assertEquals("Shared", ((Element)projects.item(0)).getAttribute("name"));
+		assertEquals("false", ((Element)projects.item(0)).getAttribute("selected"));
+		assertEquals("true", ((Element)projects.item(1)).getAttribute("selected"));
+		assertEquals("Remote", ((Element)document.getElementsByTagName("excludedProject").item(0)).getAttribute("name"));
+		assertThrows(IllegalArgumentException.class, () -> ExportBundle.projectNames(parameters(Map.of("excludeProjects", "[\"../Remote\"]")), "excludeProjects", false));
+	}
+
 	@Test public void retainsTheSingleProjectServiceRoles() {
 		assertArrayEquals(Deploy.class.getAnnotation(ServiceDefinition.class).roles(), DeployBundle.class.getAnnotation(ServiceDefinition.class).roles());
 		assertArrayEquals(Export.class.getAnnotation(ServiceDefinition.class).roles(), ExportBundle.class.getAnnotation(ServiceDefinition.class).roles());
+		assertArrayEquals(ExportBundle.class.getAnnotation(ServiceDefinition.class).roles(), PreviewBundle.class.getAnnotation(ServiceDefinition.class).roles());
 	}
 
 	@Test public void acceptsTheExistingUploadQueryOption() throws Exception {
@@ -151,7 +188,7 @@ public class ProjectBundleServicesTest {
 	@Test public void removesPreparedExportFilesWhenTheClientStopsTheDownload() throws Exception {
 		Path[] output = new Path[1];
 		var service = new ExportBundle() {
-			@Override protected void export(Path destination, List<String> names, boolean dependencies, Set<ArchiveExportOption> options) throws Exception {
+			@Override protected void export(Path destination, List<String> names, boolean dependencies, List<String> included, List<String> excluded, Set<ArchiveExportOption> options) throws Exception {
 				output[0] = destination;
 				Files.write(destination, new byte[100_000]);
 			}
@@ -199,6 +236,7 @@ public class ProjectBundleServicesTest {
 		String fail;
 		boolean assemble;
 		Limits configured = Limits.defaults();
+		@Override protected boolean projectAvailable(String name) { return false; }
 		@Override protected Limits limits() { return configured; }
 		@Override protected Path createTemporaryDirectory() throws IOException { return temporary = folder.newFolder().toPath(); }
 		@Override protected com.twinsoft.convertigo.engine.util.ProjectBundleDeployment.Completion install(HttpServletRequest request, String name, Path archive, boolean assembleXsl) throws Exception {

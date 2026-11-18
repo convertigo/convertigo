@@ -111,6 +111,59 @@ public class ProjectBundleTest {
 		}
 	}
 
+	@Test public void includesAdditionalProjectsAndExcludesReferencesWithoutEditingDescriptors() throws Exception {
+		String previous = Engine.PROJECTS_PATH;
+		Engine.logEngine = org.apache.log4j.Logger.getLogger("bundle-selection-test");
+		var root = folder.newFolder("selection").toPath();
+		Engine.PROJECTS_PATH = root.toString();
+		try {
+			var app = project(root, "App", "1", "Shared");
+			var shared = project(root, "Shared", "2", "Leaf");
+			var leaf = project(root, "Leaf", "3", null);
+			var extra = project(root, "Extra", "4", null);
+			var catalog = Map.of("App", app, "Shared", shared, "Leaf", leaf, "Extra", extra);
+			var preview = ProjectBundle.preview(List.of("App"), true, List.of("Extra"), List.of("Shared"), name -> {
+				assertNotEquals("An excluded project must not be loaded", "Shared", name);
+				return catalog.get(name);
+			});
+			assertEquals(Set.of("App", "Extra"), preview.roots());
+			assertEquals(Set.of("Shared"), preview.excludedProjects());
+			assertEquals(List.of("App", "Extra"), preview.plan().projects().stream().map(ProjectInfo::name).toList());
+			var output = folder.getRoot().toPath().resolve("selection.zip");
+			var plan = ProjectBundle.export(output, List.of("App"), true, List.of("Extra"), List.of("Shared"), ArchiveExportOption.all, catalog::get);
+			assertEquals(preview.plan().projects(), plan.projects());
+			try (var zip = new ZipFile(output.toFile())) {
+				assertNull(zip.getEntry("Shared.car"));assertNull(zip.getEntry("Leaf.car"));assertNotNull(zip.getEntry("Extra.car"));
+				var manifest = new JSONObject(new String(zip.getInputStream(zip.getEntry("bundle.json")).readAllBytes(), java.nio.charset.StandardCharsets.UTF_8));
+				assertEquals("Shared", manifest.getJSONArray("excludedProjects").getString(0));
+				assertEquals("Shared", manifest.getJSONArray("projects").getJSONObject(0).getJSONArray("dependencies").getString(0));
+			}
+			try (var prepared = ProjectBundleImport.prepare(List.of(output), folder.getRoot().toPath(), ProjectBundleZip.Limits.defaults())) {
+				assertTrue(prepared.warnings().isEmpty());
+				var error = assertThrows(IOException.class, () -> prepared.checkDependencies(name -> false));
+				assertTrue(error.getMessage().contains("Required project Shared referenced by App"));
+				prepared.checkDependencies(name -> name.equals("Shared"));
+			}
+			ProjectBundle.export(output, List.of("App"), true, List.of("Extra"), List.of(), ArchiveExportOption.all, catalog::get);
+			try (var prepared = ProjectBundleImport.prepare(List.of(output), folder.getRoot().toPath(), ProjectBundleZip.Limits.defaults())) {
+				assertEquals(4, prepared.plan().projects().size());
+				prepared.checkDependencies(name -> false);
+			}
+			var withoutClosure = ProjectBundle.preview(List.of("App"), false, List.of("Extra"), List.of(), catalog::get);
+			assertEquals(List.of("App", "Extra"), withoutClosure.plan().projects().stream().map(ProjectInfo::name).toList());
+		} finally { Engine.PROJECTS_PATH = previous; }
+	}
+
+	@Test public void refusesExcludedRootsAndInvalidSelectionNamesBeforeResolving() {
+		ProjectBundle.ProjectResolver unused = name -> { throw new AssertionError("No project should be resolved"); };
+		for (var excluded : List.of("App", "Extra")) {
+			var failure = assertThrows(IOException.class, () -> ProjectBundle.preview(List.of("App"), true, List.of("Extra"), List.of(excluded), unused));
+			assertTrue(failure.getMessage().contains("cannot be excluded"));
+		}
+		assertThrows(IOException.class, () -> ProjectBundle.preview(List.of("App"), true, List.of("Extra", "Extra"), List.of(), unused));
+		assertThrows(IllegalArgumentException.class, () -> ProjectBundle.preview(List.of("App"), true, List.of(), List.of("../Shared"), unused));
+	}
+
 	@Test public void serializesConcurrentExportsAndReleasesTheLockAfterFailure() throws Exception {
 		var entered = new java.util.concurrent.CountDownLatch(1);
 		var release = new java.util.concurrent.CountDownLatch(1);

@@ -237,7 +237,7 @@ public class SqlConnector extends Connector {
 		}
 
 		// Now attempt to create a database connection
-		Engine.logBeans.debug("(SqlConnector)  JDBC URL: " + realJdbcURL);//jdbc:hsqldb:file:C:\projets\Convertigo4\tomcat\webapps\convertigo\minime\crawlingDatabase
+		Engine.logBeans.debug("(SqlConnector)  JDBC URL: " + logUrl(context, realJdbcURL));//jdbc:hsqldb:file:C:\projets\Convertigo4\tomcat\webapps\convertigo\minime\crawlingDatabase
 		Engine.logBeans.debug("(SqlConnector)  User name: " + getRealJdbcUserName());
 		Engine.logBeans.debug("(SqlConnector)  User password: ******");
 
@@ -259,7 +259,7 @@ public class SqlConnector extends Connector {
 
 		registerConnectionCleanup(connection);
 
-		Engine.logBeans.debug("[SqlConnector] Open connection ("+connection.hashCode()+") on database " + realJdbcURL);
+		Engine.logBeans.debug("[SqlConnector] Open connection ("+connection.hashCode()+") on database " + logUrl(context, realJdbcURL));
 
 		needReset = false;
 
@@ -293,7 +293,7 @@ public class SqlConnector extends Connector {
 					statement.executeQuery("SHUTDOWN");
 					statement.close();
 				}
-				Engine.logBeans.debug("[SqlConnector] Close connection ("+connection.hashCode()+") on database " + realJdbcURL);
+				Engine.logBeans.debug("[SqlConnector] Close connection ("+connection.hashCode()+") on database " + logUrl(context, realJdbcURL));
 				if(!connection.isClosed())
 					connection.close();
 
@@ -434,7 +434,7 @@ public class SqlConnector extends Connector {
 			}
 		}
 
-		Engine.logBeans.debug("(SqlConnector) JDBC URL: " + getConnectionJdbcURL());
+		Engine.logBeans.debug("(SqlConnector) JDBC URL: " + logUrl(context, getConnectionJdbcURL()));
 	}
 
 	public void setData(List<List<String>> data, List<String> columnHeaders) {
@@ -737,7 +737,8 @@ public class SqlConnector extends Connector {
 				try {
 					return new java.net.URI(value).toURL();
 				} catch (Exception e) {
-					Engine.logBeans.trace("[SqlConnector] Unable to convert value to URL: " + value, e);
+					Engine.logBeans.trace("[SqlConnector] Unable to convert value to URL: " + logUrl(null, value)
+							+ " (" + e.getClass().getSimpleName() + ")");
 				}
 			case Types.DATE: 
 				return java.sql.Date.valueOf(value); 

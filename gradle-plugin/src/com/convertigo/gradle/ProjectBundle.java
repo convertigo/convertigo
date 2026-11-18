@@ -33,6 +33,8 @@ import com.twinsoft.convertigo.engine.enums.ArchiveExportOption;
 public class ProjectBundle extends ProjectCar {
 	private List<String> projects = new ArrayList<>();
 	private boolean includeDependencies;
+	private List<String> includeProjects = new ArrayList<>();
+	private List<String> excludeProjects = new ArrayList<>();
 
 	@Input
 	public List<String> getProjects() {
@@ -52,6 +54,16 @@ public class ProjectBundle extends ProjectCar {
 		this.includeDependencies = includeDependencies;
 	}
 
+	@Input
+	public List<String> getIncludeProjects() { return includeProjects; }
+
+	public void setIncludeProjects(List<String> includeProjects) { this.includeProjects = new ArrayList<>(includeProjects); }
+
+	@Input
+	public List<String> getExcludeProjects() { return excludeProjects; }
+
+	public void setExcludeProjects(List<String> excludeProjects) { this.excludeProjects = new ArrayList<>(excludeProjects); }
+
 	@TaskAction
 	@Override
 	void taskAction() throws Exception {
@@ -66,7 +78,7 @@ public class ProjectBundle extends ProjectCar {
 		if (!isIncludeMobilePlatformsAssets()) options.remove(ArchiveExportOption.includeMobilePlatformsAssets);
 		File output = getDestinationFile();
 		if (output == null) output = new File(getDestinationDir(), root.getName() + "-bundle.zip");
-		com.twinsoft.convertigo.engine.util.ProjectBundle.export(output.toPath(), names, includeDependencies,
+		com.twinsoft.convertigo.engine.util.ProjectBundle.export(output.toPath(), names, includeDependencies, includeProjects, excludeProjects,
 				options, name -> name.equals(root.getName()) ? root
 						: com.twinsoft.convertigo.engine.Engine.theApp.databaseObjectsManager.getOriginalProjectByName(name, false));
 		setDestinationFile(output);
