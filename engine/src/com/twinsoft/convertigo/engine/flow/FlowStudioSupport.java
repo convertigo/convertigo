@@ -328,6 +328,39 @@ public class FlowStudioSupport {
 		}
 	}
 
+	/**
+	 * The documents a runtime provider computes for authoring (the front documents of a page or a component) are kept
+	 * with its responses, in the authoring cache of the engine: one store on disk, in the local working directory or
+	 * else in the workspace, cleared and bounded with them.
+	 *
+	 * @param key 64 hexadecimal characters, given by the provider from everything the document depends on
+	 * @return the text kept for this key, null when there is none, when it cannot be used or when the cache is off
+	 */
+	public static String authoringDocument(String key) {
+		var cache = key == null ? null : FlowAuthoringDiskCache.get();
+		var parts = cache == null ? null : cache.read(key);
+		return parts == null ? null : parts.get(AUTHORING_DOCUMENT_PART);
+	}
+
+	/**
+	 * Keeps the text of a document, written in the background by the writer of the authoring cache: the request that
+	 * computed it does not wait for its write.
+	 *
+	 * @param computeNanos the time the provider took to compute it: a document computed faster than reading it back
+	 *            would be is not kept
+	 * @return false when the cache is off: the document is computed again after a restart
+	 */
+	public static boolean keepAuthoringDocument(String key, String text, long computeNanos) {
+		var cache = key == null || text == null ? null : FlowAuthoringDiskCache.get();
+		if (cache == null) {
+			return false;
+		}
+		cache.write(key, () -> Map.of(AUTHORING_DOCUMENT_PART, text), computeNanos);
+		return true;
+	}
+
+	private static final String AUTHORING_DOCUMENT_PART = "document";
+
 	public static void finishPerformanceProfile(boolean owner, JSONObject response) {
 		if (!owner) {
 			return;
