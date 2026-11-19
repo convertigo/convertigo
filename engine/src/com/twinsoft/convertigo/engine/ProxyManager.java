@@ -63,7 +63,7 @@ public class ProxyManager {
 	public String proxyPassword;
 	
 	public String bypassDomains;
-	private PacManager pacUtils;
+	private volatile PacManager pacUtils;
 	private MyPropertyChangeEventListener myPropertyChangeEventListener = null;
 
 	public ProxyManager() {
@@ -148,8 +148,9 @@ public class ProxyManager {
 		this.bypassDomains = EnginePropertiesManager.getProperty(PropertyName.PROXY_SETTINGS_BY_PASS_DOMAINS);
 
 		if (proxyMode == ProxyMode.auto) {
-			this.pacUtils = new PacManager(proxyUrl);
-			this.pacUtils.start();
+			var pac = new PacManager(proxyUrl);
+			pac.start();
+			this.pacUtils = pac;
 		} else {
 			this.pacUtils = null;
 		}
@@ -244,7 +245,13 @@ public class ProxyManager {
 
 	public PacInfos getPacInfos(String url, String host) {
 		var pac = pacUtils;
-		return proxyMode == ProxyMode.auto && pac != null ? pac.getPacInfos(url, host) : null;
+		if (proxyMode != ProxyMode.auto) return null;
+		if (pac == null) {
+			Engine.logProxyManager.warn("(ProxyManager) Automatic proxy mode: PAC is unavailable; using a direct connection. "
+					+ "Check the PAC configuration and cems.ProxyManager DEBUG logs.");
+			return null;
+		}
+		return pac.getPacInfos(url, host);
 	}
 
 	public void setBasicAuth(HttpState httpState) {

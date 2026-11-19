@@ -34,6 +34,7 @@ public class PacManagerTest {
 	private Logger previousLogger;
 	private Logger logger;
 	private final List<String> messages = new ArrayList<>();
+	private final List<String> warnings = new ArrayList<>();
 	private ProxyManager manager;
 	private PacManager parser;
 
@@ -49,7 +50,7 @@ public class PacManagerTest {
 		logger.setLevel(Level.DEBUG);
 		logger.setAdditivity(false);
 		logger.addAppender(new AppenderSkeleton() {
-			@Override protected void append(LoggingEvent event) { messages.add(event.getRenderedMessage()); }
+			@Override protected void append(LoggingEvent event) { messages.add(event.getRenderedMessage()); if (event.getLevel() == Level.WARN) warnings.add(event.getRenderedMessage()); }
 			@Override public void close() { }
 			@Override public boolean requiresLayout() { return false; }
 		});
@@ -177,4 +178,66 @@ public class PacManagerTest {
 		}
 		assertTrue(messages.stream().noneMatch(line -> line.contains("(PacManager)")));
 	}
+	private void automatic(String location) {
+		EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_MODE, "auto");
+		EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_AUTO, location);
+		manager.getEngineProperties();
+	}
+
+	@Test public void missingAndEmptyPacLocationsWarnWithoutPublishingAPartialScript() throws Exception {
+		for (String location : List.of("", folder.getRoot().toPath().resolve("missing.pac").toString())) {
+			warnings.clear();
+			automatic(location);
+			for (int i = 0; i < 2; i++) assertNull(manager.getPacInfos("https://target.example/", "target.example"));
+			assertEquals(1, warnings.size());
+			assertTrue(warnings.get(0).contains("PAC is unavailable"));
+			assertTrue(warnings.get(0).contains("direct connection"));
+		}
+	}
+
+	@Test public void failedDownloadWarnsAndAPacCanBeAppliedAgain() throws Exception {
+		var server = com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress("127.0.0.1", 0), 0);
+		var status = new java.util.concurrent.atomic.AtomicInteger(404);
+		server.createContext("/", exchange -> {
+			byte[] body = "function FindProxyForURL(url, host) { return 'PROXY loaded.example:8080'; }".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+			exchange.sendResponseHeaders(status.get(), body.length);
+			try (var out = exchange.getResponseBody()) { out.write(body); }
+		});
+		server.start();
+		try {
+			String location = "http://127.0.0.1:" + server.getAddress().getPort() + "/proxy.pac";
+			automatic(location);
+			assertNull(manager.getPacInfos("https://target.example/", "target.example"));
+			assertEquals(1, warnings.size());
+			status.set(200);
+			warnings.clear();
+			automatic(location);
+			assertEquals("loaded.example", manager.getPacInfos("https://target.example/", "target.example").getServer());
+			assertTrue(warnings.isEmpty());
+		} finally { server.stop(0); }
+	}
+
+	@Test public void invalidScriptsWarnAndDirectIsNotReportedAsUnavailable() throws Exception {
+		var file = folder.newFile("invalid.pac").toPath();
+		for (String script : List.of("", "function FindProxyForURL( {", "var other = 1;")) {
+			Files.writeString(file, script);
+			warnings.clear();
+			automatic(file.toString());
+			assertNull(manager.getPacInfos("https://target.example/", "target.example"));
+			assertEquals(1, warnings.size());
+			assertNull(org.mozilla.javascript.Context.getCurrentContext());
+		}
+		Files.writeString(file, "function FindProxyForURL(url, host) { return 'DIRECT'; }");
+		warnings.clear();
+		automatic(file.toString());
+		assertNull(manager.getPacInfos("https://target.example/", "target.example"));
+		assertTrue(warnings.isEmpty());
+	}
+
+	@Test public void automaticModeWithoutAPacManagerWarns() {
+		manager.proxyMode = ProxyMode.auto;
+		assertNull(manager.getPacInfos("https://target.example/", "target.example"));
+		assertTrue(warnings.stream().anyMatch(line -> line.contains("PAC is unavailable")));
+	}
+
 }

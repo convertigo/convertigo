@@ -49,23 +49,23 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.NTCredentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpResponseException;
+import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
+import org.apache.http.impl.conn.DefaultRoutePlanner;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
 import org.codehaus.jettison.json.JSONException;
@@ -80,6 +80,8 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMethod;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMode;
 import com.twinsoft.convertigo.engine.KeyExpiredException;
 import com.twinsoft.convertigo.engine.MaxCvsExceededException;
+import com.twinsoft.convertigo.engine.PacManager.PacInfos;
+import com.twinsoft.convertigo.engine.ProxyManager;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpPool;
 import com.twinsoft.convertigo.engine.enums.Parameter;
@@ -244,6 +246,50 @@ public class HttpUtils {
 			manager.shutdown();
 		}
 	}
+
+	private static void configureProxy(HttpClientBuilder builder, ProxyManager manager) {
+		CredentialsProvider credentials = new BasicCredentialsProvider();
+		builder.setDefaultCredentialsProvider(credentials);
+		builder.setRoutePlanner(new DefaultRoutePlanner(null) {
+			@Override
+			protected HttpHost determineProxy(HttpHost target, HttpRequest request, HttpContext context) throws HttpException {
+				if (!manager.isEnabled()) {
+					return null;
+				}
+				for (String domain : manager.getBypassDomains()) {
+					if (target.getHostName().equalsIgnoreCase(domain)) {
+						return null;
+					}
+				}
+				HttpHost proxy = null;
+				if (manager.proxyMode == ProxyMode.manual && !manager.getProxyServer().isEmpty()) {
+					proxy = new HttpHost(manager.getProxyServer(), manager.getProxyPort());
+				} else if (manager.proxyMode == ProxyMode.auto) {
+					// Routing is evaluated again for every redirect, with its full destination URL.
+					URI uri = URI.create(target.toURI()).resolve(request.getRequestLine().getUri());
+					PacInfos info = manager.getPacInfos(uri.toString(), target.getHostName());
+					if (info != null) {
+						proxy = new HttpHost(info.getServer(), info.getPort());
+					}
+				}
+				if (proxy != null) {
+					if (manager.proxyMethod == ProxyMethod.basic) {
+						credentials.setCredentials(new AuthScope(proxy.getHostName(), proxy.getPort(), AuthScope.ANY_REALM, AuthSchemes.BASIC),
+								new UsernamePasswordCredentials(manager.getProxyUser(), manager.getProxyPassword()));
+					} else if (manager.proxyMethod == ProxyMethod.ntlm) {
+						String user = manager.getProxyUser();
+						int separator = user.indexOf('\\');
+						if (separator <= 0 || separator == user.length() - 1) {
+							throw new HttpException("NTLM proxy authentication requires a domain\\user username");
+						}
+						credentials.setCredentials(new AuthScope(proxy.getHostName(), proxy.getPort(), AuthScope.ANY_REALM, AuthSchemes.NTLM),
+								new NTCredentials(user.substring(separator + 1), manager.getProxyPassword(), "", user.substring(0, separator)));
+					}
+				}
+				return proxy;
+			}
+		});
+	}
 	
 	public static HttpClientInterface makeHttpClient(boolean usePool) {
 		
@@ -253,33 +299,8 @@ public class HttpUtils {
 			private synchronized CloseableHttpClient getHttpClient4() {
 				if (httpClient == null) {
 					HttpClientBuilder httpClientBuilder = HttpClients.custom();
-					if (Engine.theApp != null && Engine.theApp.proxyManager.proxyMode == ProxyMode.manual) {
-						HttpHost proxy = new HttpHost(Engine.theApp.proxyManager.getProxyServer(), Engine.theApp.proxyManager.getProxyPort());
-						httpClientBuilder.setProxy(proxy);
-						HttpRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy) {
-
-						    @Override
-						    public HttpRoute determineRoute(
-						            final HttpHost host,
-						            final HttpRequest request,
-						            final HttpContext context) throws HttpException {
-						        String hostname = host.getHostName();
-						        for (String domain: Engine.theApp.proxyManager.getBypassDomains()) {
-						        	if (hostname.equals(domain)) {
-						        		return new HttpRoute(host);
-						        	}
-						        }
-						        return super.determineRoute(host, request, context);
-						    }
-						};
-						httpClientBuilder.setRoutePlanner(routePlanner);
-						if (Engine.theApp.proxyManager.proxyMethod == ProxyMethod.basic) {
-							CredentialsProvider credsProvider = new BasicCredentialsProvider();
-							credsProvider.setCredentials(
-									new AuthScope(proxy.getHostName(), proxy.getPort()),
-									new UsernamePasswordCredentials(Engine.theApp.proxyManager.getProxyUser(), Engine.theApp.proxyManager.getProxyPassword()));
-							httpClientBuilder.setDefaultCredentialsProvider(credsProvider);
-						};
+					if (Engine.theApp != null && Engine.theApp.proxyManager != null) {
+						configureProxy(httpClientBuilder, Engine.theApp.proxyManager);
 					}
 					
 					@SuppressWarnings("deprecation")

@@ -739,3 +739,25 @@ tasks.register('pacManagerTest', JavaExec) {
 		'com.twinsoft.convertigo.engine.util.WsReferenceProxyTest'
 }
 tasks.named('check') { dependsOn 'pacManagerTest' }
+
+tasks.register('httpConnectorNetworkErrorTest', JavaExec) {
+	group = 'verification'
+	description = 'HTTP connection failure causes, HTTP info and cancellation.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	maxHeapSize = '128m'
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.beans.connectors.HttpConnectorNetworkErrorTest'
+}
+tasks.named('check') { dependsOn 'httpConnectorNetworkErrorTest' }
+
+tasks.register('httpUtilsProxyTest', JavaExec) {
+	group = 'verification'
+	description = 'HTTP utility proxy routing, PAC updates and Basic/NTLM authentication.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	maxHeapSize = '128m'
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.HttpUtilsProxyTest'
+}
+tasks.named('check') { dependsOn 'httpUtilsProxyTest' }
