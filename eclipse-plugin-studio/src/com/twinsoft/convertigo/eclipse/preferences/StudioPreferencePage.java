@@ -39,6 +39,8 @@ import com.twinsoft.convertigo.eclipse.ExperimentalFeatures;
 import com.twinsoft.convertigo.eclipse.views.assistant.AssistantView;
 import com.twinsoft.convertigo.eclipse.views.marketplace.MarketplaceView;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.StudioPreferences;
+import org.eclipse.swt.widgets.Button;
 
 public class StudioPreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
 
@@ -53,6 +55,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 	private BooleanFieldEditor cbAutoUpdateReadme = null;
 	private BooleanFieldEditor cbBrowserOffscreen = null;
 	private BooleanFieldEditor cbExperimentalFeatures = null;
+	private Button cbAutoBuildProdWhileEditing;
 //	private BooleanFieldEditor cbUseSystemFlowViewer = null;
 	private IntegerFieldEditor intTracePlayerPort = null;
 	private StringFieldEditor localBuildAdditionalPath = null;
@@ -149,6 +152,9 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbAutoUpdateReadme.setPage(this);
 		cbAutoUpdateReadme.setPreferenceStore(getPreferenceStore());
 		cbAutoUpdateReadme.load();
+		cbAutoBuildProdWhileEditing = new Button(groupGeneral, SWT.CHECK);
+		cbAutoBuildProdWhileEditing.setText("Build the production app while editing (when dev mode is running)");
+		cbAutoBuildProdWhileEditing.setSelection(StudioPreferences.autoBuildProdWhileEditing());
 
 		cbExperimentalFeatures = new BooleanFieldEditor(
 				ConvertigoPlugin.PREFERENCE_EXPERIMENTAL_FEATURES,
@@ -264,6 +270,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbAutoCreateProjectReference.loadDefault();
 		cbAutoCreateProjectGitRepository.loadDefault();
 		cbAutoUpdateReadme.loadDefault();
+		cbAutoBuildProdWhileEditing.setSelection(StudioPreferences.DEFAULT_AUTO_BUILD_PROD_WHILE_EDITING);
 		cbBrowserOffscreen.loadDefault();
 		localBuildAdditionalPath.loadDefault();
 		localBuildFolder.loadDefault();
@@ -302,6 +309,12 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbAutoOpenDefaultConnector.store();
 		cbAutoCreateProjectReference.store();
 		cbAutoUpdateReadme.store();
+		try {
+			StudioPreferences.setAutoBuildProdWhileEditing(cbAutoBuildProdWhileEditing.getSelection());
+		} catch (Exception e) {
+			Engine.logStudio.warn("Unable to save the workspace Studio preferences", e);
+			return false;
+		}
 		cbAutoCreateProjectGitRepository.store();
 		cbBrowserOffscreen.store();
 		boolean experimentalChanged = cbExperimentalFeatures.getBooleanValue() != ExperimentalFeatures.isShown();

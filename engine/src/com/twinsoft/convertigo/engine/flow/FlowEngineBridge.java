@@ -62,6 +62,7 @@ import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.ProjectClassLoader;
 import com.twinsoft.convertigo.engine.ProjectLibraries;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.ApplicationBuilds;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
@@ -591,7 +592,10 @@ public class FlowEngineBridge {
 
 	public static void notifySourceMutation(String projectDir, String sourcePath, boolean reveal) {
 		if (projectDir == null || projectDir.isBlank()) invalidateDataCaches();
-		else if (FlowSourceLayout.current().isFrontendDocument(sourcePath)) invalidateProjectFrontendCaches(projectDir);
+		else if (FlowSourceLayout.current().isFrontendDocument(sourcePath)) {
+			invalidateProjectFrontendCaches(projectDir);
+			ApplicationBuilds.frontendWritten(projectNameForDir(projectDir));
+		}
 		else invalidateProjectDataCaches(projectDir);
 		var projectName = projectNameForDir(projectDir);
 		// a file written by the provider itself: the other instances of a shared workspace are told; a working copy is

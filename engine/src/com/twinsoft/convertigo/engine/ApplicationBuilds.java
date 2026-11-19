@@ -32,7 +32,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BooleanSupplier;
+
+import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
@@ -43,15 +48,13 @@ import com.twinsoft.convertigo.engine.util.InstanceIdentity;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 
 /**
- * The production builds of the applications that a server loads without their build (DisplayObjects/mobile), when it
- * builds them (server_build all): one at a time, in the background, never in the Studio. An application already built
- * is kept as it is.
+ * Production builds of applications loaded without a build, and builds requested after frontend source writes:
+ * one at a time, in the background. An application already built is kept at load time.
  * <p>
  * The instances sharing a workspace build an application once: the one that creates the lock file of the project
  * builds, and renews it while building; a lock no longer renewed, or held by an instance that is no longer alive
  * (when the instances are known), is taken over. Until the application is built, its index.html is replaced by a page
- * telling the state of the build (see {@link #statusPage}). A failed build is told in the logs, the page delivered with
- * the project is restored, and it is not tried again before the project is loaded again.
+ * telling the state of a load build (see {@link #statusPage}). Save builds keep the current page visible.
  */
 public final class ApplicationBuilds {
 	/** The state of the build of the application of a project on this instance. */
@@ -76,13 +79,18 @@ public final class ApplicationBuilds {
 
 	static long lockRenewal = TimeUnit.MINUTES.toMillis(1);
 	static long lockExpiry = TimeUnit.MINUTES.toMillis(5);
+	static long frontendDelay = TimeUnit.SECONDS.toMillis(20);
 	/** The identity of this instance in the lock files (overridden by the tests). */
 	static java.util.function.Supplier<String> instanceId = InstanceIdentity::getLocalInstanceId;
 
 	private static final Map<String, State> states = new ConcurrentHashMap<>();
 	private static final Set<String> queued = ConcurrentHashMap.newKeySet();
+	private static final Map<String, ScheduledFuture<?>> pendingFrontend = new ConcurrentHashMap<>();
+	private static final Map<String, Long> frontendRequests = new ConcurrentHashMap<>();
+	private static final AtomicLong frontendRequestId = new AtomicLong();
 	private static ExecutorService executor;
 	private static ScheduledExecutorService renewer;
+	private static ScheduledExecutorService frontendScheduler;
 
 	private ApplicationBuilds() {
 	}
@@ -111,6 +119,81 @@ public final class ApplicationBuilds {
 				}
 			});
 		}
+	}
+
+	/** A frontend source was saved. Only the last write within the delay requests a production build. */
+	public static synchronized void frontendWritten(String name) {
+		if (name == null || name.isBlank() || Engine.isCliMode()) return;
+		frontendWritten(name, () -> frontendEligible(name), () -> {
+			try {
+				buildWhileEditing(name);
+			} catch (Exception e) {
+				warn("Application of the project " + name + ": unable to build after editing", e);
+			}
+		});
+	}
+
+	/** The same debounce and serial queue, with injectable work for concurrency tests. */
+	static synchronized void frontendWritten(String name, BooleanSupplier eligible, Runnable build) {
+		var previous = pendingFrontend.remove(name);
+		if (previous != null) previous.cancel(false);
+		var request = frontendRequestId.incrementAndGet();
+		frontendRequests.put(name, request);
+		pendingFrontend.put(name, frontendScheduler().schedule(() -> {
+			if (!frontendRequests.remove(name, request)) return;
+			pendingFrontend.remove(name);
+			if (!eligible.getAsBoolean()) return;
+			if (queued.add(name)) {
+				executor().execute(() -> {
+				queued.remove(name);
+				Log4jHelper.mdcClear();
+				try {
+					build.run();
+				} catch (Throwable t) {
+					warn("Application of the project " + name + ": unable to build after editing", t);
+				}
+			});
+			}
+		}, frontendDelay, TimeUnit.MILLISECONDS));
+	}
+
+	private static boolean frontendEligible(String name) {
+		if (!Engine.isStarted || !frontendAllowed(StudioPreferences.autoBuildProdWhileEditing(), Engine.isCliMode(),
+				Engine.serverBuild())) return false;
+		try {
+			var project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(name, false);
+			// built or not yet: the server builds the application of a project edited in dev mode either way
+			return project != null && flowServing(project);
+		} catch (Exception e) {
+			warn("Application of the project " + name + ": unable to check the production build", e);
+			return false;
+		}
+	}
+
+	private static boolean flowServing(Project project) {
+		try {
+			var engine = project.getFlowEngine();
+			if (engine == null) return false;
+			return builderServing(com.twinsoft.convertigo.engine.flow.FlowStudioSupport.contextMenu(engine));
+		} catch (Exception e) {
+			warn("Application of the project " + project.getName() + ": unable to read its builders", e);
+		}
+		return false;
+	}
+
+	static boolean builderServing(JSONObject menu) {
+		var builders = menu.optJSONArray("builders");
+		for (int i = 0; builders != null && i < builders.length(); i++) {
+			var builder = builders.optJSONObject(i);
+			var state = builder == null ? null : builder.optJSONObject("state");
+			if (builder != null && builder.optBoolean("available", false) && state != null
+					&& state.optBoolean("serving", false)) return true;
+		}
+		return false;
+	}
+
+	static boolean frontendAllowed(boolean preference, boolean cli, EnginePropertiesManager.ServerBuild level) {
+		return preference && !cli && level.allows(EnginePropertiesManager.ServerBuild.studio);
 	}
 
 	/** The builds of the applications are now allowed: those not built as they were not are built. */
@@ -193,17 +276,14 @@ public final class ApplicationBuilds {
 	}
 
 	/**
-	 * @return whether DisplayObjects/mobile holds a build: the env.json an NGX production build writes, or the _app
-	 *         folder of a SvelteKit build, which the page of an unbuilt application delivered with a project has not
+	 * @return whether DisplayObjects/mobile holds a completed build, marked in env.json
 	 */
 	static boolean looksBuilt(File projectDir) {
 		var mobile = new File(projectDir, "DisplayObjects/mobile");
-		if (new File(mobile, "_app").isDirectory()) {
-			return true;
-		}
 		try {
-			return Files.readString(new File(mobile, "env.json").toPath(), StandardCharsets.UTF_8).contains("\"appGenerationTime\"");
-		} catch (IOException e) {
+			return new JSONObject(Files.readString(new File(mobile, "env.json").toPath(), StandardCharsets.UTF_8))
+					.has("appGenerationTime");
+		} catch (Exception e) {
 			return false;
 		}
 	}
@@ -243,6 +323,9 @@ public final class ApplicationBuilds {
 
 	/** At engine stop: the running build is stopped. */
 	public static synchronized void stop() {
+		for (var future : pendingFrontend.values()) future.cancel(false);
+		pendingFrontend.clear();
+		frontendRequests.clear();
 		if (executor != null) {
 			executor.shutdownNow();
 			executor = null;
@@ -250,6 +333,10 @@ public final class ApplicationBuilds {
 		if (renewer != null) {
 			renewer.shutdownNow();
 			renewer = null;
+		}
+		if (frontendScheduler != null) {
+			frontendScheduler.shutdownNow();
+			frontendScheduler = null;
 		}
 		for (var name : states.keySet()) {
 			if (states.get(name) == State.building) {
@@ -315,6 +402,10 @@ public final class ApplicationBuilds {
 	 *         command, else null
 	 */
 	private static Application flowApplication(Project project) {
+		return flowApplication(project, false, false);
+	}
+
+	private static Application flowApplication(Project project, boolean includeBuilt, boolean requireServing) {
 		try {
 			var engine = project.getFlowEngine();
 			if (engine == null) {
@@ -328,7 +419,9 @@ public final class ApplicationBuilds {
 				var command = commands == null ? null : commands.optJSONObject("build");
 				// a builder that does not tell whether it is built is never built by the server
 				if (builder.optBoolean("available", false) && state != null && state.has("built")
-						&& !state.optBoolean("built", true) && command != null && command.optBoolean("enabled", true)) {
+						&& (includeBuilt || !state.optBoolean("built", true))
+						&& (!requireServing || state.optBoolean("serving", false))
+						&& command != null && command.optBoolean("enabled", true)) {
 					return new Application() {
 						@Override
 						public boolean build(java.util.function.Consumer<String> listener) throws Exception {
@@ -401,6 +494,46 @@ public final class ApplicationBuilds {
 				synchronized (lines) {
 					error("Application of the project " + name + ": the production build failed, it is not tried again"
 							+ " before the project is loaded again; last output:\n" + String.join("\n", lines));
+				}
+			}
+		} finally {
+			renewal.cancel(false);
+			release(lock);
+		}
+	}
+
+	/** A save build keeps the current production page visible while the staged output is built. */
+	private static void buildWhileEditing(String name) throws Exception {
+		waitForEngine();
+		if (!StudioPreferences.autoBuildProdWhileEditing() || Engine.isCliMode()
+				|| !Engine.serverBuild().allows(EnginePropertiesManager.ServerBuild.studio)) return;
+		var project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(name, false);
+		if (project == null) return;
+		var application = flowApplication(project, true, true);
+		if (application == null) return;
+		var lock = new File(project.getDirPath(), "DisplayObjects/" + LOCK);
+		if (acquire(lock) != null) {
+			frontendWritten(name);
+			return;
+		}
+		var renewal = renewer().scheduleWithFixedDelay(() -> renew(lock), lockRenewal, lockRenewal, TimeUnit.MILLISECONDS);
+		var lines = new ArrayDeque<String>();
+		try {
+			info("Application of the project " + name + ": production build after editing");
+			var start = System.currentTimeMillis();
+			var built = application.build(line -> {
+				synchronized (lines) {
+					if (lines.size() == FAILURE_LINES) lines.removeFirst();
+					lines.addLast(line);
+				}
+			});
+			if (built) {
+				info("Application of the project " + name + ": built after editing in "
+						+ (System.currentTimeMillis() - start) / 1000 + " s");
+			} else {
+				synchronized (lines) {
+					error("Application of the project " + name + ": production build after editing failed; last output:\n"
+							+ String.join("\n", lines));
 				}
 			}
 		} finally {
@@ -532,6 +665,17 @@ public final class ApplicationBuilds {
 			});
 		}
 		return renewer;
+	}
+
+	private static synchronized ScheduledExecutorService frontendScheduler() {
+		if (frontendScheduler == null) {
+			frontendScheduler = Executors.newSingleThreadScheduledExecutor(runnable -> {
+				var thread = new Thread(runnable, "ApplicationBuilds frontend delay");
+				thread.setDaemon(true);
+				return thread;
+			});
+		}
+		return frontendScheduler;
 	}
 
 	private static void info(String message) {

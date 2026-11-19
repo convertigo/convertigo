@@ -24,10 +24,13 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.nio.file.Files;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.InstanceIdentity;
@@ -47,6 +50,8 @@ public class ApplicationBuildsTest {
 	@After
 	public void tearDown() {
 		ApplicationBuilds.lockExpiry = TimeUnit.MINUTES.toMillis(5);
+		ApplicationBuilds.frontendDelay = TimeUnit.SECONDS.toMillis(20);
+		ApplicationBuilds.stop();
 		ApplicationBuilds.instanceId = InstanceIdentity::getLocalInstanceId;
 		FileUtils.deleteQuietly(base);
 	}
@@ -110,7 +115,9 @@ public class ApplicationBuildsTest {
 			assertNotNull("waiting, without build: the page", ApplicationBuilds.statusPage("App", projectDir));
 
 			Files.createDirectories(new File(mobile, "_app/immutable").toPath());
-			assertNull("a SvelteKit build is there: the application, never \"waiting\"", ApplicationBuilds.statusPage("App", projectDir));
+			assertNotNull("_app alone is not a completed build", ApplicationBuilds.statusPage("App", projectDir));
+			Files.writeString(new File(mobile, "env.json").toPath(), "{\"projectName\":\"App\"}");
+			assertNotNull("env.json without the stamp is incomplete", ApplicationBuilds.statusPage("App", projectDir));
 
 			FileUtils.deleteQuietly(new File(mobile, "_app"));
 			Files.writeString(new File(mobile, "env.json").toPath(), "{\"appGenerationTime\": 1791450000000}");
@@ -121,6 +128,113 @@ public class ApplicationBuildsTest {
 		} finally {
 			ApplicationBuilds.setState("App", null);
 		}
+	}
+
+	@Test
+	public void eachWriteRearmsTheDelayAndOnlyOneBuildRuns() throws Exception {
+		ApplicationBuilds.frontendDelay = 200;
+		var started = new CountDownLatch(1);
+		var builds = new AtomicInteger();
+		ApplicationBuilds.frontendWritten("App", () -> true, () -> { builds.incrementAndGet(); started.countDown(); });
+		Thread.sleep(110);
+		ApplicationBuilds.frontendWritten("App", () -> true, () -> { builds.incrementAndGet(); started.countDown(); });
+		assertFalse("the first deadline was cancelled", started.await(130, TimeUnit.MILLISECONDS));
+		assertTrue("the last write builds", started.await(2, TimeUnit.SECONDS));
+		assertEquals(1, builds.get());
+	}
+
+	@Test
+	public void aQueuedBuildAbsorbsNewRequestsAndTheQueueRemainsSerial() throws Exception {
+		ApplicationBuilds.frontendDelay = 20;
+		var firstStarted = new CountDownLatch(1);
+		var releaseFirst = new CountDownLatch(1);
+		var secondStarted = new CountDownLatch(1);
+		var builds = new AtomicInteger();
+		var active = new AtomicInteger();
+		var maximum = new AtomicInteger();
+		ApplicationBuilds.frontendWritten("First", () -> true, () -> {
+			maximum.accumulateAndGet(active.incrementAndGet(), Math::max);
+			firstStarted.countDown();
+			try { releaseFirst.await(2, TimeUnit.SECONDS); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+			active.decrementAndGet();
+		});
+		assertTrue(firstStarted.await(2, TimeUnit.SECONDS));
+		try {
+			for (int i = 0; i < 3; i++) {
+				ApplicationBuilds.frontendWritten("Second", () -> true, () -> {
+					maximum.accumulateAndGet(active.incrementAndGet(), Math::max);
+					builds.incrementAndGet();
+					secondStarted.countDown();
+					active.decrementAndGet();
+				});
+				Thread.sleep(30);
+			}
+			Thread.sleep(50);
+			assertEquals("the second build waits", 0, builds.get());
+		} finally {
+			releaseFirst.countDown();
+		}
+		assertTrue(secondStarted.await(2, TimeUnit.SECONDS));
+		assertEquals("one queued build absorbs further writes", 1, builds.get());
+		assertEquals("only one build at a time", 1, maximum.get());
+	}
+
+	@Test
+	public void aBuildAlreadyRunningDoesNotAbsorbLaterWrites() throws Exception {
+		ApplicationBuilds.frontendDelay = 20;
+		var started = new CountDownLatch(1);
+		var release = new CountDownLatch(1);
+		var second = new CountDownLatch(1);
+		var builds = new AtomicInteger();
+		ApplicationBuilds.frontendWritten("App", () -> true, () -> {
+			builds.incrementAndGet();
+			started.countDown();
+			try { release.await(2, TimeUnit.SECONDS); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+		});
+		assertTrue(started.await(2, TimeUnit.SECONDS));
+		try {
+			ApplicationBuilds.frontendWritten("App", () -> true, () -> {
+				builds.incrementAndGet();
+				second.countDown();
+			});
+			Thread.sleep(80);
+			assertEquals("the second build waits for the first", 1, builds.get());
+		} finally {
+			release.countDown();
+		}
+		assertTrue("the later write builds after the running one", second.await(2, TimeUnit.SECONDS));
+		assertEquals(2, builds.get());
+	}
+
+	@Test
+	public void disabledPreferenceOrStoppedDevModeDoNotQueueABuild() throws Exception {
+		ApplicationBuilds.frontendDelay = 20;
+		var builds = new AtomicInteger();
+		ApplicationBuilds.frontendWritten("Disabled", () -> false, builds::incrementAndGet);
+		ApplicationBuilds.frontendWritten("Stopped", () -> false, builds::incrementAndGet);
+		Thread.sleep(100);
+		assertEquals(0, builds.get());
+	}
+
+	@Test
+	public void editBuildRequiresThePreferenceStudioLevelAndNoCli() {
+		var levels = EnginePropertiesManager.ServerBuild.values();
+		for (var level : levels) {
+			assertEquals(level.allows(EnginePropertiesManager.ServerBuild.studio),
+					ApplicationBuilds.frontendAllowed(true, false, level));
+			assertFalse(ApplicationBuilds.frontendAllowed(false, false, level));
+			assertFalse(ApplicationBuilds.frontendAllowed(true, true, level));
+		}
+	}
+
+	@Test
+	public void onlyAnAvailableBuilderInDevModeAllowsTheEditBuild() throws Exception {
+		assertFalse(ApplicationBuilds.builderServing(
+				new JSONObject("{\"builders\":[{\"available\":true,\"state\":{\"serving\":false}}]}")));
+		assertFalse(ApplicationBuilds.builderServing(
+				new JSONObject("{\"builders\":[{\"available\":false,\"state\":{\"serving\":true}}]}")));
+		assertTrue(ApplicationBuilds.builderServing(
+				new JSONObject("{\"builders\":[{\"available\":true,\"state\":{\"serving\":true}}]}")));
 	}
 
 	@Test

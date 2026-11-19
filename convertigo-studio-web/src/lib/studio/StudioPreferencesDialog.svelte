@@ -1,4 +1,6 @@
 <script>
+	import { onMount } from 'svelte';
+	import { call } from '#lib/utils/service.js';
 	import { setExperimentalFeatures } from './experimentalFeatures.svelte.js';
 	import { registration } from './registration.svelte.js';
 	import {
@@ -20,6 +22,20 @@
 	let marketplaceUrl = $state(studioPreferences.marketplaceUrl);
 	let projectReferences = $state(studioPreferences.projectReferences);
 	let experimentalFeatures = $state(studioPreferences.experimentalFeatures === true);
+	let autoBuildProdWhileEditing = $state(true);
+	let autoBuildLoaded = $state(false);
+	let saving = $state(false);
+	let saveError = $state(false);
+	onMount(() => {
+		void call('studio.preferences.AutoBuild', {}, { silentError: () => true }).then((result) => {
+			if (typeof result?.enabled === 'boolean') {
+				autoBuildProdWhileEditing = result.enabled;
+				autoBuildLoaded = true;
+			} else {
+				saveError = true;
+			}
+		});
+	});
 	let assistantUrl = $state(String(studioPreferences.assistantUrl ?? ''));
 	let assistantChannel = $state(
 		studioPreferences.assistantChannel === 'preview' ? 'preview' : 'stable'
@@ -39,21 +55,37 @@
 		onClose?.();
 	}
 
-	function submit(/** @type {SubmitEvent} */ event) {
+	async function submit(/** @type {SubmitEvent} */ event) {
 		event.preventDefault();
-		saveStudioPreferences({
-			gitRepositoryForNewProjects,
-			readmeOnSave,
-			marketplaceUrl: marketplaceUrl.trim() || DEFAULT_MARKETPLACE_URL,
-			projectReferences,
-			assistantUrl: assistantUrl.trim(),
-			assistantChannel: assistantChannel === 'preview' ? 'preview' : 'stable',
-			followAgent: followAgent === 'always' || followAgent === 'never' ? followAgent : 'vibe'
-		});
-		if (experimentalFeatures !== (studioPreferences.experimentalFeatures === true)) {
-			void setExperimentalFeatures(experimentalFeatures);
+		if (saving) return;
+		saving = true;
+		saveError = false;
+		try {
+			if (autoBuildLoaded) {
+				const result = await call('studio.preferences.AutoBuild', {
+					enabled: String(autoBuildProdWhileEditing)
+				});
+				if (result?.enabled !== autoBuildProdWhileEditing) {
+					saveError = true;
+					return;
+				}
+			}
+			saveStudioPreferences({
+				gitRepositoryForNewProjects,
+				readmeOnSave,
+				marketplaceUrl: marketplaceUrl.trim() || DEFAULT_MARKETPLACE_URL,
+				projectReferences,
+				assistantUrl: assistantUrl.trim(),
+				assistantChannel: assistantChannel === 'preview' ? 'preview' : 'stable',
+				followAgent: followAgent === 'always' || followAgent === 'never' ? followAgent : 'vibe'
+			});
+			if (experimentalFeatures !== (studioPreferences.experimentalFeatures === true)) {
+				void setExperimentalFeatures(experimentalFeatures);
+			}
+			onClose?.();
+		} finally {
+			saving = false;
 		}
-		onClose?.();
 	}
 </script>
 
@@ -90,6 +122,20 @@
 					<span>
 						Update the readme.md file on save
 						<small>The project.md file is always written again.</small>
+					</span>
+				</label>
+				<label class="studio-dialog__check">
+					<input
+						type="checkbox"
+						bind:checked={autoBuildProdWhileEditing}
+						disabled={!autoBuildLoaded}
+					/>
+					<span>
+						Build the production app while editing
+						<small
+							>After frontend changes, update the production app when dev mode is running. Kept in
+							this workspace.</small
+						>
 					</span>
 				</label>
 				<label class="studio-dialog__check">
@@ -145,7 +191,14 @@
 						placeholder="Automatic: the local Assistant once installed, else assistant.convertigo.com"
 					/>
 				</label>
-				<p class="studio-dialog__hint">These preferences are kept in this browser.</p>
+				<p class="studio-dialog__hint">Other preferences are kept in this browser.</p>
+				{#if saveError}
+					<p class="studio-dialog__hint">
+						{autoBuildLoaded
+							? 'Unable to save the workspace preference. Please try again.'
+							: 'Workspace preference unavailable. Other preferences can still be saved.'}
+					</p>
+				{/if}
 				<div class="studio-dialog__field">
 					<span>Network proxy</span>
 					<div class="studio-dialog__row">
@@ -173,7 +226,7 @@
 			</div>
 			<footer class="studio-dialog__footer">
 				<button type="button" class="button-secondary" onclick={() => onClose?.()}>Cancel</button>
-				<button type="submit" class="button-primary">Apply</button>
+				<button type="submit" class="button-primary" disabled={saving}>Apply</button>
 			</footer>
 		</form>
 	</div>
