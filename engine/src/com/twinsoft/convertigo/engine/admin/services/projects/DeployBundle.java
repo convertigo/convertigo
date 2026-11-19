@@ -75,6 +75,20 @@ public class DeployBundle extends XmlService {
 						.collect(java.util.stream.Collectors.toSet()));
 	}
 
+	/**
+	 * A project of the selection is deployed from now until its import: neither its runtime nor those of the projects
+	 * using it are prepared meanwhile. A project imported before another one of the selection is replaced would else see
+	 * the former version of that one prepared against its own new version.
+	 */
+	protected void warmupDeploying(String name) {
+		com.twinsoft.convertigo.engine.flow.FlowRuntimeWarmup.projectDeploying(name);
+	}
+
+	/** The deployment of a project of the selection ended, imported or not: one not imported is prepared again. */
+	protected void warmupDeployed(String name) {
+		com.twinsoft.convertigo.engine.flow.FlowRuntimeWarmup.projectDeployed(name);
+	}
+
 	protected boolean projectAvailable(String name) {
 		return Engine.theApp.databaseObjectsManager.existsProject(name);
 	}
@@ -111,14 +125,22 @@ public class DeployBundle extends XmlService {
 			try (var prepared = ProjectBundleImport.prepare(files, temporary, limits)) {
 				prepared.checkDependencies(this::projectAvailable);
 				for (var warning : prepared.warnings()) ServiceUtils.addMessage(document, document.getDocumentElement(), warning, "warning", false);
-				var results = ProjectBundleDeployment.apply(prepared, new ProjectBundleDeployment.Installer() {
-					@Override public ProjectBundleDeployment.Completion install(String name, Path archive) throws Exception {
-						return DeployBundle.this.install(request, name, archive, assembleXsl);
-					}
-					@Override public AutoCloseable openGroup(com.twinsoft.convertigo.engine.util.ProjectBundlePlan.Group group) {
-						return DeployBundle.this.openGroup(group);
-					}
-				});
+				var names = prepared.plan().groups().stream().flatMap(group -> group.projects().stream())
+						.map(com.twinsoft.convertigo.engine.util.ProjectBundlePlan.ProjectInfo::name).toList();
+				for (var name : names) warmupDeploying(name);
+				List<ProjectBundleDeployment.Result> results;
+				try {
+					results = ProjectBundleDeployment.apply(prepared, new ProjectBundleDeployment.Installer() {
+						@Override public ProjectBundleDeployment.Completion install(String name, Path archive) throws Exception {
+							return DeployBundle.this.install(request, name, archive, assembleXsl);
+						}
+						@Override public AutoCloseable openGroup(com.twinsoft.convertigo.engine.util.ProjectBundlePlan.Group group) {
+							return DeployBundle.this.openGroup(group);
+						}
+					});
+				} finally {
+					for (var name : names) warmupDeployed(name);
+				}
 				var summary = document.createElement("deployment");
 				boolean success = results.stream().allMatch(result -> result.status() == ProjectBundleDeployment.Status.DEPLOYED);
 				summary.setAttribute("success", Boolean.toString(success));

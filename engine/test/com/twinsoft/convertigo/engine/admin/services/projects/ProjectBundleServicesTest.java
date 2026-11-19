@@ -230,6 +230,32 @@ public class ProjectBundleServicesTest {
 		}
 	}
 
+	@Test public void putsTheWholeSelectionOffTheRuntimeWarmupUntilTheBundleEnds() throws Exception {
+		for (boolean failure : List.of(false, true)) {
+			var events = new ArrayList<String>();
+			var service = new Deployment() {
+				@Override protected void warmupDeploying(String name) { events.add("deploying " + name); }
+				@Override protected void warmupDeployed(String name) { events.add("deployed " + name); }
+				@Override protected com.twinsoft.convertigo.engine.util.ProjectBundleDeployment.Completion install(HttpServletRequest request, String name, Path archive, boolean assembleXsl) throws Exception {
+					events.add("install " + name);
+					return () -> {
+						events.add("load " + name);
+						if (failure && name.equals("Process")) throw new IOException("simulated failure");
+						return null;
+					};
+				}
+			};
+			// K8s uses Process: Process is imported first, while K8s still has its former version
+			var request = new Multipart().file("file", "K8s.car", car("K8s", "Process"))
+					.file("file", "Process.car", car("Process")).request("/admin/services/projects.DeployBundle");
+			service.getServiceResult(request, document());
+			assertEquals(failure
+					? List.of("deploying Process", "deploying K8s", "install Process", "load Process", "deployed Process", "deployed K8s")
+					: List.of("deploying Process", "deploying K8s", "install Process", "load Process", "install K8s", "load K8s",
+							"deployed Process", "deployed K8s"), events);
+		}
+	}
+
 	private class Deployment extends DeployBundle {
 		final List<String> calls = new ArrayList<>();
 		Path temporary;
