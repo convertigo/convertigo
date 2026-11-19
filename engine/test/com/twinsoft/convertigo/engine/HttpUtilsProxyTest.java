@@ -98,8 +98,12 @@ public class HttpUtilsProxyTest {
 	}
 
 	private String get(String url) throws IOException {
+		return get(url, null);
+	}
+
+	private String get(String url, org.apache.http.HttpHost explicitProxy) throws IOException {
 		HttpGet request = new HttpGet(url);
-		request.setConfig(RequestConfig.custom().setConnectTimeout(2000).setSocketTimeout(2000).build());
+		request.setConfig(RequestConfig.custom().setConnectTimeout(2000).setSocketTimeout(2000).setProxy(explicitProxy).build());
 		try (var client = HttpUtils.makeHttpClient(false); var response = client.execute(request)) {
 			assertEquals(200, response.getStatusLine().getStatusCode());
 			return EntityUtils.toString(response.getEntity());
@@ -179,6 +183,51 @@ public class HttpUtilsProxyTest {
 		assertEquals(2, authenticated.get());
 	}
 
+	@Test
+	public void explicitPacProxyAuthenticatesOnTheFirstRequest() throws Exception {
+		var authenticated = new AtomicInteger();
+		String expected = "Basic " + Base64.getEncoder().encodeToString("proxy-user:dummy-proxy-password".getBytes(StandardCharsets.UTF_8));
+		var proxy = server(exchange -> {
+			if (expected.equals(exchange.getRequestHeaders().getFirst("Proxy-Authorization"))) {
+				authenticated.incrementAndGet();
+				respond(exchange, 200, "authenticated");
+			} else {
+				exchange.getResponseHeaders().set("Proxy-Authenticate", "Basic realm=\"bench\"");
+				respond(exchange, 407, "proxy authentication required");
+			}
+		});
+		manager.proxyMethod = ProxyMethod.basic;
+		manager.setProxyUser("proxy-user");
+		automatic("return '" + proxy(proxy) + "';");
+		var request = new HttpGet("http://service.invalid/metadata");
+		request.setConfig(RequestConfig.custom().setConnectTimeout(2000).setSocketTimeout(2000)
+				.setProxy(new org.apache.http.HttpHost("127.0.0.1", proxy.getAddress().getPort())).build());
+		try (var client = HttpUtils.makeHttpClient(false); var response = client.execute(request)) {
+			assertEquals(200, response.getStatusLine().getStatusCode());
+		}
+		assertEquals(1, authenticated.get());
+	}
+
+	@Test
+	public void unrelatedExplicitProxyDoesNotReceiveEngineCredentials() throws Exception {
+		var credentialHeaders = new AtomicInteger();
+		var other = server(exchange -> {
+			if (exchange.getRequestHeaders().containsKey("Proxy-Authorization")) credentialHeaders.incrementAndGet();
+			exchange.getResponseHeaders().set("Proxy-Authenticate", "Basic realm=\"other\"");
+			respond(exchange, 407, "proxy authentication required");
+		});
+		manager.proxyMethod = ProxyMethod.basic;
+		manager.setProxyUser("proxy-user");
+		automatic("return 'PROXY configured.example:3128';");
+		var request = new HttpGet("http://service.invalid/metadata");
+		request.setConfig(RequestConfig.custom().setConnectTimeout(2000).setSocketTimeout(2000)
+				.setProxy(new org.apache.http.HttpHost("127.0.0.1", other.getAddress().getPort())).build());
+		try (var client = HttpUtils.makeHttpClient(false); var response = client.execute(request)) {
+			assertEquals(407, response.getStatusLine().getStatusCode());
+		}
+		assertEquals(0, credentialHeaders.get());
+	}
+
 	private static String ntlmField(byte[] message, int offset) {
 		var buffer = ByteBuffer.wrap(message).order(ByteOrder.LITTLE_ENDIAN);
 		int length = Short.toUnsignedInt(buffer.getShort(offset));
@@ -215,8 +264,10 @@ public class HttpUtilsProxyTest {
 		assertEquals("ntlm authenticated", get("http://service.invalid/metadata"));
 		automatic("return '" + proxy(proxy) + "; DIRECT';");
 		assertEquals("ntlm authenticated", get("http://service.invalid/metadata"));
-		assertEquals(2, typeOne.get());
-		assertEquals(2, typeThree.get());
+		assertEquals("ntlm authenticated", get("http://service.invalid/metadata",
+				new org.apache.http.HttpHost("127.0.0.1", proxy.getAddress().getPort())));
+		assertEquals(3, typeOne.get());
+		assertEquals(3, typeThree.get());
 	}
 
 	@Test

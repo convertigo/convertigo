@@ -61,6 +61,8 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -248,9 +250,37 @@ public class HttpUtils {
 	}
 
 	private static void configureProxy(HttpClientBuilder builder, ProxyManager manager) {
-		CredentialsProvider credentials = new BasicCredentialsProvider();
-		builder.setDefaultCredentialsProvider(credentials);
 		builder.setRoutePlanner(new DefaultRoutePlanner(null) {
+			@Override
+			public HttpRoute determineRoute(HttpHost target, HttpRequest request, HttpContext context) throws HttpException {
+				HttpRoute route = super.determineRoute(target, request, context);
+				HttpClientContext clientContext = HttpClientContext.adapt(context);
+				HttpHost proxy = route.getProxyHost();
+				// An explicit request proxy skips determineProxy in DefaultRoutePlanner.
+				// Only authenticate it when it matches the engine's selected endpoint.
+				if (clientContext.getRequestConfig().getProxy() != null && proxy != null
+						&& !proxy.equals(determineProxy(target, request, context))) {
+					proxy = null;
+				}
+				CredentialsProvider credentials = new BasicCredentialsProvider();
+				if (proxy != null) {
+					if (manager.proxyMethod == ProxyMethod.basic) {
+						credentials.setCredentials(new AuthScope(proxy.getHostName(), proxy.getPort(), AuthScope.ANY_REALM, AuthSchemes.BASIC),
+								new UsernamePasswordCredentials(manager.getProxyUser(), manager.getProxyPassword()));
+					} else if (manager.proxyMethod == ProxyMethod.ntlm) {
+						String user = manager.getProxyUser();
+						int separator = user.indexOf('\\');
+						if (separator <= 0 || separator == user.length() - 1) {
+							throw new HttpException("NTLM proxy authentication requires a domain\\user username");
+						}
+						credentials.setCredentials(new AuthScope(proxy.getHostName(), proxy.getPort(), AuthScope.ANY_REALM, AuthSchemes.NTLM),
+								new NTCredentials(user.substring(separator + 1), manager.getProxyPassword(), "", user.substring(0, separator)));
+					}
+				}
+				clientContext.setCredentialsProvider(credentials);
+				return route;
+			}
+
 			@Override
 			protected HttpHost determineProxy(HttpHost target, HttpRequest request, HttpContext context) throws HttpException {
 				if (!manager.isEnabled()) {
@@ -272,25 +302,20 @@ public class HttpUtils {
 						proxy = new HttpHost(info.getServer(), info.getPort());
 					}
 				}
-				if (proxy != null) {
-					if (manager.proxyMethod == ProxyMethod.basic) {
-						credentials.setCredentials(new AuthScope(proxy.getHostName(), proxy.getPort(), AuthScope.ANY_REALM, AuthSchemes.BASIC),
-								new UsernamePasswordCredentials(manager.getProxyUser(), manager.getProxyPassword()));
-					} else if (manager.proxyMethod == ProxyMethod.ntlm) {
-						String user = manager.getProxyUser();
-						int separator = user.indexOf('\\');
-						if (separator <= 0 || separator == user.length() - 1) {
-							throw new HttpException("NTLM proxy authentication requires a domain\\user username");
-						}
-						credentials.setCredentials(new AuthScope(proxy.getHostName(), proxy.getPort(), AuthScope.ANY_REALM, AuthSchemes.NTLM),
-								new NTCredentials(user.substring(separator + 1), manager.getProxyPassword(), "", user.substring(0, separator)));
-					}
-				}
+
 				return proxy;
 			}
 		});
 	}
 	
+	static void removeTunnelProxyAuthorization(HttpRequest request, HttpContext context) {
+		var route = HttpClientContext.adapt(context).getHttpRoute();
+		if (route != null && route.isTunnelled() && !"CONNECT".equalsIgnoreCase(request.getRequestLine().getMethod())) {
+			// The CONNECT exchange authenticates the proxy; the tunnel carries origin requests.
+			request.removeHeaders(HeaderName.ProxyAuthorization.value());
+		}
+	}
+
 	public static HttpClientInterface makeHttpClient(boolean usePool) {
 		
 		return new HttpClientInterface() {
@@ -299,6 +324,7 @@ public class HttpUtils {
 			private synchronized CloseableHttpClient getHttpClient4() {
 				if (httpClient == null) {
 					HttpClientBuilder httpClientBuilder = HttpClients.custom();
+					httpClientBuilder.addInterceptorLast((HttpRequest request, HttpContext context) -> removeTunnelProxyAuthorization(request, context));
 					if (Engine.theApp != null && Engine.theApp.proxyManager != null) {
 						configureProxy(httpClientBuilder, Engine.theApp.proxyManager);
 					}

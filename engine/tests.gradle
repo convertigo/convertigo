@@ -758,7 +758,8 @@ tasks.register('httpUtilsProxyTest', JavaExec) {
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	maxHeapSize = '128m'
 	mainClass = 'org.junit.runner.JUnitCore'
-	args 'com.twinsoft.convertigo.engine.HttpUtilsProxyTest'
+	args 'com.twinsoft.convertigo.engine.HttpUtilsProxyTest',
+		'com.twinsoft.convertigo.engine.util.HttpUtilsProxyHeadersTest'
 }
 tasks.named('check') { dependsOn 'httpUtilsProxyTest' }
 
