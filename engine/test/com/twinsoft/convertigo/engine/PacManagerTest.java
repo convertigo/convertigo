@@ -73,6 +73,14 @@ public class PacManagerTest {
 		assertEquals(port, info.getPort());
 	}
 
+	@Test public void preservesAllRoutesIncludingDirectInTheirDeclaredOrder() {
+		var routes = parser.parsePacProxies("PROXY first.invalid:8000; DIRECT; PROXY second.invalid:8001");
+		assertEquals(3, routes.size());
+		assertEquals("first.invalid", ((java.net.InetSocketAddress) routes.get(0).address()).getHostString());
+		assertEquals(java.net.Proxy.NO_PROXY, routes.get(1));
+		assertEquals("second.invalid", ((java.net.InetSocketAddress) routes.get(2).address()).getHostString());
+	}
+
 	@Test public void selectsTheFirstOfFourProxies() {
 		assertProxy("PROXY proxy1.example:8000; PROXY proxy4.example:8000; PROXY proxy2.example:8000; PROXY proxy3.example:8000",
 				"proxy1.example", 8000);

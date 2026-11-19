@@ -23,6 +23,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.net.Proxy;
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -153,21 +157,41 @@ public class PacManager {
 	}
 
 	PacInfos getPacInfos(String url, String host) {
+		return firstProxy(getPacProxies(url, host));
+	}
+
+	List<Proxy> getPacProxies(String url, String host) {
 		if (scope == null) {
 			warnUnavailable();
-			return null;
+			return List.of(Proxy.NO_PROXY);
 		}
-		String result = evaluate(url, host);
-		return result == null ? null : parsePacResult(result);
+		return parsePacProxies(evaluate(url, host));
 	}
 
 	PacInfos parsePacResult(String result) {
-		if (result == null || result.isBlank()) return null;
-		for (String entry : result.split(";")) {
+		return firstProxy(parsePacProxies(result));
+	}
+
+	private PacInfos firstProxy(List<Proxy> proxies) {
+		Proxy proxy = proxies.get(0);
+		if (proxy.type() == Proxy.Type.DIRECT) return null;
+		var address = (InetSocketAddress) proxy.address();
+		var info = new PacInfos();
+		info.pacServer = address.getHostString();
+		info.pacPort = address.getPort();
+		return info;
+	}
+
+	List<Proxy> parsePacProxies(String result) {
+		var proxies = new ArrayList<Proxy>();
+		if (result != null) for (String entry : result.split(";")) {
 			entry = entry.trim();
 			if (entry.isEmpty()) continue;
 			String[] directive = entry.split("\\s+", 2);
-			if ("DIRECT".equalsIgnoreCase(directive[0]) && directive.length == 1) return null;
+			if ("DIRECT".equalsIgnoreCase(directive[0]) && directive.length == 1) {
+				proxies.add(Proxy.NO_PROXY);
+				continue;
+			}
 			if (!"PROXY".equalsIgnoreCase(directive[0])) {
 				Engine.logProxyManager.warn("(PacManager) Skipping unsupported PAC directive: " + directive[0]);
 				continue;
@@ -178,11 +202,10 @@ public class PacManager {
 					try {
 						int port = Integer.parseInt(address.group(2));
 						if (port > 0 && port <= 65535) {
-							var info = new PacInfos();
 							String server = address.group(1);
-							info.pacServer = server.startsWith("[") ? server.substring(1, server.length() - 1) : server;
-							info.pacPort = port;
-							return info;
+							if (server.startsWith("[")) server = server.substring(1, server.length() - 1);
+							proxies.add(new Proxy(Proxy.Type.HTTP, InetSocketAddress.createUnresolved(server, port)));
+							continue;
 						}
 					} catch (NumberFormatException invalidPort) {
 						// An invalid alternative must not prevent trying the next entry.
@@ -191,7 +214,7 @@ public class PacManager {
 			}
 			Engine.logProxyManager.warn("(PacManager) Skipping invalid PROXY entry in PAC response");
 		}
-		return null;
+		return proxies.isEmpty() ? List.of(Proxy.NO_PROXY) : List.copyOf(proxies);
 	}
 
 	public class PacInfos {

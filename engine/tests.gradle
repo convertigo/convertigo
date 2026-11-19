@@ -761,3 +761,14 @@ tasks.register('httpUtilsProxyTest', JavaExec) {
 	args 'com.twinsoft.convertigo.engine.HttpUtilsProxyTest'
 }
 tasks.named('check') { dependsOn 'httpUtilsProxyTest' }
+
+tasks.register('subprocessProxyTest', JavaExec) {
+	group = 'verification'
+	description = 'Child-process relay routing, authentication, lifecycle and environment.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	maxHeapSize = '128m'
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.SubprocessProxyTest'
+}
+tasks.named('check') { dependsOn 'subprocessProxyTest' }

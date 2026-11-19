@@ -56,7 +56,6 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMethod;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMode;
 import com.twinsoft.convertigo.engine.proxy.ntlm.NtlmConnectProxyBridge;
 
@@ -209,6 +208,7 @@ public class ProcessUtils {
 		//		// must set "Path" for Windows 8.1 64
 		pbEnv.put(pbEnv.get("PATH") == null ? "Path" : "PATH", paths);
 		pbEnv.put("JAVA_HOME", System.getProperty("java.home"));
+		configureProxyEnvironment(pbEnv);
 		return pb; 
 	}
 
@@ -233,47 +233,34 @@ public class ProcessUtils {
 			}
 		}
 
-		ProcessBuilder pb = getProcessBuilder(paths, command);
+		return getProcessBuilder(paths, command);
+	}
 
-		if (Engine.isCliMode()) {
-			return pb;
+	/** Apply the engine proxy to any child process, without exporting upstream credentials. */
+	public static void configureProxyEnvironment(Map<String, String> environment) throws IOException {
+		String mode;
+		try {
+			mode = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_MODE);
+		} catch (IllegalStateException uninitialized) {
+			// Process discovery also runs before the engine properties are initialized.
+			return;
 		}
-		String proxyMode = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_MODE);
-		if (proxyMode.equals(ProxyMode.manual.getValue())) {
-			String proxyAuthMethod = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_METHOD);
-
-			if (proxyAuthMethod.equals(ProxyMethod.anonymous.getValue()) || proxyAuthMethod.equals(ProxyMethod.basic.getValue()) || proxyAuthMethod.equals(ProxyMethod.ntlm.getValue())) {
-				Map<String, String> pbEnv = pb.environment();
-				String npmProxy = null;
-
-				if (proxyAuthMethod.equals(ProxyMethod.ntlm.getValue())) {
-					npmProxy = NtlmConnectProxyBridge.getLocalProxyUrl();
-					Engine.logProxyManager.info("(ProcessUtils) Use local NTLM npm proxy " + npmProxy + " for " + String.join(" ", command));
-				} else {
-					String proxyHost = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_HOST);
-					String proxyPort = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_PORT);
-					npmProxy = "http://" + proxyHost + ":" + proxyPort;
-				}
-
-				if (proxyAuthMethod.equals(ProxyMethod.basic.getValue())) {
-					String proxyUser = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_USER);
-					String proxyPassword = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_PASSWORD);
-					npmProxy = npmProxy.replace("http://", "http://" + proxyUser + ":" + proxyPassword + "@");
-				}
-
-				String noProxy = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_BY_PASS_DOMAINS);
-
-				pbEnv.put("http-proxy", npmProxy);
-				pbEnv.put("https-proxy", npmProxy);
-				pbEnv.put("no-proxy", noProxy);
-
-				pbEnv.put("HTTP_PROXY", npmProxy);
-				pbEnv.put("HTTPS_PROXY", npmProxy);
-				pbEnv.put("NO_PROXY", noProxy);
-			}
+		if (ProxyMode.off.getValue().equals(mode)) return;
+		String localProxy = NtlmConnectProxyBridge.getLocalProxyUrl();
+		String excluded = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_BY_PASS_DOMAINS);
+		var domains = new java.util.LinkedHashSet<String>();
+		if (excluded != null) for (String domain : excluded.split(",")) {
+			if (!domain.isBlank()) domains.add(domain.trim());
 		}
-
-		return pb;
+		domains.add("localhost");
+		domains.add("127.0.0.1");
+		domains.add("::1");
+		for (String key : List.of("HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy", "http-proxy", "https-proxy", "npm_config_proxy", "npm_config_https_proxy", "PIP_PROXY")) {
+			environment.put(key, localProxy);
+		}
+		for (String key : List.of("NO_PROXY", "no_proxy", "no-proxy")) environment.put(key, String.join(",", domains));
+		// Node versions with built-in environment proxy support also cover native fetch.
+		environment.put("NODE_USE_ENV_PROXY", "1");
 	}
 
 	public static ProcessBuilder getNpmProcessBuilder(String paths, String... command) throws IOException {
