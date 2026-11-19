@@ -1192,7 +1192,41 @@ tasks.register('pacManagerTest', JavaExec) {
 	dependsOn testClasses
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
-	args 'com.twinsoft.convertigo.engine.PacManagerTest',
+	args 'com.twinsoft.convertigo.engine.PacManagerTest', 'com.twinsoft.convertigo.engine.PacScriptMethodsTest',
 		'com.twinsoft.convertigo.engine.util.WsReferenceProxyTest'
 }
 tasks.named('check') { dependsOn 'pacManagerTest' }
+
+tasks.register('httpConnectorNetworkErrorTest', JavaExec) {
+	group = 'verification'
+	description = 'HTTP connection failure causes, HTTP info and cancellation.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	maxHeapSize = '128m'
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.beans.connectors.HttpConnectorNetworkErrorTest'
+}
+tasks.named('check') { dependsOn 'httpConnectorNetworkErrorTest' }
+
+tasks.register('httpUtilsProxyTest', JavaExec) {
+	group = 'verification'
+	description = 'HTTP utility proxy routing, PAC updates and Basic/NTLM authentication.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	maxHeapSize = '128m'
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.HttpUtilsProxyTest',
+		'com.twinsoft.convertigo.engine.util.HttpUtilsProxyHeadersTest'
+}
+tasks.named('check') { dependsOn 'httpUtilsProxyTest' }
+
+tasks.register('subprocessProxyTest', JavaExec) {
+	group = 'verification'
+	description = 'Child-process relay routing, authentication, lifecycle and environment.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	maxHeapSize = '128m'
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.SubprocessProxyTest'
+}
+tasks.named('check') { dependsOn 'subprocessProxyTest' }

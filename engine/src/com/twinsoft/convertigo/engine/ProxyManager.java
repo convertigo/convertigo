@@ -63,7 +63,7 @@ public class ProxyManager {
 	public String proxyPassword;
 	
 	public String bypassDomains;
-	private PacManager pacUtils;
+	private volatile PacManager pacUtils;
 	private MyPropertyChangeEventListener myPropertyChangeEventListener = null;
 
 	public ProxyManager() {
@@ -123,6 +123,7 @@ public class ProxyManager {
 	}
 
 	void destroy() {
+		com.twinsoft.convertigo.engine.proxy.ntlm.NtlmConnectProxyBridge.closeShared();
 		myPropertyChangeEventListener = null;
 	}
 
@@ -148,8 +149,9 @@ public class ProxyManager {
 		this.bypassDomains = EnginePropertiesManager.getProperty(PropertyName.PROXY_SETTINGS_BY_PASS_DOMAINS);
 
 		if (proxyMode == ProxyMode.auto) {
-			this.pacUtils = new PacManager(proxyUrl);
-			this.pacUtils.start();
+			var pac = new PacManager(proxyUrl);
+			pac.start();
+			this.pacUtils = pac;
 		} else {
 			this.pacUtils = null;
 		}
@@ -244,7 +246,33 @@ public class ProxyManager {
 
 	public PacInfos getPacInfos(String url, String host) {
 		var pac = pacUtils;
-		return proxyMode == ProxyMode.auto && pac != null ? pac.getPacInfos(url, host) : null;
+		if (proxyMode != ProxyMode.auto) return null;
+		if (pac == null) {
+			Engine.logProxyManager.warn("(ProxyManager) Automatic proxy mode: PAC is unavailable; using a direct connection. "
+					+ "Check the PAC configuration and cems.ProxyManager DEBUG logs.");
+			return null;
+		}
+		return pac.getPacInfos(url, host);
+	}
+
+	/** Ordered routes for a child-process request, evaluated for its current destination. */
+	public List<Proxy> selectProxies(URI destination) {
+		String host = destination.getHost();
+		if (host == null) throw new IllegalArgumentException("Proxy destination must have a host");
+		if (!isEnabled() || host.equalsIgnoreCase("localhost") || host.equals("127.0.0.1") || host.equals("[::1]") || host.equals("::1")) {
+			return List.of(Proxy.NO_PROXY);
+		}
+		for (String domain : getBypassDomains()) {
+			if (host.equalsIgnoreCase(domain.trim())) return List.of(Proxy.NO_PROXY);
+		}
+		if (proxyMode == ProxyMode.auto) {
+			var pac = pacUtils;
+			if (pac != null) return pac.getPacProxies(destination.toString(), host);
+			getPacInfos(destination.toString(), host); // Keep the unavailable-PAC diagnostic.
+			return List.of(Proxy.NO_PROXY);
+		}
+		return proxyServer == null || proxyServer.isBlank() ? List.of(Proxy.NO_PROXY)
+				: List.of(new Proxy(Type.HTTP, InetSocketAddress.createUnresolved(proxyServer, proxyPort)));
 	}
 
 	public void setBasicAuth(HttpState httpState) {
@@ -327,7 +355,7 @@ public class ProxyManager {
 	}
 
 	public String[] getBypassDomains() {
-		String[] domains = bypassDomains.split(",");
+		String[] domains = bypassDomains == null ? new String[0] : bypassDomains.split(",");
 		return domains;
 	}
 

@@ -19,55 +19,80 @@
 
 package com.twinsoft.convertigo.engine.proxy.ntlm;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.ConnectException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.NoRouteToHostException;
+import java.net.Proxy;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.net.URI;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.http.Header;
+import org.apache.http.HttpException;
+import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.NTCredentials;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.RequestBuilder;
+import org.apache.http.entity.FileEntity;
+import org.apache.http.impl.DefaultBHttpServerConnection;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.io.ChunkedInputStream;
+import org.apache.http.impl.io.ContentLengthInputStream;
+import org.apache.http.impl.io.HttpTransportMetricsImpl;
+import org.apache.http.impl.io.SessionInputBufferImpl;
+import org.apache.http.message.BasicHttpResponse;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.ResponseContent;
 import org.apache.log4j.Logger;
 
 import com.jivesoftware.authHelper.customescheme.ntlm2.CustomNTLM2Engine;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMethod;
+import com.twinsoft.convertigo.engine.ProxyManager;
 
-/**
- * Standalone proof-of-concept bridge for CONNECT-only child-process traffic.
- * It terminates an anonymous local HTTP proxy and authenticates upstream
- * against an NTLM proxy using the libs already shipped by Convertigo engine.
- */
+/** Loopback HTTP/CONNECT proxy for child processes. Upstream credentials stay in Java. */
 public class NtlmConnectProxyBridge implements Closeable {
-
 	private static final Logger LOGGER = Logger.getLogger("cems.ProxyManager");
 	private static final int MAX_HEADER_SIZE = 64 * 1024;
-	private static final byte[] HEADER_DELIMITER = new byte[] { '\r', '\n', '\r', '\n' };
-	private static final long IDLE_TIMEOUT_MS = 5 * 60 * 1000L;
+	private static final int CONNECT_TIMEOUT_MS = 10000;
+	private static final byte[] HEADER_DELIMITER = {'\r', '\n', '\r', '\n'};
 	private static final Object SHARED_LOCK = new Object();
-
 	private static NtlmConnectProxyBridge sharedBridge;
-	private static Config sharedConfig;
-
-	private final Config config;
+	private volatile Config config;
 	private final ServerSocket serverSocket;
-	private volatile long lastAccess = System.currentTimeMillis();
+	private final Set<Socket> sockets = ConcurrentHashMap.newKeySet();
 
 	public NtlmConnectProxyBridge(Config config) throws IOException {
 		this.config = config;
-		this.serverSocket = new ServerSocket(config.listenPort, 50, InetAddress.getByName(config.listenHost));
-		startIdleWatcher();
+		InetAddress listen = InetAddress.getByName(config.listenHost);
+		if (!listen.isLoopbackAddress()) throw new IOException("The child-process proxy must listen on loopback");
+		serverSocket = new ServerSocket(config.listenPort, 50, listen);
 	}
 
 	public static String getLocalProxyUrl() throws IOException {
@@ -76,144 +101,241 @@ public class NtlmConnectProxyBridge implements Closeable {
 
 	public static String getLocalProxyUrl(Config config) throws IOException {
 		synchronized (SHARED_LOCK) {
-			if (sharedBridge == null || !config.sameEndpoint(sharedConfig) || sharedBridge.serverSocket.isClosed()) {
-				LOGGER.info("(NtlmConnectProxyBridge) Start local bridge for upstream " + config.upstreamHost + ":" + config.upstreamPort
-					+ " as " + config.domain + "\\" + config.username);
+			if (sharedBridge == null || sharedBridge.serverSocket.isClosed() || !config.sameEndpoint(sharedBridge.config)) {
 				closeQuietly(sharedBridge);
-				sharedBridge = new NtlmConnectProxyBridge(config);
-				sharedConfig = config;
-				Thread thread = new Thread(() -> {
-					try {
-						sharedBridge.serve();
-					} catch (IOException e) {
-						if (!sharedBridge.serverSocket.isClosed()) {
-							LOGGER.warn("(NtlmConnectProxyBridge) Bridge server stopped unexpectedly", e);
-						}
-					}
-				}, "c8o-ntlm-bridge");
-				thread.setDaemon(true);
-				thread.start();
+				var bridge = new NtlmConnectProxyBridge(config);
+				sharedBridge = bridge;
+				daemon(() -> {
+					try { bridge.serve(); }
+					catch (IOException e) { if (!bridge.serverSocket.isClosed()) LOGGER.warn("(LocalProxy) Listener stopped", e); }
+				}, "c8o-local-proxy");
+			} else {
+				sharedBridge.config = config;
 			}
-			sharedBridge.touch();
-			String proxyUrl = "http://" + config.listenHost + ":" + sharedBridge.serverSocket.getLocalPort();
-			LOGGER.debug("(NtlmConnectProxyBridge) Use local proxy " + proxyUrl);
-			return proxyUrl;
+			// Keep this port for the engine lifetime: long-lived children retain the URL.
+			String host = sharedBridge.serverSocket.getInetAddress().getHostAddress();
+			return "http://" + (host.contains(":") ? "[" + host + "]" : host) + ":" + sharedBridge.serverSocket.getLocalPort();
 		}
 	}
 
+	public static void closeShared() {
+		synchronized (SHARED_LOCK) { closeQuietly(sharedBridge); }
+	}
+
 	public static void main(String[] args) throws Exception {
-		Config config;
-		try {
-			config = Config.parse(args);
-		} catch (IllegalArgumentException e) {
-			LOGGER.error("(NtlmConnectProxyBridge) " + e.getMessage());
-			LOGGER.error("(NtlmConnectProxyBridge) Usage: --upstream-host <host> --upstream-port <port> --domain <domain> --username <user> --password <password> [--listen-host 127.0.0.1] [--listen-port 19128] [--workstation name]");
-			return;
-		}
-		NtlmConnectProxyBridge bridge = new NtlmConnectProxyBridge(config);
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> closeQuietly(bridge), "c8o-ntlm-bridge-shutdown"));
-		LOGGER.info("(NtlmConnectProxyBridge) Listening on http://" + config.listenHost + ":" + config.listenPort
-			+ " -> " + config.upstreamHost + ":" + config.upstreamPort + " as " + config.domain + "\\" + config.username
-			+ " (workstation=" + config.workstation + ")");
-		bridge.serve();
+		try (var bridge = new NtlmConnectProxyBridge(Config.parse(args))) { bridge.serve(); }
 	}
 
 	public void serve() throws IOException {
 		while (!serverSocket.isClosed()) {
 			Socket client = serverSocket.accept();
-			touch();
-			Thread thread = new Thread(() -> handleClient(client), "c8o-ntlm-bridge-" + client.getPort());
-			thread.setDaemon(true);
-			thread.start();
+			sockets.add(client);
+			daemon(() -> handleClient(client), "c8o-local-proxy-request");
 		}
 	}
 
 	private void handleClient(Socket client) {
-		try (Socket local = client) {
+		boolean[] committed = {false};
+		Socket local = client;
+		Path bodyFile = null;
+		try {
+			local.setSoTimeout(CONNECT_TIMEOUT_MS);
 			local.setTcpNoDelay(true);
-			OutputStream clientOutput = local.getOutputStream();
-			HttpRequest request = null;
-			try {
-				request = readRequest(local.getInputStream());
-				if (!"CONNECT".equalsIgnoreCase(request.method)) {
-					LOGGER.debug("(NtlmConnectProxyBridge) ACCESS " + request.method + " " + request.authority + " -> 501 CONNECT only");
-					LOGGER.debug("(NtlmConnectProxyBridge) Reject non-CONNECT request: " + request.method + " " + request.authority);
-					writeError(clientOutput, 501, "CONNECT only");
+			HeaderBlock headers = readHeaderBlock(local.getInputStream());
+			String[] line = headers.text.split("\r\n", 2)[0].split(" ", 3);
+			if (line.length != 3) throw new IOException("Invalid proxy request");
+			boolean connect = "CONNECT".equalsIgnoreCase(line[0]);
+			URI destination = URI.create(connect ? "https://" + line[1] + "/" : line[1]);
+			if (destination.getHost() == null || destination.getUserInfo() != null || destination.getFragment() != null
+					|| (!connect && !"http".equalsIgnoreCase(destination.getScheme()))) throw new IOException("Invalid proxy destination");
+			URI pacDestination = destination;
+			if (connect) {
+				// CONNECT exposes only an authority. Match the conventional HTTP/HTTPS
+				// schemes and omit their default ports in the URL supplied to the PAC.
+				int port = destination.getPort();
+				String scheme = port == 80 ? "http" : "https";
+				pacDestination = new URI(scheme, null, destination.getHost(), port == 80 || port == 443 ? -1 : port, "/", null, null);
+			} else {
+				bodyFile = spoolBody(local, headers.headers);
+			}
+			Config settings = config;
+			IOException failure = null;
+			for (Proxy route : settings.routes(pacDestination)) {
+				try {
+					Config credentials = route.type() == Proxy.Type.DIRECT ? null : settings.credentials();
+					if (connect) {
+						try (Socket upstream = openTunnel(destination, route, credentials)) {
+							sockets.add(upstream);
+							local.getOutputStream().write("HTTP/1.1 200 Connection Established\r\n\r\n".getBytes(StandardCharsets.ISO_8859_1));
+							local.getOutputStream().flush();
+							committed[0] = true;
+							local.setSoTimeout(0);
+							try { tunnel(local, upstream); } finally { sockets.remove(upstream); }
+						}
+					} else {
+						forwardHttp(local, line[0], destination, headers.headers, bodyFile, route, credentials, committed);
+					}
 					return;
+				} catch (ConnectException | UnknownHostException | NoRouteToHostException | org.apache.http.conn.ConnectTimeoutException e) {
+					if (committed[0]) throw e;
+					failure = e; // Try only the next route explicitly returned by the PAC.
+				} catch (SocketTimeoutException e) {
+					if (!connect || committed[0]) throw e;
+					failure = e;
 				}
-
-				try (Socket upstream = openUpstreamTunnel(request.authority)) {
-					LOGGER.debug("(NtlmConnectProxyBridge) ACCESS CONNECT " + request.authority + " -> 200 tunnel");
-					clientOutput.write(("HTTP/1.1 200 Connection Established\r\n" +
-						"Proxy-Agent: Convertigo-NTLM-Bridge\r\n\r\n").getBytes(StandardCharsets.ISO_8859_1));
-					clientOutput.flush();
-					tunnel(local, upstream);
-				}
-			} catch (Exception e) {
-				if (request != null) {
-					LOGGER.debug("(NtlmConnectProxyBridge) ACCESS " + request.method + " " + request.authority + " -> 502 " + e.getClass().getSimpleName());
-				}
-				LOGGER.warn("(NtlmConnectProxyBridge) Bridge error: " + e.getMessage(), e);
-				writeError(clientOutput, 502, "Bad Gateway");
 			}
-		} catch (Exception ignored) {
+			throw failure == null ? new IOException("No proxy route available") : failure;
+		} catch (Exception e) {
+			LOGGER.warn("(LocalProxy) Request failed: " + e.getClass().getSimpleName());
+			LOGGER.debug("(LocalProxy) Request failure detail", e);
+			if (!committed[0]) try { writeError(client.getOutputStream(), 502, "Bad Gateway"); } catch (IOException ignored) { }
+		} finally {
+			sockets.remove(client); closeQuietly(client);
+			if (bodyFile != null) try { Files.deleteIfExists(bodyFile); } catch (IOException e) { LOGGER.warn("(LocalProxy) Cannot remove temporary request body", e); }
 		}
 	}
 
-	private Socket openUpstreamTunnel(String authority) throws IOException {
-		touch();
-		Socket upstream = new Socket(config.upstreamHost, config.upstreamPort);
-		upstream.setTcpNoDelay(true);
-		upstream.setSoTimeout(10000);
+	private Socket openTunnel(URI destination, Proxy route, Config credentials) throws IOException {
+		Socket socket = new Socket(Proxy.NO_PROXY);
+		boolean established = false;
+		try {
+			InetSocketAddress endpoint = route.type() == Proxy.Type.DIRECT
+					? new InetSocketAddress(destination.getHost(), destination.getPort() < 0 ? 443 : destination.getPort())
+					: new InetSocketAddress(((InetSocketAddress) route.address()).getHostString(), ((InetSocketAddress) route.address()).getPort());
+			socket.connect(endpoint, CONNECT_TIMEOUT_MS);
+			socket.setTcpNoDelay(true);
+			socket.setSoTimeout(CONNECT_TIMEOUT_MS);
+			if (route.type() != Proxy.Type.DIRECT) {
+				String authority = destination.getRawAuthority();
+				String authorization = credentials.method == ProxyMethod.basic ? "Basic " + Base64.getEncoder().encodeToString(
+						(credentials.username + ":" + credentials.password).getBytes(StandardCharsets.ISO_8859_1)) : null;
+				CustomNTLM2Engine ntlm = new CustomNTLM2Engine();
+				for (int step = 0; step < 3; step++) {
+					writeConnect(socket.getOutputStream(), authority, authorization);
+					ProxyResponse response = readResponse(socket.getInputStream());
+					if (response.statusCode == 200) { established = true; break; }
+					if (response.statusCode != 407 || credentials.method != ProxyMethod.ntlm) throw new IOException("Upstream proxy status " + response.statusCode);
+					String challenge = extractNtlmChallenge(response);
+					if (challenge == null || (authorization != null && challenge.isEmpty())) throw new IOException("Invalid NTLM proxy challenge");
+					authorization = "NTLM " + (challenge.isEmpty() ? ntlm.generateType1Msg(credentials.domain, credentials.workstation)
+							: ntlm.generateType3Msg(credentials.username, credentials.password, credentials.domain, credentials.workstation, challenge));
+				}
+				if (!established) throw new IOException("Proxy authentication failed");
+			} else { established = true; }
+			socket.setSoTimeout(0);
+			return socket;
+		} finally { if (!established) closeQuietly(socket); }
+	}
 
-		InputStream input = new BufferedInputStream(upstream.getInputStream());
-		OutputStream output = upstream.getOutputStream();
-		CustomNTLM2Engine ntlm = new CustomNTLM2Engine();
-		LOGGER.debug("(NtlmConnectProxyBridge) CONNECT " + authority + " via upstream " + config.upstreamHost + ":" + config.upstreamPort);
-
-		String authorization = null;
-		for (int step = 0; step < 3; step++) {
-			writeConnect(output, authority, authorization);
-			HttpResponse response = readResponse(input);
-			if (response.statusCode == 200) {
-				upstream.setSoTimeout(0);
-				LOGGER.debug("(NtlmConnectProxyBridge) CONNECT " + authority + " established");
-				return upstream;
-			}
-			if (response.statusCode != 407) {
-				throw new IOException("Unexpected upstream proxy status: " + response.statusCode + " " + response.reasonPhrase);
-			}
-			LOGGER.debug("(NtlmConnectProxyBridge) Upstream 407 for " + authority);
-
-			String challenge = extractNtlmChallenge(response);
-			if (challenge == null) {
-				throw new IOException("Proxy requested authentication without NTLM challenge");
-			}
-
-			if (authorization == null) {
-				if (challenge.isEmpty()) {
-					LOGGER.debug("(NtlmConnectProxyBridge) Send NTLM type1 for " + authority);
-					authorization = "NTLM " + ntlm.generateType1Msg(config.domain, config.workstation);
+	private static Path spoolBody(Socket local, Map<String, List<String>> headers) throws IOException {
+		Path bodyFile = null;
+		try {
+			String length = firstHeader(headers, "Content-Length"), encoding = firstHeader(headers, "Transfer-Encoding");
+			if (length != null || encoding != null) {
+				if (length != null && encoding != null) throw new IOException("Ambiguous request body framing");
+				var input = new SessionInputBufferImpl(new HttpTransportMetricsImpl(), 8192);
+				input.bind(local.getInputStream());
+				InputStream body;
+				if (encoding != null) {
+					if (!"chunked".equalsIgnoreCase(encoding)) throw new IOException("Unsupported body encoding");
+					body = new ChunkedInputStream(input);
 				} else {
-					LOGGER.debug("(NtlmConnectProxyBridge) Upstream sent direct NTLM type2 for " + authority);
-					authorization = "NTLM " + ntlm.generateType3Msg(
-						config.username, config.password, config.domain, config.workstation, challenge);
+					long count = Long.parseLong(length);
+					if (count < 0) throw new IOException("Invalid content length");
+					body = new ContentLengthInputStream(input, count);
 				}
-				continue;
+				if ("100-continue".equalsIgnoreCase(firstHeader(headers, "Expect"))) {
+					local.getOutputStream().write("HTTP/1.1 100 Continue\r\n\r\n".getBytes(StandardCharsets.ISO_8859_1));
+					local.getOutputStream().flush();
+				}
+				// Proxy authentication can replay plain HTTP requests. Spool bodies without
+				// unbounded heap buffering, once for all PAC routes. CONNECT stays streamed.
+				bodyFile = Files.createTempFile("c8o-proxy-", ".body");
+				try (body) { Files.copy(body, bodyFile, StandardCopyOption.REPLACE_EXISTING); }
 			}
 
-			if (challenge.isEmpty()) {
-				throw new IOException("Proxy did not send NTLM type2 challenge");
-			}
-
-			LOGGER.debug("(NtlmConnectProxyBridge) Send NTLM type3 for " + authority);
-			authorization = "NTLM " + ntlm.generateType3Msg(
-				config.username, config.password, config.domain, config.workstation, challenge);
+			return bodyFile;
+		} catch (IOException | RuntimeException e) {
+			if (bodyFile != null) Files.deleteIfExists(bodyFile);
+			throw e;
 		}
-
-		throw new IOException("NTLM handshake did not establish a tunnel");
 	}
 
+	private static void forwardHttp(Socket local, String method, URI destination, Map<String, List<String>> headers,
+			Path bodyFile, Proxy route, Config credentials, boolean[] committed) throws IOException, HttpException {
+		var request = RequestBuilder.create(method).setUri(destination);
+		Set<String> excluded = hopHeaders(headers);
+		for (var header : headers.entrySet()) if (!excluded.contains(header.getKey().toLowerCase(Locale.ROOT))) {
+			for (String value : header.getValue()) request.addHeader(header.getKey(), value);
+		}
+		if (bodyFile != null) request.setEntity(new FileEntity(bodyFile.toFile()));
+		var builder = HttpClients.custom().disableAutomaticRetries().disableRedirectHandling().disableContentCompression()
+				.setDefaultRequestConfig(RequestConfig.custom().setConnectTimeout(CONNECT_TIMEOUT_MS).setSocketTimeout(30000).setExpectContinueEnabled(true).build());
+		if (route.type() != Proxy.Type.DIRECT) {
+			var address = (InetSocketAddress) route.address();
+			builder.setProxy(new HttpHost(address.getHostString(), address.getPort()));
+			var provider = new BasicCredentialsProvider();
+			if (credentials.method == ProxyMethod.basic) provider.setCredentials(new AuthScope(address.getHostString(), address.getPort(), AuthScope.ANY_REALM, "Basic"), new UsernamePasswordCredentials(credentials.username, credentials.password));
+			if (credentials.method == ProxyMethod.ntlm) provider.setCredentials(new AuthScope(address.getHostString(), address.getPort(), AuthScope.ANY_REALM, "NTLM"), new NTCredentials(credentials.username, credentials.password, credentials.workstation, credentials.domain));
+			builder.setDefaultCredentialsProvider(provider);
+		}
+		try (var client = builder.build(); var response = client.execute(request.build())) {
+			var reply = new BasicHttpResponse(response.getStatusLine());
+			Map<String, List<String>> responseHeaders = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+			for (Header header : response.getAllHeaders()) responseHeaders.computeIfAbsent(header.getName(), key -> new ArrayList<>()).add(header.getValue());
+			Set<String> responseExcluded = hopHeaders(responseHeaders);
+			for (Header header : response.getAllHeaders()) if (!responseExcluded.contains(header.getName().toLowerCase(Locale.ROOT))) reply.addHeader(header);
+			reply.setEntity(response.getEntity());
+			if ("HEAD".equalsIgnoreCase(method)) {
+				if (response.containsHeader("Content-Length")) reply.setHeader(response.getFirstHeader("Content-Length"));
+			} else {
+				new ResponseContent().process(reply, new BasicHttpContext());
+			}
+			reply.setHeader("Connection", "close");
+			var output = new DefaultBHttpServerConnection(8192);
+			output.bind(local);
+			committed[0] = true;
+			output.sendResponseHeader(reply);
+			output.sendResponseEntity(reply);
+			output.flush();
+		}
+	}
+
+	private static Set<String> hopHeaders(Map<String, List<String>> headers) {
+		var result = new HashSet<>(List.of("connection", "proxy-connection", "keep-alive", "proxy-authorization", "proxy-authenticate", "te", "trailer", "transfer-encoding", "upgrade", "content-length", "host", "expect"));
+		for (String value : headers.getOrDefault("Connection", List.of())) for (String token : value.split(",")) result.add(token.trim().toLowerCase(Locale.ROOT));
+		return result;
+	}
+
+	private static void tunnel(Socket client, Socket upstream) throws IOException {
+		Thread reader = daemon(() -> pump(upstream, client), "c8o-local-proxy-response");
+		pump(client, upstream);
+		try { reader.join(); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+	}
+
+	private static void pump(Socket source, Socket target) {
+		try { source.getInputStream().transferTo(target.getOutputStream()); target.shutdownOutput(); }
+		catch (IOException e) { closeQuietly(source); closeQuietly(target); }
+	}
+
+	private static Thread daemon(Runnable action, String name) {
+		Thread thread = new Thread(action, name); thread.setDaemon(true); thread.start(); return thread;
+	}
+
+	private static void closeQuietly(Closeable resource) {
+		if (resource != null) try { resource.close(); } catch (IOException ignored) { }
+	}
+
+	@Override public void close() throws IOException {
+		serverSocket.close();
+		for (Socket socket : sockets) closeQuietly(socket);
+		synchronized (SHARED_LOCK) { if (sharedBridge == this) sharedBridge = null; }
+	}
+
+	private static void writeError(OutputStream output, int code, String text) throws IOException {
+		output.write(("HTTP/1.1 " + code + " " + text + "\r\nContent-Length: 0\r\nConnection: close\r\n\r\n").getBytes(StandardCharsets.ISO_8859_1));
+		output.flush();
+	}
 	private static void writeConnect(OutputStream output, String authority, String authorization) throws IOException {
 		StringBuilder request = new StringBuilder();
 		request.append("CONNECT ").append(authority).append(" HTTP/1.1\r\n");
@@ -229,7 +351,7 @@ public class NtlmConnectProxyBridge implements Closeable {
 		output.flush();
 	}
 
-	private static String extractNtlmChallenge(HttpResponse response) {
+	private static String extractNtlmChallenge(ProxyResponse response) {
 		for (String header : response.getHeaders("Proxy-Authenticate")) {
 			String trimmed = header.trim();
 			if ("NTLM".equalsIgnoreCase(trimmed)) {
@@ -242,20 +364,7 @@ public class NtlmConnectProxyBridge implements Closeable {
 		return null;
 	}
 
-	private static HttpRequest readRequest(InputStream input) throws IOException {
-		HeaderBlock headers = readHeaderBlock(input);
-		String[] lines = headers.text.split("\r\n");
-		if (lines.length == 0) {
-			throw new IOException("Empty request");
-		}
-		String[] requestLine = lines[0].split(" ", 3);
-		if (requestLine.length < 2) {
-			throw new IOException("Invalid request line: " + lines[0]);
-		}
-		return new HttpRequest(requestLine[0], requestLine[1], headers.headers);
-	}
-
-	private static HttpResponse readResponse(InputStream input) throws IOException {
+	private static ProxyResponse readResponse(InputStream input) throws IOException {
 		HeaderBlock headers = readHeaderBlock(input);
 		String[] lines = headers.text.split("\r\n");
 		if (lines.length == 0) {
@@ -269,7 +378,7 @@ public class NtlmConnectProxyBridge implements Closeable {
 		int statusCode = Integer.parseInt(statusLine[1]);
 		String reasonPhrase = statusLine.length >= 3 ? statusLine[2] : "";
 		drainBody(input, headers.headers);
-		return new HttpResponse(statusCode, reasonPhrase, headers.headers);
+		return new ProxyResponse(statusCode, reasonPhrase, headers.headers);
 	}
 
 	private static HeaderBlock readHeaderBlock(InputStream input) throws IOException {
@@ -333,30 +442,6 @@ public class NtlmConnectProxyBridge implements Closeable {
 		}
 	}
 
-	private void touch() {
-		lastAccess = System.currentTimeMillis();
-	}
-
-	private void startIdleWatcher() {
-		Thread thread = new Thread(() -> {
-			while (!serverSocket.isClosed()) {
-				try {
-					Thread.sleep(30000);
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-					return;
-				}
-				if (System.currentTimeMillis() - lastAccess > IDLE_TIMEOUT_MS) {
-					LOGGER.info("(NtlmConnectProxyBridge) Stop idle local bridge");
-					closeQuietly(this);
-					return;
-				}
-			}
-		}, "c8o-ntlm-bridge-idle");
-		thread.setDaemon(true);
-		thread.start();
-	}
-
 	private static void drainChunkedBody(InputStream input) throws IOException {
 		while (true) {
 			String sizeLine = readAsciiLine(input);
@@ -376,7 +461,7 @@ public class NtlmConnectProxyBridge implements Closeable {
 
 	private static String readAsciiLine(InputStream input) throws IOException {
 		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-		while (true) {
+		while (buffer.size() < MAX_HEADER_SIZE) {
 			int value = input.read();
 			if (value < 0) {
 				return buffer.size() == 0 ? null : new String(buffer.toByteArray(), StandardCharsets.ISO_8859_1);
@@ -390,6 +475,7 @@ public class NtlmConnectProxyBridge implements Closeable {
 			}
 			buffer.write(value);
 		}
+		throw new IOException("Line too large");
 	}
 
 	private static void skipFully(InputStream input, int count) throws IOException {
@@ -409,98 +495,12 @@ public class NtlmConnectProxyBridge implements Closeable {
 		return values == null || values.isEmpty() ? null : values.get(0);
 	}
 
-	private static void tunnel(Socket client, Socket upstream) throws IOException {
-		Thread clientToUpstream = startPump(client.getInputStream(), upstream.getOutputStream());
-		Thread upstreamToClient = startPump(upstream.getInputStream(), client.getOutputStream());
-		try {
-			clientToUpstream.join();
-			upstream.shutdownOutput();
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-		}
-		try {
-			upstreamToClient.join();
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-		}
-	}
-
-	private static Thread startPump(InputStream input, OutputStream output) {
-		Thread thread = new Thread(() -> pump(input, output), "c8o-ntlm-bridge-pump");
-		thread.setDaemon(true);
-		thread.start();
-		return thread;
-	}
-
-	private static void pump(InputStream input, OutputStream output) {
-		byte[] buffer = new byte[16 * 1024];
-		try {
-			while (true) {
-				int read = input.read(buffer);
-				if (read < 0) {
-					return;
-				}
-				output.write(buffer, 0, read);
-				output.flush();
-			}
-		} catch (SocketTimeoutException e) {
-			// ignore, the owning socket lifecycle will close the tunnel
-		} catch (IOException e) {
-			// ignore, the peer closed the tunnel
-		}
-	}
-
-	private static void writeError(OutputStream output, int statusCode, String message) throws IOException {
-		String body = message + "\n";
-		String response = "HTTP/1.1 " + statusCode + " " + message + "\r\n" +
-			"Content-Type: text/plain; charset=utf-8\r\n" +
-			"Content-Length: " + body.getBytes(StandardCharsets.UTF_8).length + "\r\n" +
-			"Connection: close\r\n\r\n" + body;
-		output.write(response.getBytes(StandardCharsets.UTF_8));
-		output.flush();
-	}
-
-	private static void closeQuietly(Closeable closeable) {
-		if (closeable == null) {
-			return;
-		}
-		try {
-			closeable.close();
-		} catch (IOException e) {
-		}
-	}
-
-	@Override
-	public void close() throws IOException {
-		serverSocket.close();
-		LOGGER.info("(NtlmConnectProxyBridge) Bridge closed");
-		synchronized (SHARED_LOCK) {
-			if (sharedBridge == this) {
-				sharedBridge = null;
-				sharedConfig = null;
-			}
-		}
-	}
-
-	private static class HttpRequest {
-		private final String method;
-		private final String authority;
-		@SuppressWarnings("unused")
-		private final Map<String, List<String>> headers;
-
-		private HttpRequest(String method, String authority, Map<String, List<String>> headers) {
-			this.method = method;
-			this.authority = authority;
-			this.headers = headers;
-		}
-	}
-
-	private static class HttpResponse {
+	private static class ProxyResponse {
 		private final int statusCode;
 		private final String reasonPhrase;
 		private final Map<String, List<String>> headers;
 
-		private HttpResponse(int statusCode, String reasonPhrase, Map<String, List<String>> headers) {
+		private ProxyResponse(int statusCode, String reasonPhrase, Map<String, List<String>> headers) {
 			this.statusCode = statusCode;
 			this.reasonPhrase = reasonPhrase;
 			this.headers = headers;
@@ -530,6 +530,8 @@ public class NtlmConnectProxyBridge implements Closeable {
 		private String username;
 		private String password;
 		private String workstation = defaultWorkstation();
+		private ProxyManager manager;
+		private ProxyMethod method = ProxyMethod.ntlm;
 
 		public static Config parse(String[] args) {
 			Config config = new Config();
@@ -547,17 +549,34 @@ public class NtlmConnectProxyBridge implements Closeable {
 
 		public static Config fromEngineProperties() {
 			Config config = new Config();
-			config.upstreamHost = EnginePropertiesManager.getProperty(PropertyName.PROXY_SETTINGS_HOST);
-			config.upstreamPort = Integer.parseInt(EnginePropertiesManager.getProperty(PropertyName.PROXY_SETTINGS_PORT));
-			String proxyUser = EnginePropertiesManager.getProperty(PropertyName.PROXY_SETTINGS_USER);
-			int separator = proxyUser.indexOf('\\');
-			if (separator < 1 || separator == proxyUser.length() - 1) {
-				throw new IllegalArgumentException("Wrong username, please indicate the domain name for ntlm authentication. (eg: domain\\\\user)");
+			config.manager = Engine.theApp == null ? null : Engine.theApp.proxyManager;
+			if (config.manager == null) {
+				config.manager = new ProxyManager();
+				config.manager.getEngineProperties();
 			}
-			config.domain = proxyUser.substring(0, separator);
-			config.username = proxyUser.substring(separator + 1);
-			config.password = EnginePropertiesManager.getProperty(PropertyName.PROXY_SETTINGS_PASSWORD);
 			return config;
+		}
+
+		private Config credentials() {
+			if (manager == null) return this;
+			Config result = new Config();
+			result.method = manager.proxyMethod;
+			String user = manager.getProxyUser();
+			result.username = user;
+			result.password = manager.getProxyPassword();
+			result.domain = "";
+			if (result.method == ProxyMethod.ntlm) {
+				int slash = user.indexOf('\\');
+				if (slash < 1 || slash == user.length() - 1) throw new IllegalArgumentException("NTLM proxy authentication requires domain\\user");
+				result.domain = user.substring(0, slash);
+				result.username = user.substring(slash + 1);
+			}
+			return result;
+		}
+
+		private List<Proxy> routes(URI destination) {
+			return manager == null ? List.of(new Proxy(Proxy.Type.HTTP, InetSocketAddress.createUnresolved(upstreamHost, upstreamPort)))
+					: manager.selectProxies(destination);
 		}
 
 		private static Map<String, String> parseArgs(String[] args) {
@@ -592,14 +611,9 @@ public class NtlmConnectProxyBridge implements Closeable {
 		}
 
 		private boolean sameEndpoint(Config other) {
-			return other != null
-				&& listenHost.equals(other.listenHost)
-				&& upstreamHost.equals(other.upstreamHost)
-				&& upstreamPort == other.upstreamPort
-				&& domain.equals(other.domain)
-				&& username.equals(other.username)
-				&& password.equals(other.password)
-				&& workstation.equals(other.workstation);
+			return other != null && listenHost.equals(other.listenHost) && listenPort == other.listenPort
+					&& ((manager != null && other.manager != null) || (manager == null && other.manager == null
+					&& java.util.Objects.equals(upstreamHost, other.upstreamHost) && upstreamPort == other.upstreamPort));
 		}
 	}
 }

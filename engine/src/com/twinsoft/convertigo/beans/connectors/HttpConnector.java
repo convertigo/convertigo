@@ -1235,6 +1235,9 @@ public class HttpConnector extends Connector {
 			}
 			
 			statuscode = doExecuteMethod(method, context);
+			if (!context.requestedObject.runningThread.bContinue) {
+				return null;
+			}
 
 			Engine.logBeans.debug("(HttpConnector) Status: " + statuscode + " " + method.getStatusLine());
 
@@ -1521,13 +1524,14 @@ public class HttpConnector extends Connector {
 							+ Arrays.asList(cookies).toString());
 			}
 		} catch (SocketTimeoutException e) {
-			throw new ConnectionException("Timeout reached (" + context.requestedObject.getResponseTimeout() + " sec)");
+			throw new ConnectionException("Timeout reached (" + context.requestedObject.getResponseTimeout() + " sec)", e);
 		} catch (IOException e) {
 			if (!context.requestedObject.runningThread.bContinue) {
 				return statuscode;
 			}
 			HttpUtils.logCurrentHttpConnection(httpClient, hostConfiguration, httpPool);
 			Engine.logBeans.warn("(HttpConnector) HttpClient: connection error to " + logUrl(context, sUrl) + ": " + logUrl(context, e.getMessage()));
+			throw new ConnectionException("HTTP connection failed to " + logUrl(context, sUrl), e);
 		} catch (OAuthException eee) {
 			throw new ConnectionException("OAuth Connection error to " + logUrl(context, sUrl), eee);
 		}
