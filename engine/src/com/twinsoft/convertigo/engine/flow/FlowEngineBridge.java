@@ -84,7 +84,11 @@ public class FlowEngineBridge {
 	private static final Map<String, CachedEngineSource> engineSourceCache = new ConcurrentHashMap<>();
 	private static final Map<String, CachedEngineRuntimePool> engineRuntimeCache = new ConcurrentHashMap<>();
 	private static final Object engineRuntimeCacheLock = new Object();
-	private static final Map<String, CachedMethodResponse> methodResponseCache = new ConcurrentHashMap<>();
+	// bounded in characters too: a tree response weighs megabytes, 256 of them could fill the heap of a small server
+	private static final BoundedResponseCache<CachedMethodResponse> methodResponseCache = new BoundedResponseCache<>(
+			FlowEngineBridge.METHOD_RESPONSE_CACHE_LIMIT, FlowEngineBridge.METHOD_RESPONSE_CACHE_CHARACTERS,
+			FlowEngineBridge.METHOD_RESPONSE_ENTRY_CHARACTERS,
+			cached -> cached.response().length());
 	private static final Map<String, String> methodResponseAliases = new ConcurrentHashMap<>();
 	private static final Map<String, InvocationStats> invocationStats = new ConcurrentHashMap<>();
 	private static final AtomicLong cacheGeneration = new AtomicLong();
@@ -109,6 +113,10 @@ public class FlowEngineBridge {
 	private static final LongAdder methodResponseCacheMisses = new LongAdder();
 	private static final LongAdder methodResponseCacheInvalidations = new LongAdder();
 	private static final int METHOD_RESPONSE_CACHE_LIMIT = 256;
+	/** About 64 MB of response text in memory at most (a Java String takes two bytes a character). */
+	static final long METHOD_RESPONSE_CACHE_CHARACTERS = 32_000_000L;
+	/** A response above it is never kept in memory: the authoring disk cache keeps it. */
+	static final long METHOD_RESPONSE_ENTRY_CHARACTERS = 8_000_000L;
 	/** @param project the canonical directory of the project, empty for none; dataRevision the revision of its data */
 	private record SharedRuntimeKey(String provider, String source, String project, ClassLoader loader, long codeRevision, long dataRevision) { }
 	/** Its monitor orders their publication and the invalidations of data caches, never held while one is prepared. */
@@ -2384,6 +2392,8 @@ public class FlowEngineBridge {
 				.put("pooledRuntimeCount", pooledRuntimeCount)
 				.put("availableRuntimeCount", availableRuntimeCount)
 				.put("methodResponseCacheSize", methodResponseCache.size())
+				.put("methodResponseCacheCharacters", methodResponseCache.characters())
+				.put("methodResponseCacheEvictions", methodResponseCache.evictions())
 				.put("sharedMetadata", new JSONObject().put("entries", sharedMetadata.size())
 						.put("characters", sharedMetadata.characters()).put("builds", sharedMetadata.builds())
 						.put("hits", sharedMetadata.hits()).put("joins", sharedMetadata.joins()))
@@ -2663,6 +2673,10 @@ public class FlowEngineBridge {
 			methodResponseCacheHits.increment();
 			return cached;
 		}
+		if (cached != null) {
+			// out of date: its memory is given back now, not at the next eviction
+			methodResponseCache.remove(key);
+		}
 		methodResponseCacheMisses.increment();
 		return null;
 	}
@@ -2671,15 +2685,11 @@ public class FlowEngineBridge {
 		if (!isCacheableResponse(method, request, response)) {
 			return;
 		}
-		if (methodResponseCache.size() >= METHOD_RESPONSE_CACHE_LIMIT) {
-			methodResponseCache.clear();
-			methodResponseAliases.clear();
-			methodResponseCacheInvalidations.increment();
-		}
 		var root = projectRoot(request == null ? "" : request.optString("projectDir", ""));
-		methodResponseCache.put(key,
-				new CachedMethodResponse(serializedResponse(response), cacheGeneration.get(), dataRevision(root), root));
-		methodResponseAliases.put(methodResponseAliasKey(engineRef, method, request), key);
+		if (methodResponseCache.put(key,
+				new CachedMethodResponse(serializedResponse(response), cacheGeneration.get(), dataRevision(root), root))) {
+			methodResponseAliases.put(methodResponseAliasKey(engineRef, method, request), key);
+		}
 	}
 
 	private static String methodResponseAliasKey(EngineRef engineRef, String method, JSONObject request) {
@@ -3712,7 +3722,7 @@ public class FlowEngineBridge {
 
 	/** Removes the responses of these projects (canonical directories) and those of no project, which may use any of them. */
 	private static void clearMethodResponseCache(Set<String> roots) {
-		if (methodResponseCache.values().removeIf(cached -> cached.root().isEmpty() || roots.contains(cached.root()))) {
+		if (methodResponseCache.removeIf(cached -> cached.root().isEmpty() || roots.contains(cached.root()))) {
 			methodResponseAliases.values().removeIf(key -> !methodResponseCache.containsKey(key));
 			methodResponseCacheInvalidations.increment();
 		}
