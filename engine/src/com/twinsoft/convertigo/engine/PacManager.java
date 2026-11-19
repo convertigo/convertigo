@@ -47,11 +47,17 @@ public class PacManager {
 			"(\\[[^\\s\\[\\]]+\\]|[^\\s:/\\\\?#@\\[\\]]+)\\s*:\\s*([0-9]+)");
 
 	private final String scriptUrl;
+	private final PacScriptMethods methods;
 	private volatile Scriptable scope;
 	private final AtomicBoolean unavailableWarningLogged = new AtomicBoolean();
 
 	PacManager(String url) {
+		this(url, new PacScriptMethods());
+	}
+
+	PacManager(String url, PacScriptMethods methods) {
 		this.scriptUrl = url;
+		this.methods = methods;
 	}
 
 	void start() {
@@ -60,15 +66,17 @@ public class PacManager {
 		try {
 			Context ctx = Context.enter();
 			Scriptable loaded = ctx.initStandardObjects();
-			loaded.put("pacMethods", loaded, new PacScriptMethods());
-			RhinoUtils.evalInterpretedJavascript(ctx, loaded, getScriptContent(), "pac", 0, null);
+			loaded.put("pacMethods", loaded, methods);
 			for (PacScriptMethods.jsFunctions function : PacScriptMethods.jsFunctions.values()) {
 				RhinoUtils.evalInterpretedJavascript(ctx, loaded,
-						"function " + function.name() + " () {" + "return pacMethods." + function.name() + ".apply(pacMethods, arguments); }",
+						"function " + function.name() + " () { var value = pacMethods." + function.name() + ".apply(pacMethods, arguments); "
+						+ (List.of("dnsResolve", "dnsResolveEx", "myIpAddress", "myIpAddressEx").contains(function.name())
+								? "return value == null ? null : String(value); }" : "return value; }"),
 						function.name(), 0, null);
 			}
-			if (!(loaded.get("FindProxyForURL", loaded) instanceof Function)) {
-				throw new IOException("PAC script has no FindProxyForURL function");
+			RhinoUtils.evalInterpretedJavascript(ctx, loaded, getScriptContent(), "pac", 0, null);
+			if (!(loaded.get("FindProxyForURL", loaded) instanceof Function) && !(loaded.get("FindProxyForURLEx", loaded) instanceof Function)) {
+				throw new IOException("PAC script has no FindProxyForURL or FindProxyForURLEx function");
 			}
 			// Publish only a fully loaded script, including when settings are applied at runtime.
 			scope = loaded;
@@ -95,7 +103,7 @@ public class PacManager {
 			}
 			String scriptContent = (this.scriptUrl.startsWith("file:/") || this.scriptUrl.indexOf(":/") == -1) ?
 					readPacFileContent(this.scriptUrl) : downloadPacContent(this.scriptUrl);
-			Engine.logProxyManager.debug("(PacManager) .pac content : \n" + scriptContent);
+			Engine.logProxyManager.debug("(PacManager) Read PAC script (" + scriptContent.length() + " characters)");
 			return scriptContent;
 		} catch (IOException e) {
 			Engine.logProxyManager.info("(PacManager) Loading script failed", e);
@@ -139,7 +147,13 @@ public class PacManager {
 		Object result = "";
 		try {
 			Context ctx = Context.enter();
-			result = RhinoUtils.evalInterpretedJavascript(ctx, scope, "FindProxyForURL (\"" + url + "\",\"" + host + "\")", "check", 0, null);
+			Scriptable loaded = scope;
+			// PAC scripts may keep mutable globals. Evaluate one request at a time.
+			synchronized (loaded) {
+				Object function = loaded.get("FindProxyForURL", loaded);
+				if (!(function instanceof Function)) function = loaded.get("FindProxyForURLEx", loaded);
+				result = ((Function) function).call(ctx, loaded, loaded, new Object[] {url, host});
+			}
 		} catch (Exception e) {
 			Engine.logProxyManager.warn("(PacManager) PAC evaluation failed; using a direct connection. Check cems.ProxyManager DEBUG logs.");
 			Engine.logProxyManager.debug("(PacManager) PAC evaluation failure", e);

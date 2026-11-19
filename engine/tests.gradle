@@ -735,7 +735,7 @@ tasks.register('pacManagerTest', JavaExec) {
 	dependsOn sessionTestClasses
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
-	args 'com.twinsoft.convertigo.engine.PacManagerTest',
+	args 'com.twinsoft.convertigo.engine.PacManagerTest', 'com.twinsoft.convertigo.engine.PacScriptMethodsTest',
 		'com.twinsoft.convertigo.engine.util.WsReferenceProxyTest'
 }
 tasks.named('check') { dependsOn 'pacManagerTest' }

@@ -228,4 +228,14 @@ public class SubprocessProxyTest {
 		manual(3128);URI local=localProxy();manager.destroy();
 		try(Socket ignored=new Socket(local.getHost(),local.getPort())) { fail("Listener should be closed"); } catch(ConnectException expected) { }
 	}
+
+	@Test(timeout = 15000) public void connectUsesTheDestinationSchemeAndCanonicalDefaultPortForPac() throws Exception {
+		var calls = new AtomicInteger();var upstream = echoProxy(calls,false);
+		for (int port : List.of(80,443,8443)) {
+			String url=port==80?"http://service.invalid/":port==443?"https://service.invalid/":"https://service.invalid:8443/";
+			pac("return url === '"+url+"' ? 'PROXY 127.0.0.1:"+upstream.getLocalPort()+"' : 'DIRECT';");
+			throughTunnel("service.invalid",port);
+		}
+		assertEquals(3,calls.get());
+	}
 }

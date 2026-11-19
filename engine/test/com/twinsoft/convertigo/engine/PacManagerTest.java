@@ -248,4 +248,64 @@ public class PacManagerTest {
 		assertTrue(warnings.stream().anyMatch(line -> line.contains("PAC is unavailable")));
 	}
 
+
+	@Test public void supportsExtendedEntryPointsAndKeepsArgumentsLiteral() {
+		var runtime = new PacManager("") {
+			@Override public String getScriptContent() {
+				return "function FindProxyForURLEx(url,host) { return url.indexOf(String.fromCharCode(34)) >= 0 && isInNetEx('2001:db8::1','2001:db8::/32') ? 'PROXY extended.example:3128' : 'DIRECT'; }";
+			}
+		};runtime.start();
+		assertEquals("extended.example",runtime.getPacInfos("https://service.example/?value=\"quoted\"", "service.example").getServer());
+	}
+	@Test public void preservesHelpersDefinedByThePacAndDoesNotLogItsContents() {
+		var runtime=new PacManager("") {
+			@Override public String getScriptContent() {return "function myIpAddress() { return '192.0.2.10'; } function FindProxyForURL(url,host) { return myIpAddress() === '192.0.2.10' ? 'PROXY custom.example:3128' : 'DIRECT'; }";}
+		};runtime.start();assertEquals("custom.example",runtime.getPacInfos("https://service.example/","service.example").getServer());
+	}
+	@Test public void sharedPacGlobalsRemainConsistentAcrossConcurrentRequests() throws Exception {
+		var runtime=new PacManager("") {
+			@Override public String getScriptContent() {return "var counter=0; function FindProxyForURL(url,host) { counter++; var value=counter; for(var i=0;i<100;i++){} return 'PROXY route'+value+'.example:3128'; }";}
+		};runtime.start();
+		var executor=java.util.concurrent.Executors.newFixedThreadPool(8);
+		try {
+			var calls=new ArrayList<java.util.concurrent.Callable<String>>();for(int i=0;i<100;i++)calls.add(()->runtime.getPacInfos("https://service.example/","service.example").getServer());
+			var hosts=new java.util.HashSet<String>();for(var future:executor.invokeAll(calls))hosts.add(future.get());assertEquals(100,hosts.size());
+		} finally {executor.shutdownNow();}
+	}
+
+	@Test public void syntheticCorporatePacSelectsDistinctRoutesAndDirect() throws Exception {
+		var methods=new PacScriptMethods() {
+			@Override public String myIpAddress() {return "192.0.2.99";}
+			@Override public String myIpAddressEx() {return "2001:db8::99;192.0.2.99";}
+			@Override protected java.net.InetAddress[] resolve(String host) throws java.net.UnknownHostException {
+				return new java.net.InetAddress[]{java.net.InetAddress.getByName(host.equals("app.internal.example")?"192.0.2.10":"203.0.113.20")};
+			}
+		};
+		var runtime=new PacManager("",methods) {
+			@Override public String getScriptContent() {return """
+				var own = myIpAddress();
+				var all = myIpAddressEx().split(';');
+				function FindProxyForURL(url,host) {
+				  if (!isInNet(own,'192.0.2.0','255.255.255.128') || all.length !== 2) throw Error('Local address mismatch');
+				  if (!weekdayRange('SUN','SAT') || !dateRange(2000,2100) || !timeRange(0,23,'GMT')) throw Error('Calendar mismatch');
+				  if (isPlainHostName(host)) return 'DIRECT';
+				  if (!isResolvable(host) || !isResolvableEx(host) || dnsDomainLevels(host) !== 2) throw Error('Name mismatch');
+				  if (localHostOrDomainIs(host,'app.internal.example') && dnsDomainIs(host,'.internal.example') && isInNet(host,'192.0.2.0','255.255.255.128')) return 'PROXY first.example:3128; PROXY backup.example:3128';
+				  if (shExpMatch(host,'api.oth?r.example') && isInNetEx(dnsResolveEx(host),'203.0.113.0/25') && dnsResolve(host) === '203.0.113.20') return 'PROXY second.example:3128';
+				  return 'DIRECT';
+				}
+				""";}
+		};runtime.start();
+		assertEquals("first.example",runtime.getPacInfos("https://app.internal.example/","app.internal.example").getServer());
+		assertEquals(2,runtime.getPacProxies("https://app.internal.example/","app.internal.example").size());
+		assertEquals("second.example",runtime.getPacInfos("https://api.other.example/","api.other.example").getServer());
+		assertNull(runtime.getPacInfos("http://intranet/","intranet"));
+		assertTrue(warnings.isEmpty());
+	}
+	@Test public void downloadedPacSourceIsNotWrittenToDebugLogs() throws Exception {
+		var file=folder.newFile("private-source.pac").toPath();
+		Files.writeString(file,"// fixture-source-marker\nfunction FindProxyForURL(url,host){return 'DIRECT';}");
+		var runtime=new PacManager(file.toString());runtime.start();
+		assertTrue(messages.stream().noneMatch(message->message.contains("fixture-source-marker")));
+	}
 }

@@ -148,10 +148,19 @@ public class NtlmConnectProxyBridge implements Closeable {
 			URI destination = URI.create(connect ? "https://" + line[1] + "/" : line[1]);
 			if (destination.getHost() == null || destination.getUserInfo() != null || destination.getFragment() != null
 					|| (!connect && !"http".equalsIgnoreCase(destination.getScheme()))) throw new IOException("Invalid proxy destination");
-			if (!connect) bodyFile = spoolBody(local, headers.headers);
+			URI pacDestination = destination;
+			if (connect) {
+				// CONNECT exposes only an authority. Match the conventional HTTP/HTTPS
+				// schemes and omit their default ports in the URL supplied to the PAC.
+				int port = destination.getPort();
+				String scheme = port == 80 ? "http" : "https";
+				pacDestination = new URI(scheme, null, destination.getHost(), port == 80 || port == 443 ? -1 : port, "/", null, null);
+			} else {
+				bodyFile = spoolBody(local, headers.headers);
+			}
 			Config settings = config;
 			IOException failure = null;
-			for (Proxy route : settings.routes(destination)) {
+			for (Proxy route : settings.routes(pacDestination)) {
 				try {
 					Config credentials = route.type() == Proxy.Type.DIRECT ? null : settings.credentials();
 					if (connect) {
