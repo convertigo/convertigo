@@ -238,6 +238,17 @@ public class ApplicationBuildsTest {
 	}
 
 	@Test
+	public void aDevModeStillStartingPutsTheEditBuildOff() throws Exception {
+		// serving without viewer address yet: its dependencies may still be installing
+		assertTrue(ApplicationBuilds.builderStarting(
+				new JSONObject("{\"builders\":[{\"available\":true,\"state\":{\"serving\":true,\"url\":\"\"}}]}")));
+		assertFalse(ApplicationBuilds.builderStarting(
+				new JSONObject("{\"builders\":[{\"available\":true,\"state\":{\"serving\":true,\"url\":\"http://127.0.0.1:5173/\"}}]}")));
+		assertFalse(ApplicationBuilds.builderStarting(
+				new JSONObject("{\"builders\":[{\"available\":true,\"state\":{\"serving\":false,\"url\":\"\"}}]}")));
+	}
+
+	@Test
 	public void eachServerBuildLevelAllowsThoseBeforeIt() {
 		var none = EnginePropertiesManager.ServerBuild.none;
 		var sources = EnginePropertiesManager.ServerBuild.sources;

@@ -163,20 +163,40 @@ public final class ApplicationBuilds {
 		try {
 			var project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(name, false);
 			// built or not yet: the server builds the application of a project edited in dev mode either way
-			return project != null && flowServing(project);
+			var menu = project == null ? null : flowMenu(project);
+			if (menu == null) return false;
+			if (builderStarting(menu)) {
+				// a dev mode still starting installs its dependencies: a build meanwhile could stop it, so wait again
+				frontendWritten(name);
+				return false;
+			}
+			return builderServing(menu);
 		} catch (Exception e) {
 			warn("Application of the project " + name + ": unable to check the production build", e);
 			return false;
 		}
 	}
 
-	private static boolean flowServing(Project project) {
+	/** @return the builders of the Flow engine of the project, null without Flow engine */
+	private static JSONObject flowMenu(Project project) {
 		try {
 			var engine = project.getFlowEngine();
-			if (engine == null) return false;
-			return builderServing(com.twinsoft.convertigo.engine.flow.FlowStudioSupport.contextMenu(engine));
+			if (engine == null) return null;
+			return com.twinsoft.convertigo.engine.flow.FlowStudioSupport.contextMenu(engine);
 		} catch (Exception e) {
 			warn("Application of the project " + project.getName() + ": unable to read its builders", e);
+		}
+		return null;
+	}
+
+	/** @return whether a dev mode is starting: serving, its viewer address not known yet */
+	static boolean builderStarting(JSONObject menu) {
+		var builders = menu.optJSONArray("builders");
+		for (int i = 0; builders != null && i < builders.length(); i++) {
+			var builder = builders.optJSONObject(i);
+			var state = builder == null ? null : builder.optJSONObject("state");
+			if (builder != null && builder.optBoolean("available", false) && state != null
+					&& state.optBoolean("serving", false) && state.optString("url", "").isEmpty()) return true;
 		}
 		return false;
 	}
