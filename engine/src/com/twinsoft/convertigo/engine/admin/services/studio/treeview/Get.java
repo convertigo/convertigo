@@ -530,6 +530,10 @@ public class Get extends JSonService {
 	}
 
 	static Object lazyChildrenState(DatabaseObject dbo, boolean flow) throws Exception {
+		// their children are a tree computed from the source: they are known when the node is expanded, as for a project not yet loaded
+		if (dbo instanceof Flow || dbo instanceof FlowEngine) {
+			return true;
+		}
 		if (dbo.hasDatabaseObjectChildren()) {
 			return true;
 		}

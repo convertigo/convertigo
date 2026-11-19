@@ -7,6 +7,8 @@ import static org.junit.Assert.assertSame;
 import org.codehaus.jettison.json.JSONArray;
 import org.junit.Test;
 
+import com.twinsoft.convertigo.beans.flow.Flow;
+import com.twinsoft.convertigo.beans.flow.FlowEngine;
 import com.twinsoft.convertigo.beans.flow.FlowVirtualObject;
 import com.twinsoft.convertigo.beans.steps.SimpleStep;
 
@@ -22,6 +24,27 @@ public class GetChildrenStateTest {
 		assertEquals(0, Get.loadedChildrenState(container, new JSONArray(), false));
 		assertFalse((Boolean) Get.lazyChildrenState(leaf, false));
 		assertFalse((Boolean) Get.loadedChildrenState(leaf, new JSONArray(), false));
+	}
+
+	@Test
+	public void announcesComputedChildrenWithoutComputingThem() throws Exception {
+		var flow = new Flow() {
+			@Override
+			public boolean hasDatabaseObjectChildren() {
+				throw new AssertionError("the children of a Flow are computed when its node is expanded");
+			}
+		};
+		var flowEngine = new FlowEngine() {
+			@Override
+			public boolean hasDatabaseObjectChildren() {
+				throw new AssertionError("the children of a FlowEngine are computed when its node is expanded");
+			}
+		};
+
+		for (var flowMode : new boolean[] { false, true }) {
+			assertEquals(Boolean.TRUE, Get.lazyChildrenState(flow, flowMode));
+			assertEquals(Boolean.TRUE, Get.lazyChildrenState(flowEngine, flowMode));
+		}
 	}
 
 	@Test
