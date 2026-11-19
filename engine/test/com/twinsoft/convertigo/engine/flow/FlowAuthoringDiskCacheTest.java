@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -218,5 +219,51 @@ public class FlowAuthoringDiskCacheTest {
 		}
 		assertTrue("entries read: " + reads, reads.get() > 0);
 		assertTrue("partial entries read: " + errors, errors.isEmpty());
+	}
+
+	@Test
+	public void keepsADocumentWhenTheWriterIsFullAndDropsAResponse() throws Exception {
+		var slow = TimeUnit.SECONDS.toNanos(1);
+		var release = new CountDownLatch(1);
+		var started = new CountDownLatch(1);
+		var droppedBefore = FlowAuthoringDiskCache.statistics.dropped.get();
+		try {
+			// the writer busy, then its 64 places taken
+			cache.write(key(100), () -> {
+				started.countDown();
+				try {
+					release.await(10, TimeUnit.SECONDS);
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+				return Map.of("response", "{}");
+			}, slow);
+			assertTrue(started.await(5, TimeUnit.SECONDS));
+			for (int i = 0; i < 64; i++) {
+				cache.write(key(200 + i), () -> Map.of("response", "{}"), slow);
+			}
+			cache.write(key(300), () -> Map.of("response", "{\"response\":true}"), slow);
+			assertEquals("a response is dropped", droppedBefore + 1, FlowAuthoringDiskCache.statistics.dropped.get());
+			assertFalse(cache.contains(key(300)));
+			cache.write(key(301), () -> Map.of("document", "{\"document\":true}"), slow, true);
+			assertEquals("a document is written by its caller, at once", Map.of("document", "{\"document\":true}"), cache.read(key(301)));
+		} finally {
+			release.countDown();
+			FlowAuthoringDiskCache.flush();
+		}
+	}
+
+	@Test
+	public void namesTheSymbolOfASecretShownNeverItsValue() {
+		FlowAuthoringDiskCache.secrets = () -> List.of("s3cr3t-value");
+		FlowAuthoringDiskCache.secretNames = Map.of("s3cr3t-value", "demo.admin.password");
+		try {
+			assertEquals("demo.admin.password", FlowAuthoringDiskCache.secretShown("{\"text\":\"s3cr3t-value\"}"));
+			assertNull(FlowAuthoringDiskCache.secretShown("{\"text\":\"public\"}"));
+			cache.writeNow(key(400), Map.of("response", "x s3cr3t-value y"));
+			assertFalse("refused", cache.contains(key(400)));
+		} finally {
+			FlowAuthoringDiskCache.secretNames = Map.of();
+		}
 	}
 }

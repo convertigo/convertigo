@@ -163,6 +163,8 @@ final class FlowAuthoringDiskCache {
 	private static volatile SecretValues secretValues;
 	/** The values no entry may show, replaced by the tests. */
 	static volatile java.util.function.Supplier<List<String>> secrets = FlowAuthoringDiskCache::secretSymbolValues;
+	/** The name of the global symbol of each secret value, to say which one an entry shows (never the value). */
+	static volatile Map<String, String> secretNames = Map.of();
 
 	private record SecretValues(long generation, List<String> values) { }
 
@@ -306,36 +308,54 @@ final class FlowAuthoringDiskCache {
 	 *            {@value #MIN_COMPUTE_MILLIS} ms is not written
 	 */
 	void write(String key, java.util.function.Supplier<Map<String, String>> parts, long computeNanos) {
+		write(key, parts, computeNanos, false);
+	}
+
+	/**
+	 * @param keep true for a document a provider computed (seconds of work): when too many writes are waiting, it is
+	 *            written now by the caller instead of being dropped
+	 */
+	void write(String key, java.util.function.Supplier<Map<String, String>> parts, long computeNanos, boolean keep) {
 		if (computeNanos < TimeUnit.MILLISECONDS.toNanos(MIN_COMPUTE_MILLIS) || parts == null || !KEY_PATTERN.matcher(key).matches()
 				|| !pending.add(key)) {
 			return;
 		}
-		try {
-			writer.execute(() -> {
-				try {
-					var texts = parts.get();
-					if (texts != null) {
-						writeNow(key, texts);
-					}
-				} catch (Throwable t) {
-					debug("Authoring cache: unable to write " + key + " (" + t + ")");
-				} finally {
-					pending.remove(key);
+		Runnable task = () -> {
+			try {
+				var texts = parts.get();
+				if (texts != null) {
+					writeNow(key, texts);
 				}
-			});
+			} catch (Throwable t) {
+				warn("Authoring cache: unable to write " + key + " (" + t + ")");
+			} finally {
+				pending.remove(key);
+			}
+		};
+		try {
+			writer.execute(task);
 		} catch (RejectedExecutionException e) {
-			// too many writes waiting: computed again at the next start
+			var waiting = writer.getQueue().size();
+			if (keep) {
+				warn("Authoring cache: " + waiting + " writes waiting, " + key + " written by its request");
+				task.run();
+				return;
+			}
+			// computed again at the next start
 			pending.remove(key);
-			statistics.dropped.incrementAndGet();
+			warn("Authoring cache: " + waiting + " writes waiting, " + key + " not kept (dropped "
+					+ statistics.dropped.incrementAndGet() + " since the start)");
 		}
 	}
 
 	/** Writes an entry now: a temporary file renamed over the previous one, readers never see a partial entry. */
 	void writeNow(String key, Map<String, String> parts) {
 		for (var text : parts.values()) {
-			if (containsSecret(text)) {
-				statistics.refused.incrementAndGet();
-				debug("Authoring cache: a response showing the value of a secret is not written (" + key + ")");
+			var shown = secretShown(text);
+			if (shown != null) {
+				// the name of the symbol only, never its value
+				warn("Authoring cache: " + key + " not kept, its text shows the value of the global symbol " + shown
+						+ " (refused " + statistics.refused.incrementAndGet() + " since the start)");
 				return;
 			}
 		}
@@ -465,10 +485,22 @@ final class FlowAuthoringDiskCache {
 	}
 
 	/** Waits for the pending entries to be written. */
+	/** Waits for the writes waiting (10 s at most), a full queue included. */
 	static void flush() {
 		var done = new CountDownLatch(1);
+		var deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
 		try {
-			writer.execute(done::countDown);
+			while (true) {
+				try {
+					writer.execute(done::countDown);
+					break;
+				} catch (RejectedExecutionException full) {
+					if (System.nanoTime() > deadline) {
+						return;
+					}
+					Thread.sleep(10);
+				}
+			}
 			done.await(10, TimeUnit.SECONDS);
 		} catch (Exception e) {
 			// best effort
@@ -656,12 +688,17 @@ final class FlowAuthoringDiskCache {
 	 *         tells a password, a token, a key or a credential, of {@value #SECRET_MIN_LENGTH} characters at least
 	 */
 	static boolean containsSecret(String text) {
+		return secretShown(text) != null;
+	}
+
+	/** @return the name of the global symbol whose secret value a text shows, null when none */
+	static String secretShown(String text) {
 		for (var value : secrets.get()) {
 			if (text.contains(value)) {
-				return true;
+				return secretNames.getOrDefault(value, "(name unknown)");
 			}
 		}
-		return false;
+		return null;
 	}
 
 	private static List<String> secretSymbolValues() {
@@ -676,17 +713,20 @@ final class FlowAuthoringDiskCache {
 			return known.values();
 		}
 		var values = new ArrayList<String>();
+		var names = new java.util.HashMap<String, String>();
 		try {
 			for (var name : manager.symbolsGetNames()) {
 				if (name.endsWith(".secret") || SECRET_NAME.matcher(name).matches()) {
 					var value = manager.symbolsGetValue(name);
 					if (value != null && value.length() >= SECRET_MIN_LENGTH) {
 						values.add(value);
+						names.putIfAbsent(value, name);
 						// as a JSON string shows it
 						var escaped = org.codehaus.jettison.json.JSONObject.quote(value);
 						escaped = escaped.substring(1, escaped.length() - 1);
 						if (!escaped.equals(value)) {
 							values.add(escaped);
+							names.putIfAbsent(escaped, name);
 						}
 					}
 				}
@@ -695,6 +735,7 @@ final class FlowAuthoringDiskCache {
 			// symbols being reloaded: read again at the next write
 			return values;
 		}
+		secretNames = Map.copyOf(names);
 		secretValues = new SecretValues(generation, List.copyOf(values));
 		return values;
 	}

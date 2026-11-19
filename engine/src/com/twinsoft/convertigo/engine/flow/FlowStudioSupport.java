@@ -355,7 +355,7 @@ public class FlowStudioSupport {
 		if (cache == null) {
 			return false;
 		}
-		cache.write(key, () -> Map.of(AUTHORING_DOCUMENT_PART, text), computeNanos);
+		cache.write(key, () -> Map.of(AUTHORING_DOCUMENT_PART, text), computeNanos, true);
 		return true;
 	}
 
