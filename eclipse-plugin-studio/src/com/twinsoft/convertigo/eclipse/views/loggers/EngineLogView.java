@@ -575,6 +575,9 @@ public class EngineLogView extends ViewPart {
 			createContextualTableViewerMenu();
 
 			final Table table = tableViewer.getTable();
+			// A tool tip text, even empty, disables the native tool tips of truncated cells,
+			// whose handling can loop endlessly on Windows while the log rows are refreshed
+			table.setToolTipText("");
 			table.setLinesVisible(false);
 			table.setHeaderVisible(true);
 			table.pack();

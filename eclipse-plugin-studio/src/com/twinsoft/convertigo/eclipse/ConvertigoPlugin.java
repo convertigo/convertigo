@@ -25,6 +25,7 @@ import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URI;
@@ -42,6 +43,7 @@ import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.servlet.http.HttpSession;
 
@@ -59,10 +61,12 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.ILog;
+import org.eclipse.core.runtime.ILogListener;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
@@ -74,6 +78,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTError;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Image;
@@ -345,6 +350,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	private static Log studioLog;
 
 	private static ILog log;
+
+	private ILogListener noMoreHandlesLogListener = null;
 
 	public static void logException(Throwable e, String message) {
 		logException(e, message, true);
@@ -754,8 +761,11 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		createConsoles();
 
 		// Redirect stdout and stderr
+		PrintStream originalOut = System.out;
+		PrintStream originalErr = System.err;
 		System.setOut(new StdoutStream());
 		System.setErr(new StderrStream());
+		restoreStandardStreamsOnNoMoreHandles(originalOut, originalErr);
 
 		studioLog = new Log(ConvertigoPlugin.getDefault().stdoutConsoleStream);
 
@@ -1194,7 +1204,47 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		} catch (Exception e) {
 		}
 
+		if (noMoreHandlesLogListener != null) {
+			Platform.removeLogListener(noMoreHandlesLogListener);
+		}
+
 		stopEmbeddedTomcat();
+	}
+
+	/**
+	 * Gives the original standard streams back on the first "No more handles" error:
+	 * once the system graphic resources are exhausted, each error printed to the
+	 * Studio console fails again and is reported again, endlessly.
+	 */
+	private void restoreStandardStreamsOnNoMoreHandles(PrintStream originalOut, PrintStream originalErr) {
+		AtomicBoolean restored = new AtomicBoolean(false);
+		noMoreHandlesLogListener = (status, pluginId) -> {
+			if (!restored.get() && isNoMoreHandles(status) && restored.compareAndSet(false, true)) {
+				System.setOut(originalOut);
+				System.setErr(originalErr);
+				originalErr.println("No more handles: standard output and error are no longer redirected to the Studio console");
+			}
+		};
+		Platform.addLogListener(noMoreHandlesLogListener);
+	}
+
+	private static boolean isNoMoreHandles(IStatus status) {
+		if (status == null) {
+			return false;
+		}
+		Throwable t = status.getException();
+		for (int depth = 0; t != null && depth < 10; depth++) {
+			if (t instanceof SWTError swtError && swtError.code == SWT.ERROR_NO_HANDLES) {
+				return true;
+			}
+			t = t.getCause();
+		}
+		for (IStatus child : status.getChildren()) {
+			if (isNoMoreHandles(child)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	void stopEmbeddedTomcat() {
