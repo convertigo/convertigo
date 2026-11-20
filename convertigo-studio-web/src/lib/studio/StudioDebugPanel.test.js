@@ -7,12 +7,14 @@ import {
 	followDebugger,
 	frameScopeGroups,
 	inspectFrame,
+	isDebugTargetPaused,
 	variablePreviews,
 	watchDebugger
 } from './debugSession.svelte.js';
 import { debugHover } from './editor/debugHover.js';
 import { javascriptDebugParameters } from './javascriptDebugRequest.js';
 import StudioDebugPanel from './StudioDebugPanel.svelte';
+import StudioTreeDebugTarget from './StudioTreeDebugTarget.svelte';
 
 vi.mock('#lib/utils/service.js', () => ({
 	call: vi.fn(async () => ({})),
@@ -51,6 +53,7 @@ describe('JavaScript debugger component and session', () => {
 			]
 		};
 		expect(frameScopeGroups(variables, 'example.plugin')).toBe(variables.scopes);
+		expect(frameScopeGroups({ ...variables, refused: true }, 'rhino')).toBe(variables.scopes);
 		expect(frameScopeGroups(variables, 'rhino').map((group) => group.name)).toEqual([
 			'Local',
 			'this',
@@ -129,6 +132,54 @@ describe('JavaScript debugger component and session', () => {
 		expect(render(StudioDebugPanel).body).toContain('fresh library state');
 	});
 
+	it('shows current and next levels independently in web and Eclipse', () => {
+		followDebugger(state({ currentLevel: 1, nextLevel: 2, rhinoRequested: true, serial: 2 }));
+		for (const props of [{}, { eclipse: true, standalone: true }]) {
+			const html = render(StudioDebugPanel, { props }).body;
+			expect(html).toContain('Current request: Level 1 — Blocks');
+			expect(html).toContain('Next request: Level 2 — Rhino sources');
+			expect(html).toContain('prepares the next execution');
+			expect(html).toContain('fresh library state');
+		}
+		followDebugger(state({ currentLevel: 2, nextLevel: 1, serial: 3 }));
+		const html = render(StudioDebugPanel).body;
+		expect(html).toContain('Current request: Level 2 — Rhino sources');
+		expect(html).toContain('Next request: Level 1 — Blocks');
+		expect(html).toContain('fresh library state');
+		expect(html).not.toContain('prepares the next execution');
+		followDebugger(state({ currentLevel: null, nextLevel: 1, stopped: false, serial: 4 }));
+		expect(render(StudioDebugPanel).body).toContain('No active request');
+	});
+
+	it('matches an exact target and clears pause markers on resume and stop', () => {
+		const url = 'flow://project/Test?revision=one#/nodes/0';
+		debugSession.frameIndex = 0;
+		followDebugger(
+			state({ frames: [{ url, line: 1, function: 'first', kind: 'flow' }], serial: 2 })
+		);
+		expect(isDebugTargetPaused({ url })).toBe(true);
+		expect(isDebugTargetPaused({ url: url.replace('one', 'two') })).toBe(false);
+		expect(isDebugTargetPaused({ url: url.replace('/0', '/1') })).toBe(false);
+		followDebugger(state({ stopped: false, serial: 3 }));
+		expect(isDebugTargetPaused({ url })).toBe(false);
+		followDebugger(state({ attached: false, stopped: false, serial: 4 }));
+		expect(isDebugTargetPaused({ url })).toBe(false);
+	});
+
+	it('renders the same server breakpoint state in any tree or graph button', () => {
+		const target = { url: 'flow://project/Test?revision=one#/nodes/0', line: 1 };
+		const renderButton = () => render(StudioTreeDebugTarget, { props: { target } }).body;
+		followDebugger(state({ breakpoints: { [target.url]: [1] }, serial: 2 }));
+		expect(renderButton()).toContain('aria-pressed="true"');
+		expect(renderButton()).toContain('Remove breakpoint on this item');
+		followDebugger(state({ breakpoints: {}, serial: 3 }));
+		expect(renderButton()).toContain('aria-pressed="false"');
+		followDebugger(state({ breakpoints: { [target.url.replace('one', 'two')]: [1] }, serial: 4 }));
+		expect(renderButton()).toContain('aria-pressed="false"');
+		followDebugger(state({ attached: false, stopped: false, serial: 5 }));
+		expect(renderButton()).not.toContain('<button');
+	});
+
 	it('shows a disabled server gate', () => {
 		followDebugger(state({ enabled: false, attached: false, stopped: false, serial: 2 }));
 		expect(render(StudioDebugPanel).body).toContain('JavaScript debugging is disabled');
@@ -156,6 +207,11 @@ describe('JavaScript debugger component and session', () => {
 		expect(call).toHaveBeenCalledTimes(2);
 		followDebugger(state({ serial: 1 }));
 		expect(debugSession.state?.pauseId).toBe(2);
+		vi.mocked(call).mockResolvedValueOnce({ variables: { refused: true, reason: 'time' } });
+		followDebugger(state({ pauseId: 3, serial: 3 }));
+		expect((await inspectFrame(0)).refused).toBe(true);
+		await inspectFrame(0);
+		expect(call).toHaveBeenCalledTimes(4);
 	});
 	it('stops polling when the panel unmounts, including an in-flight response', async () => {
 		let resolve = (_value) => {};

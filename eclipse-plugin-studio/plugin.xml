@@ -3928,7 +3928,7 @@
             class="com.twinsoft.convertigo.eclipse.views.rhino.JavascriptDebugView"
             icon="icons/studio/debug.svg"
             id="com.twinsoft.convertigo.eclipse.views.rhino.RhinoDebugView"
-            name="JavaScript Debug (Web)" restorable="true" allowMultiple="false" />
+            name="Backend Debug" restorable="true" allowMultiple="false" />
 		<!--view
             category="convertigo"
             class="com.twinsoft.convertigo.eclipse.views.propertysheet.PropertySheetView"

@@ -2,17 +2,54 @@
 	import Ico from '#lib/utils/Ico.svelte';
 
 	/** @typedef {{name: string, value: string, type?: string, ref?: string, expandable?: boolean, fullValue?: boolean, limited?: boolean}} Variable */
-	/** @type {{variables?: Variable[], reference?: string, nextOffset?: number, load?: (ref: string, offset: number) => Promise<any>, loadValue?: (ref: string) => Promise<any>}} */
-	let { variables = [], reference = '', nextOffset = -1, load, loadValue } = $props();
+	/** @type {{variables?: Variable[], reference?: string, nextOffset?: number, reason?: string, load?: (ref: string, offset: number) => Promise<any>, loadValue?: (ref: string) => Promise<any>}} */
+	let { variables = [], reference = '', nextOffset = -1, reason = '', load, loadValue } = $props();
 	let extra = $state(/** @type {Variable[]} */ ([]));
+	let rootReason = $state(/** @type {string | null} */ (null));
+	let rootBase = $state(/** @type {Variable[] | null} */ (null));
 	let rootNext = $state(/** @type {number | null} */ (null));
 	let rows = $state(
-		/** @type {Record<string, {open: boolean, loading: boolean, children: Variable[], next: number, error?: string}>} */ ({})
+		/** @type {Record<string, {open: boolean, loading: boolean, children: Variable[], next: number, reason?: string, error?: string}>} */ ({})
 	);
 	let full = $state(/** @type {{name: string, value: string} | null} */ (null));
 	let rootLoading = $state(false);
 	let error = $state('');
 	let more = $derived(rootNext ?? nextOffset);
+	let items = $derived([...(rootBase ?? variables), ...extra]);
+	function limitMessage(value) {
+		if (!value || value === 'page') return '';
+		if (value === 'opaque') return 'This object cannot be inspected safely.';
+		if (value === 'time' || value === 'candidates')
+			return 'Inspection work limit reached. Load the next page to continue.';
+		if (value === 'expired-cursor') return 'This property page has expired. Reload the inspection.';
+		if (value === 'changed-or-unsupported')
+			return 'The object changed or cannot be inspected safely. Reload the inspection.';
+		if (value === 'cursor-capacity')
+			return 'Inspection capacity reached. Resume to clear the references.';
+		return 'Inspection is limited for this value.';
+	}
+	async function reloadProperties(ref, key) {
+		rows[key].children = [];
+		rows[key].next = -1;
+		await fetchPage(ref, key, 0);
+	}
+	async function reloadScope() {
+		rootLoading = true;
+		try {
+			const page = await load?.(reference, 0);
+			if (!page) throw new Error('The pause has changed. Refresh the variables.');
+			rootBase = page.variables ?? [];
+			extra = [];
+			rows = {};
+			rootNext = page.nextOffset ?? -1;
+			rootReason = page.reason ?? '';
+			error = '';
+		} catch (cause) {
+			error = String(cause instanceof Error ? cause.message : cause);
+		} finally {
+			rootLoading = false;
+		}
+	}
 	async function expand(variable, key) {
 		if (rows[key]) {
 			rows[key].open = !rows[key].open;
@@ -29,6 +66,7 @@
 			if (!page) throw new Error('The pause has changed. Refresh the variables.');
 			row.children = [...row.children, ...(page.variables ?? [])];
 			row.next = page.nextOffset ?? -1;
+			row.reason = page.reason ?? '';
 			row.error = '';
 		} catch (cause) {
 			row.error = String(cause instanceof Error ? cause.message : cause);
@@ -43,6 +81,7 @@
 			if (!page) throw new Error('The pause has changed. Refresh the variables.');
 			extra = [...extra, ...(page.variables ?? [])];
 			rootNext = page.nextOffset ?? -1;
+			rootReason = page.reason ?? '';
 		} catch (cause) {
 			error = String(cause instanceof Error ? cause.message : cause);
 		} finally {
@@ -101,18 +140,20 @@
 					<span class="type">{variable.type ?? ''}</span>
 				</div>
 				{#if variable.limited}<p class="variable-message">
-						Variable reference capacity reached. Resume to start a new inspection.
+						This value is opaque, too large, or outside the inspection capacity.
 					</p>{/if}
 				{#if row?.open}
 					{@render tree(row.children, depth + 1, key)}
 					{#if row.loading}<p class="variable-message">Loading properties…</p>{/if}
-					{#if row.error}<div class="variable-message">
+					{#if limitMessage(row.reason)}<p class="variable-message">
+							{limitMessage(row.reason)}
+						</p>{/if}
+					{#if row.error || row.reason === 'expired-cursor' || row.reason === 'changed-or-unsupported'}<div
+							class="variable-message"
+						>
 							<span role="alert">{row.error}</span>
-							<button
-								class="more"
-								onclick={() => fetchPage(variable.ref, key, row.children.length)}
-							>
-								Retry
+							<button class="more" onclick={() => reloadProperties(variable.ref, key)}>
+								Reload properties
 							</button>
 						</div>{/if}
 					{#if row.next >= 0}<button
@@ -129,12 +170,24 @@
 {/snippet}
 
 <div class="variables" aria-label="Variables">
-	{@render tree([...variables, ...extra])}
-	{#if !variables.length && !extra.length}<p class="empty">No variables in this scope.</p>{/if}
+	{@render tree(items)}
+	{#if limitMessage(rootReason ?? reason)}<p class="variable-message">
+			{limitMessage(rootReason ?? reason)}
+		</p>{/if}
+	{#if !items.length && !limitMessage(rootReason ?? reason)}<p class="empty">
+			No variables in this scope.
+		</p>{/if}
 	{#if more >= 0}<button class="more" disabled={rootLoading} onclick={loadMore}>
 			Load next 100 properties
 		</button>{/if}
 	{#if error}<p role="alert">{error}</p>{/if}
+	{#if error || (rootReason ?? reason) === 'expired-cursor' || (rootReason ?? reason) === 'changed-or-unsupported'}<button
+			class="more"
+			disabled={rootLoading}
+			onclick={reloadScope}
+		>
+			Reload scope
+		</button>{/if}
 	{#if full}
 		<div class="full-value" role="region" aria-label={`Value of ${full.name}`}>
 			<div class="full-heading">

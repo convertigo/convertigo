@@ -2,7 +2,7 @@ import { call } from '#lib/utils/service.js';
 import { setJavascriptDebugSession } from './javascriptDebugRequest.js';
 
 /** @typedef {{ url: string, line: number, function: string, kind?: string, location?: {label: string, id?: string, property?: string, offset?: number} }} DebugFrame */
-/** @typedef {{ rhinoAvailable?: boolean, rhinoRequested?: boolean, targets?: {id: string, label: string, selected: boolean}[], notice?: string, pauseTimeoutMillis?: number, enabled?: boolean, attached: boolean, sessionId?: string, pauseId?: number, running?: boolean, breakOnExceptions: boolean, breakOnEnter?: boolean, breakOnReturn?: boolean, studioRequests?: boolean, serial: number, sources: string[], sourceLocations?: Record<string, {label: string}>, stopped: boolean, frames?: DebugFrame[], events?: {type: string, serial: number}[] }} DebugState */
+/** @typedef {{ currentLevel?: 1 | 2 | null, nextLevel?: 1 | 2, breakpoints?: Record<string, number[]>, rhinoAvailable?: boolean, rhinoRequested?: boolean, targets?: {id: string, label: string, selected: boolean}[], notice?: string, pauseTimeoutMillis?: number, enabled?: boolean, attached: boolean, sessionId?: string, pauseId?: number, running?: boolean, workers?: number, breakOnExceptions: boolean, breakOnEnter?: boolean, breakOnReturn?: boolean, studioRequests?: boolean, serial: number, sources: string[], sourceLocations?: Record<string, {label: string}>, stopped: boolean, frames?: DebugFrame[], events?: {type: string, serial: number}[] }} DebugState */
 export const debugSession = $state({
 	state: /** @type {DebugState | null} */ (null),
 	frameIndex: 0
@@ -82,7 +82,11 @@ export function inspectFrame(frame) {
 				action: 'variables',
 				pauseId: String(state.pauseId),
 				frame: String(frame)
-			}).then((result) => result?.variables ?? null)
+			}).then((result) => {
+				const variables = result?.variables ?? null;
+				if (variables?.refused) inspections.delete(key);
+				return variables;
+			})
 		);
 	return inspections.get(key);
 }
@@ -106,20 +110,33 @@ export function variablePreviews(variables) {
  */
 export function frameScopeGroups(variables, kind) {
 	if (!variables) return [];
-	if (kind && kind !== 'rhino') return variables.scopes ?? [];
+	if (variables.refused || (kind && kind !== 'rhino')) return variables.scopes ?? [];
 	return [
 		{
 			name: 'Local',
 			variables: variables.scope ?? [],
 			ref: variables.scopeRef,
-			nextOffset: variables.scopeNextOffset ?? -1
+			nextOffset: variables.scopeNextOffset ?? -1,
+			reason: variables.scopeReason ?? ''
 		},
 		{
 			name: 'this',
 			variables: variables.this ?? [],
 			ref: variables.thisRef,
-			nextOffset: variables.thisNextOffset ?? -1
+			nextOffset: variables.thisNextOffset ?? -1,
+			reason: variables.thisReason ?? ''
 		},
 		...(variables.scopes ?? []).slice(1)
 	];
+}
+
+/** Exact opaque identity shared by tree and graph (URI, revision and JSON Pointer).
+ * @param {{url: string} | undefined} target
+ */
+export function isDebugTargetPaused(target) {
+	return Boolean(
+		debugSession.state?.stopped &&
+		target?.url &&
+		debugSession.state.frames?.[debugSession.frameIndex]?.url === target.url
+	);
 }

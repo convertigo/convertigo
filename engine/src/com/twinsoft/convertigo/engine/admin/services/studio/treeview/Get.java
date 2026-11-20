@@ -78,7 +78,7 @@ public class Get extends JSonService {
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
 		var profileOwner = FlowStudioSupport.startPerformanceProfile(
 				Boolean.parseBoolean(request.getParameter("profile")), "studio.treeview.Get");
-		try {
+		try (var editor = com.twinsoft.convertigo.engine.debug.JavascriptDebugger.participantEditor(request)) {
 		var flow = "true".equals(request.getParameter("flow"));
 		var groupedTags = "true".equals(request.getParameter("tagsGrouped"));
 		try { com.twinsoft.convertigo.engine.tags.TagManager.get().reconcile(); }

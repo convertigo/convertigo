@@ -66,7 +66,7 @@ public class Debugger extends JSonService {
 				response.setStatus(400);
 				String message = e instanceof IllegalArgumentException || e instanceof IllegalStateException
 						? e.getMessage() : "Debugger operation failed. Refresh the debugger.";
-				response.getWriter().write(new JSONObject().put("error", new JSONObject().put("message", message)).toString());
+				response.getWriter().write(new JSONObject().put("error", new JSONObject().put("message", JavascriptDebugger.preview(message))).toString());
 			} catch (Exception ignored) { /* Do not log debug payloads, including on disconnect. */ }
 		}
 	}
@@ -128,7 +128,8 @@ public class Debugger extends JSonService {
 			if (script && !rhino && !"false".equals(request.getParameter("set")))
 				throw new IllegalStateException("Script breakpoints require an editing-enabled Studio.");
 			var line = Integer.parseInt(request.getParameter("line")) + offset;
-			response.put("accepted", debugger.breakpoint(url, line, !"false".equals(request.getParameter("set")), script));
+			response.put("accepted", script ? debugger.breakpoint(url, line, !"false".equals(request.getParameter("set")), true)
+					: debugger.participantBreakpoint(url, line, !"false".equals(request.getParameter("set")), request.getParameter("identity")));
 			response.put("breakpoints", lines(debugger.breakpoints(url), offset));
 		}
 		case "breakpoints" -> {
@@ -137,11 +138,10 @@ public class Debugger extends JSonService {
 		case "variables" -> {
 			response.put("variables", debugger.variables(Integer.parseInt(request.getParameter("frame")), pauseId));
 		}
-		case "properties" -> response.put("properties", debugger.properties(pauseId, request.getParameter("ref"), Integer.parseInt(request.getParameter("offset"))));
+		case "properties" -> response.put("properties", debugger.properties(pauseId, request.getParameter("ref"), Integer.parseInt(request.getParameter("cursor") == null ? request.getParameter("offset") : request.getParameter("cursor"))));
 		case "value" -> response.put("value", debugger.value(pauseId, request.getParameter("ref")));
 		case "eval" -> {
 			// Audit the capability use only: no source, expression, result or session token.
-			com.twinsoft.convertigo.engine.Engine.logAudit.info("JavaScript debugger administrator evaluation requested");
 			var result = debugger.evaluate(Integer.parseInt(request.getParameter("frame")), pauseId, request.getParameter("expression"));
 			response.put("result", result.get("result"));
 			response.put("evaluationError", result.optBoolean("evaluationError"));
@@ -149,7 +149,8 @@ public class Debugger extends JSonService {
 		default -> throw new ServiceException("Unknown action " + action);
 		}
 		response.put("state", debugger.state().put("enabled", true).put("rhinoAvailable", rhino)
-				.put("rhinoRequested", debugger.hasRhinoBreakpoints()).put("targets", JavascriptDebugger.targets(owner)));
+				.put("rhinoRequested", debugger.hasRhinoBreakpoints())
+				.put("nextLevel", rhino && debugger.hasRhinoBreakpoints() ? 2 : 1).put("targets", JavascriptDebugger.targets(owner)));
 	}
 
 	/**

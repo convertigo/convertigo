@@ -18,6 +18,7 @@
 		performDboDrop,
 		renameObjectId
 	} from '#lib/studio/dnd.js';
+	import { debugSession } from '#lib/studio/debugSession.svelte.js';
 	import { getSourcePickerDragPayload } from '#lib/studio/sourcePickerDnd.js';
 	import AutoPlaceholder from '#lib/utils/AutoPlaceholder.svelte';
 	import { draggedData } from '#lib/utils/dndStore.js';
@@ -206,6 +207,31 @@
 		}
 		lastRefreshSerial = serial;
 		untrack(refresh);
+	});
+
+	// Focus once per pause/frame, never on each poll. The graph keeps its normal selection.
+	let debugFocusKey = $derived(
+		debugSession.state?.stopped
+			? `${debugSession.state.sessionId}:${debugSession.state.pauseId}:${debugSession.frameIndex}`
+			: ''
+	);
+	let debugFocusUrl = $derived(
+		debugSession.state?.stopped
+			? debugSession.state.frames?.[debugSession.frameIndex]?.url
+			: undefined
+	);
+	$effect(() => {
+		const key = debugFocusKey;
+		const url = debugFocusUrl;
+		const currentFlow = flow;
+		if (!key || !url || !currentFlow) return;
+		untrack(() => {
+			const target = currentFlow.nodes.find((node) => node.data?.debugTarget?.url === url);
+			if (!target) return;
+			if (expandCollapsedAncestorsForNode(target.id))
+				syncXyFlow({ focusNodeIds: new SvelteSet([target.id]) });
+			else scheduleViewportFit(new SvelteSet([target.id]));
+		});
 	});
 
 	/**

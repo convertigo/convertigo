@@ -20,6 +20,7 @@ class JavascriptDebugViewTests(unittest.TestCase):
         self.assertEqual(web[0].get("class"), WEB_CLASS)
         self.assertEqual(web[0].get("restorable"), "true")
         self.assertEqual(web[0].get("allowMultiple"), "false")
+        self.assertEqual(web[0].get("name"), "Backend Debug")
 
     def test_only_one_backend_debugger_is_registered(self):
         views = self.plugin.findall("./extension[@point='org.eclipse.ui.views']/view")

@@ -251,7 +251,54 @@ public class RequestableTimeoutTest {
     }
 
     @Test public void childPauseSuspendsTheWaitingCallerBudget() throws Exception { pausedChild(false); }
+    @Test public void laneGuardObservesContextAbortButNotNormalEndOfContext() throws Exception {
+        probe = new Probe(Work.COMPLETE) {
+            @Override public void runCore() {
+                var guard = RequestableObject.currentInvocationGuard();
+                var execution = context;
+                assertTrue(guard.isRunning());
+                execution.requireEndOfContext = true;
+                assertTrue("Normal context disposal after the response is not cancellation", guard.isRunning());
+                try (var pool = java.util.concurrent.Executors.newSingleThreadExecutor()) {
+                    var ready = new CountDownLatch(1);
+                    var child = pool.submit(() -> {
+                        ready.countDown();
+                        long end = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
+                        while (guard.isRunning() && System.nanoTime() < end) Thread.onSpinWait();
+                        return !guard.isRunning();
+                    });
+                    assertTrue(ready.await(1, TimeUnit.SECONDS));
+                    execution.requireRemoval(true); // ContextManager.requestAbort's existing cancellation flag.
+                    assertTrue("A paused lane must observe its original context's cancellation", child.get(2, TimeUnit.SECONDS));
+                } catch (Exception e) { throw new AssertionError(e); }
+                finally { execution.requireRemoval(false); execution.requireEndOfContext = false; }
+            }
+        };
+        probe.setName("CancelledContextOwner"); probe.setResponseTimeout(5);
+        probe.run(new JsonServletRequester(), context);
+    }
     @Test public void inlineChildPauseSuspendsTheCallerBudget() throws Exception { pausedChild(true); }
+	@Test public void laneGuardSuspendsTheExistingOwnerBudgetWithoutARequestableOnItsThread() throws Exception {
+		probe = new Probe(Work.COMPLETE) {
+			@Override public void runCore() {
+				var guard = RequestableObject.currentInvocationGuard();
+				assertTrue(guard.isBound());
+				try (var pool = java.util.concurrent.Executors.newSingleThreadExecutor()) {
+					pool.submit(() -> {
+						assertFalse(RequestableObject.currentInvocationGuard().isBound());
+						try (var pause = guard.pauseDebugger()) {
+							Thread.sleep(1300);
+							assertTrue(guard.isRunning());
+						}
+						return null;
+					}).get(3, TimeUnit.SECONDS);
+					assertTrue(guard.isRunning());
+				} catch (Exception e) { throw new AssertionError(e); }
+			}
+		};
+		probe.setName("LaneOwner"); probe.setResponseTimeout(1);
+		probe.run(new JsonServletRequester(), context);
+	}
     private void pausedChild(boolean inline) throws Exception {
         EnginePropertiesManager.setProperty(PropertyName.NATIVE_INLINE_CALLS, Boolean.toString(inline));
         Engine.theApp.databaseObjectsManager = new com.twinsoft.convertigo.engine.DatabaseObjectsManager() {

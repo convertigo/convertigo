@@ -2233,6 +2233,7 @@ function toStepNodeData(node, options, outputVisualOrder) {
 		isSubstepCollapsed: options.collapsedNodeIds?.has(node.id) ?? false,
 		substepDescendantCount,
 		onToggleSubsteps: substepDescendantCount ? options.onToggleSubsteps : void 0,
+		debugTarget: data.debugTarget,
 		originalId: typeof data.originalId === 'string' ? data.originalId : void 0,
 		renameValue: typeof data.renameValue === 'string' ? data.renameValue : void 0,
 		canRename: typeof data.canRename === 'boolean' ? data.canRename : void 0,

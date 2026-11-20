@@ -1,6 +1,7 @@
 import { call } from '#lib/utils/service.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { loadFlowGraph, loadSequenceFlow } from './sequenceLoader';
+import { toXyFlow } from './xyflow';
 
 vi.mock('#lib/utils/service.js', () => ({
 	call: vi.fn()
@@ -76,6 +77,27 @@ describe('loadSequenceFlow', () => {
 				from: { nodeId: callId, portIndex: 1 },
 				to: { nodeId: multiVariableId, portIndex: 0 }
 			})
+		);
+	});
+
+	it('keeps the tree debug target unchanged through graph hydration and rendering', async () => {
+		const root = 'Project.sq:Graph.flow';
+		const debugTarget = { url: 'flow://Project/Graph?revision=abc#/nodes/0', line: 1 };
+		vi.mocked(call).mockImplementation(async (service, params) =>
+			service === 'studio.palette.Get'
+				? { categories: [] }
+				: {
+						children:
+							params.id === root
+								? [{ id: `${root}.first`, label: 'first', classname: 'FlowNode', debugTarget }]
+								: []
+					}
+		);
+		const flow = await loadFlowGraph('Project', 'Graph', root);
+		expect(flow.nodes[0].data?.debugTarget).toBe(debugTarget);
+		const rendered = toXyFlow(flow);
+		expect(rendered.nodes.find((node) => node.id === `${root}.first`)?.data.debugTarget).toBe(
+			debugTarget
 		);
 	});
 

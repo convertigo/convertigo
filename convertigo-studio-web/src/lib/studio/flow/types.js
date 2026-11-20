@@ -20,7 +20,7 @@
  * @property {string[]=} bottomOutputLabels
  * @property {number=} bottomInputs
  * @property {string[]=} bottomInputLabels
- * @property {Record<string, unknown>=} data
+ * @property {(Record<string, unknown> & {debugTarget?: {url: string, line: number}, canRename?: boolean})=} data
  */
 
 /**
@@ -64,6 +64,7 @@
 
 /**
  * @typedef {Object} TreeviewItem
+ * @property {{url: string, line: number}=} debugTarget
  * @property {boolean=} canRename
  * @property {string=} renameValue
  * @property {string} id
@@ -85,6 +86,7 @@
 
 /**
  * @typedef {Object} SequenceTreeNode
+ * @property {{url: string, line: number}=} debugTarget
  * @property {boolean=} canRename
  * @property {string=} renameValue
  * @property {string} id
@@ -101,6 +103,7 @@
 
 /**
  * @typedef {Object} FlowStepNodeData
+ * @property {{url: string, line: number}=} debugTarget
  * @property {boolean=} canRename
  * @property {string=} renameValue
  * @property {string} id

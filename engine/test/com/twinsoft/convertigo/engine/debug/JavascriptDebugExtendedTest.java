@@ -11,6 +11,11 @@ import com.twinsoft.convertigo.engine.flow.FlowEngineBridge;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
 
 public class JavascriptDebugExtendedTest {
+    @org.junit.Before public void editingEnabledFixture() throws Exception {
+        com.twinsoft.convertigo.engine.EnginePropertiesManager.initProperties();
+        com.twinsoft.convertigo.engine.EnginePropertiesManager.setProperty(com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName.WEB_STUDIO,"enabled");
+    }
+
     private JSONObject paused(JavascriptDebugSession session, long previous) throws Exception {
         long end = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
         while (System.nanoTime() < end) {
@@ -88,7 +93,7 @@ public class JavascriptDebugExtendedTest {
         @Override public String toString() { throw new AssertionError("Must not stringify Java objects"); }
         public int getSecret() { throw new AssertionError("Must not invoke Java getters"); }
     }
-    @Test public void treesIncludeLexicalArraysJavaFieldsCyclesAndSkipGetters() throws Exception {
+    @Test public void treesIncludeLexicalArraysCyclesAndKeepHostFieldsOpaque() throws Exception {
         try (var pool = Executors.newCachedThreadPool(); var session = new JavascriptDebugSession()) {
             session.breakpoint("tree", 5, true);
             var future = pool.submit(() -> {
@@ -117,7 +122,7 @@ public class JavascriptDebugExtendedTest {
             assertEquals("<accessor>", find(children, "bad").getString("value"));
             assertEquals("[Array]", find(children, "items").getString("value"));
             assertNotNull(java);
-            assertEquals("42", find(session.properties(pause, java.getString("ref"), 0).getJSONArray("variables"), "answer").getString("value"));
+            assertFalse(java.getBoolean("expandable")); assertTrue(java.getBoolean("limited"));
             assertTrue(variables.toString().length() < 100_000);
             session.resume("go", pause); future.get(2, TimeUnit.SECONDS);
         }
@@ -138,8 +143,10 @@ public class JavascriptDebugExtendedTest {
             var variables = session.variables(0, pause);
             var many = find(variables.getJSONArray("scope"), "many");
             var page = session.properties(pause, many.getString("ref"), 0);
-            assertEquals(100, page.getJSONArray("variables").length()); assertEquals(100, page.getInt("nextOffset"));
-            page = session.properties(pause, many.getString("ref"), 200);
+            assertEquals(100, page.getJSONArray("variables").length()); assertTrue(page.getInt("nextOffset") > 0);
+            assertEquals("expired-cursor", session.properties(pause, many.getString("ref"), 200).getString("reason"));
+            page = session.properties(pause, many.getString("ref"), page.getInt("nextOffset"));
+            page = session.properties(pause, many.getString("ref"), page.getInt("nextOffset"));
             assertEquals(30, page.getJSONArray("variables").length()); assertEquals(-1, page.getInt("nextOffset"));
             assertEquals("229", find(page.getJSONArray("variables"), "item229").getString("value"));
             var text = find(variables.getJSONArray("scope"), "text");
@@ -213,12 +220,10 @@ public class JavascriptDebugExtendedTest {
             });
             long pause = paused(session, 0).getLong("pauseId");
             var text = find(session.variables(0, pause).getJSONArray("scope"), "javaText");
-            assertEquals("x".repeat(500) + "…", text.getString("value"));
-            assertTrue(text.getBoolean("fullValue"));
-            var full = session.value(pause, text.getString("ref"));
-            assertEquals(65536, full.getString("value").length());
-            assertTrue(full.getBoolean("truncated"));
-            assertEquals("x".repeat(500) + "…", session.evaluate(0, pause, "javaText").getString("result"));
+            assertEquals("<large scalar: inspection limited>", text.getString("value"));
+            assertFalse(text.getBoolean("fullValue"));
+            assertTrue(text.getBoolean("limited"));
+            assertEquals("<large scalar: inspection limited>", session.evaluate(0, pause, "javaText").getString("result"));
             session.resume("go", pause); future.get(2, TimeUnit.SECONDS);
         }
     }

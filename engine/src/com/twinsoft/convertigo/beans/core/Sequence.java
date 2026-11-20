@@ -1273,6 +1273,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			
 			// Sets abort flag
 			arborting = true;
+            notifyInvocationCancellation();
         	
 			// Abort children's contexts
 			if (this.useSameJSessionForSteps()) {

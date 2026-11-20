@@ -1,11 +1,10 @@
 <script>
 	import { debugCommand, debugSession } from './debugSession.svelte.js';
 
-	/** @type {{ target: {url: string, line: number} }} */
+	/** @type {{ target: {url: string, line: number, identity?: object} }} */
 	let { target } = $props();
-	let selection = $state({ sessionId: '', enabled: false });
 	let enabled = $derived(
-		selection.sessionId === debugSession.state?.sessionId && selection.enabled
+		debugSession.state?.breakpoints?.[target.url]?.includes(target.line) ?? false
 	);
 	let busy = $state(false);
 	let error = $state('');
@@ -17,12 +16,11 @@
 			const result = await debugCommand('breakpoint', {
 				url: target.url,
 				kind: 'participant',
+				identity: target.identity ? JSON.stringify(target.identity) : '',
 				line: String(target.line),
 				set: String(!enabled)
 			});
-			if (result?.accepted)
-				selection = { sessionId: debugSession.state?.sessionId ?? '', enabled: !enabled };
-			else error = 'Breakpoint was refused.';
+			if (!result?.accepted) error = 'Breakpoint was refused.';
 		} catch {
 			error = 'Unable to update this breakpoint.';
 		} finally {

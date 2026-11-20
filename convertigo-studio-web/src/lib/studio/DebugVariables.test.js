@@ -43,3 +43,21 @@ it('offers the next page of a large scope instead of losing its remaining bindin
 	}).body;
 	expect(html).toContain('Load next 100 properties');
 });
+
+it('announces opaque and partial scopes without claiming they are empty', () => {
+	const opaque = render(DebugVariables, { props: { reason: 'opaque', variables: [] } }).body;
+	expect(opaque).toContain('cannot be inspected safely');
+	expect(opaque).not.toContain('No variables in this scope');
+	const partial = render(DebugVariables, {
+		props: { reason: 'candidates', variables: [], reference: 'scope', nextOffset: 1048577 }
+	}).body;
+	expect(partial).toContain('Inspection work limit reached');
+	expect(partial).toContain('Load next 100 properties');
+});
+it('announces limited values without mistaking an opaque object for a full reference registry', () => {
+	const html = render(DebugVariables, {
+		props: { variables: [{ name: 'host', value: '[Host object]', limited: true }] }
+	}).body;
+	expect(html).toContain('This value is opaque, too large');
+	expect(html).not.toContain('Variable reference capacity reached');
+});

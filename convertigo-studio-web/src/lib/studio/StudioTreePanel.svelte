@@ -14,7 +14,8 @@
 		areEquivalentDboObjectIds,
 		equivalentDboObjectIds,
 		mutationDboContextIds,
-		mutationDboRefreshIds
+		mutationDboRefreshIds,
+		parentObjectId
 	} from './dnd';
 	import { isFolderId } from './folderTypes.js';
 	import StudioEmptyState from './StudioEmptyState.svelte';
@@ -1158,6 +1159,44 @@
 		const id = selectedId;
 		selectedTrail = (id && trailTo(id, rootChildren)) || [];
 	});
+
+	// A graph selection may name a block below a closed or not yet loaded branch.
+	$effect(() => {
+		const id = selectedId;
+		void rootChildren;
+		if (!id?.includes('.flow.')) return;
+		let cancelled = false;
+		untrack(() => void revealSelectedBlock(id, () => cancelled).catch(() => {}));
+		return () => {
+			cancelled = true;
+		};
+	});
+
+	/** @param {string} id @param {() => boolean} cancelled */
+	async function revealSelectedBlock(id, cancelled) {
+		const path = [id];
+		let parent = parentObjectId(id);
+		while (parent) {
+			path.unshift(parent);
+			parent = parentObjectId(parent);
+		}
+		const project = projectOfNode(id);
+		if (path[0] !== project) path.unshift(project);
+		for (const ancestor of path.slice(0, -1)) {
+			if (cancelled()) return;
+			const node = findNodeById(ancestor);
+			if (!node) return;
+			keepExpanded((trailTo(ancestor, rootChildren) ?? []).map((item) => item.id));
+			if (node.children && !Array.isArray(node.children)) await loadChildren(node);
+		}
+		if (cancelled() || !findNodeById(id)) return;
+		keepExpanded(path.slice(0, -1));
+		await tick();
+		if (!cancelled())
+			document
+				.querySelector(`[data-row-id="${CSS.escape(id)}"]`)
+				?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+	}
 
 	// Reveal the selected logical frame by the very same opaque target as the breakpoint.
 	// Selection stays independent; no debugger-to-tree registry is kept.

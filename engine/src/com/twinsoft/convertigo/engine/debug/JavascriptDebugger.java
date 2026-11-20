@@ -13,7 +13,6 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
-import com.twinsoft.convertigo.engine.util.RhinoUtils;
 
 /** Registry of administrator-owned debug sessions; no context factory listeners or work when detached. */
 public final class JavascriptDebugger {
@@ -37,15 +36,70 @@ public final class JavascriptDebugger {
 	public static final Signal signal = new Signal();
 	private static final Map<String, Execution> executions = new java.util.LinkedHashMap<>();
 	private static final ThreadLocal<Execution> execution = new ThreadLocal<>();
+	private static final ThreadLocal<String> participantEditorOwner = new ThreadLocal<>();
 	private static final class Execution {
 		final String id = java.util.UUID.randomUUID().toString(), owner, label;
 		final Thread thread = Thread.currentThread();
 		volatile JavascriptDebugSession session;
 		Object worker;
-		AutoCloseable lease;
+		AutoCloseable lease, cancelWake;
+		boolean construction;
+		com.twinsoft.convertigo.beans.core.RequestableObject.InvocationGuard guard = com.twinsoft.convertigo.beans.core.RequestableObject.currentInvocationGuard();
 		Execution(String owner, String label, JavascriptDebugSession session) {
 			this.owner = owner; this.label = label; this.session = session;
 		}
+	}
+	/** Versioned, additive participant contract; no provider-specific concepts cross this boundary. */
+	public static org.codehaus.jettison.json.JSONObject participantContract() {
+		return JavascriptDebugSession.json("version", 2, "capabilities", JavascriptDebugSession.json(
+				"explicitParents", true, "workerStepping", true, "singlePause", true, "cancellation", true,
+				"activationMetadata", true, "ancestorScopes", false, "waitBudgets", true, "cancellationNotifications", true, "boundedInspection", true, "propertyCursors", true, "parsedPathEvaluation", true));
+	}
+	public static final class ParentLink {
+		private final JavascriptDebugSession session;
+		private final JavascriptDebugSession.Parent parent;
+		private final String owner, label;
+		private final boolean construction;
+		private final com.twinsoft.convertigo.beans.core.RequestableObject.InvocationGuard guard;
+		private ParentLink(Execution current, JavascriptDebugSession.Parent parent, boolean construction) {
+			this.session = current.session; this.parent = parent; this.owner = current.owner; this.label = current.label;
+			this.construction = construction; this.guard = current.guard;
+		}
+	}
+	/** Capture on the caller, before handing work to another thread. No inheritable thread-local state. */
+	public static ParentLink captureParent() {
+		if (!signal.active) return null;
+		var current = execution.get();
+		if (current == null || current.session == null || current.session.expired(System.currentTimeMillis())) return null;
+		var cx = org.mozilla.javascript.Context.getCurrentContext();
+		Object worker = current.worker;
+		if (worker == null && cx != null && cx.getDebugger() == current.session) worker = cx.getDebuggerContextData();
+		if (worker == null && cx != null && cx.getThreadLocal(PROVIDER_BINDING) instanceof ProviderBinding binding) worker = binding.worker;
+		if (worker == null) return null;
+		return new ParentLink(current, current.session.parent(worker), current.construction || cx != null && cx.getThreadLocal(PROVIDER_CONSTRUCTION) != null);
+	}
+	/** Bind the captured parent only for this child lifetime; pooled threads are clean after close. */
+	public static AutoCloseable bindChild(ParentLink link) { return bindChildWithBudget(link, null); }
+    /** An optional wait-domain owns the budget; parent identity is independent of that wait. */
+    public static AutoCloseable bindChildWithBudget(ParentLink link, java.util.function.Supplier<DebugSuspension> budget) {
+		if (link == null || execution.get() != null) return null;
+		var current = new Execution(link.owner, link.label, link.construction ? null : link.session);
+		current.construction = link.construction;
+		if (!current.guard.isBound()) current.guard = link.guard;
+		if (link.parent == null) current.session = null;
+		if (current.session != null && link.parent != null) {
+			current.worker = current.session.joinChild(link.parent,
+					() -> current.guard.isBound() && !current.guard.isRunning() || link.guard.isBound() && !link.guard.isRunning(),
+					budget != null ? budget : () -> {
+						var local = com.twinsoft.convertigo.beans.core.RequestableObject.pauseCurrentRequestable();
+						var caller = link.guard.pauseDebugger();
+						return () -> { try { if (local != null) local.close(); } finally { if (caller != null) caller.close(); } };
+					});
+			if (current.worker == null) current.session = null;
+            else current.cancelWake = current.guard.onCancellation(current.session::cancellationChanged);
+		}
+		execution.set(current);
+		return () -> { try { if (current.cancelWake != null) current.cancelWake.close(); } finally { try { if (current.worker != null) link.session.finishParticipantWorker(); } finally { execution.remove(); } } };
 	}
 	private static final String STUDIO_REQUEST = CLAIM + ".studio";
 	private static volatile JavascriptDebugSession studioSession;
@@ -56,12 +110,9 @@ public final class JavascriptDebugger {
 	}
 	/** Editing-capable Studios only; production servers can expose participants without Rhino. */
 	public static boolean rhinoEnabled() { return enabled() && Engine.isWebStudioAllowed(); }
+	/** Authoritative mode, independent of request parameters. */
+	public static boolean freeEvaluation() { return Engine.isWebStudioAllowed(); }
 	public static boolean active() { return active; }
-	/** Serialize both attachment directions; a refusal never changes the running debugger. */
-	public static synchronized void attachLegacyDebugger() {
-		if (active) throw new IllegalStateException("Stop JavaScript Debug (Web) before opening Backend Debug. Close and reopen this view after stopping it.");
-		RhinoUtils.debugMode = true;
-	}
 	public static long pauseTimeoutMillis() {
 		try {
 			long seconds = Long.parseLong(EnginePropertiesManager.getProperty(PropertyName.JAVASCRIPT_DEBUGGER_PAUSE_TIMEOUT));
@@ -153,6 +204,27 @@ public final class JavascriptDebugger {
 	}
 	/** Bounded scalar display for plugin inspections, without invoking arbitrary host toString methods. */
 	public static String preview(Object value) { return JavascriptDebugSession.preview(value); }
+	/** Editor metadata can update only its authenticated administrator's session; it never joins a worker. */
+	public static DebugSuspension participantEditor(HttpServletRequest request) {
+		var previous = participantEditorOwner.get();
+		var httpSession = active && request != null ? request.getSession(false) : null;
+		if (httpSession != null && Engine.authenticatedSessionManager.hasRole(httpSession, Role.WEB_ADMIN))
+			participantEditorOwner.set(httpSession.getId());
+		else participantEditorOwner.remove();
+		return () -> { if (previous == null) participantEditorOwner.remove(); else participantEditorOwner.set(previous); };
+	}
+	/** Synchronize opaque participant identities for this administrator's selected request or Studio view. */
+	public static void participantSources(String kind, String manifest) throws Exception {
+		if (!participantAllowed()) return;
+		var cx = org.mozilla.javascript.Context.getCurrentContext();
+		JavascriptDebugSession session = null;
+		if (cx.getThreadLocal(PROVIDER_BINDING) instanceof ProviderBinding binding) session = binding.session;
+		var current = execution.get();
+		if (session == null && current != null) session = current.session != null ? current.session : current.owner.isEmpty() ? null : session(current.owner,false);
+		if (session == null && participantEditorOwner.get() != null) session = session(participantEditorOwner.get(),false);
+		if (session == null) session = studioSession();
+		if (session != null && !session.expired(System.currentTimeMillis())) session.participantSources(kind, manifest);
+	}
 	/** Register an invocation-owned plugin. The transport knows no provider model or values. */
 	public static JavascriptDebugSession.Participant participant(String kind, org.mozilla.javascript.Function inspect) {
 		var cx = org.mozilla.javascript.Context.getCurrentContext();
@@ -192,7 +264,6 @@ public final class JavascriptDebugger {
 		var session = sessions.get(owner);
 		if (session == null && create) {
 			if (!enabled()) throw new IllegalStateException("JavaScript debugging is disabled on this server.");
-			if (!active && RhinoUtils.debugMode) throw new IllegalStateException("Another JavaScript debugger is already attached.");
 			if (sessions.size() >= 16) throw new IllegalStateException("Too many debug sessions.");
 			session = new JavascriptDebugSession(); sessions.put(owner, session);
 			active = signal.active = true;
@@ -295,12 +366,17 @@ public final class JavascriptDebugger {
 		try {
 			if (session != null && rhinoEnabled() && session.hasRhinoBreakpoints()) current.lease = bindRhino(request, session);
 			else if (session != null) { current.worker = session.joinParticipantWorker(); current.lease = session::finishParticipantWorker; }
+			if (session != null) {
+				if (current.worker == null) current.worker = org.mozilla.javascript.Context.getCurrentContext().getDebuggerContextData();
+				session.identifyRoot(current.worker, current.id, () -> current.guard.isBound() && !current.guard.isRunning());
+            current.cancelWake = current.guard.onCancellation(session::cancellationChanged);
+			}
 		} catch (RuntimeException | Error e) { execution.remove(); synchronized (JavascriptDebugger.class) { executions.remove(current.id); } throw e; }
 		return () -> {
 			// Remove under the same monitor as attach before reading the lease: finishing cannot race a reservation.
 			synchronized (JavascriptDebugger.class) { executions.remove(current.id); }
 			try { if (current.lease != null) current.lease.close(); }
-			finally { execution.remove(); }
+			finally { try { if (current.cancelWake != null) current.cancelWake.close(); } finally { execution.remove(); } }
 		};
 	}
 	public static synchronized org.codehaus.jettison.json.JSONArray targets(String owner) {
@@ -321,6 +397,8 @@ public final class JavascriptDebugger {
 		current.worker = session.joinParticipantWorker(current.thread);
 		current.lease = session::finishParticipantWorker;
 		current.session = session;
+		session.identifyRoot(current.worker, current.id, () -> current.guard.isBound() && !current.guard.isRunning());
+            current.cancelWake = current.guard.onCancellation(session::cancellationChanged);
 		session.settingsChanged();
 	}
 	private static AutoCloseable bindRhino(HttpServletRequest request, JavascriptDebugSession session) {

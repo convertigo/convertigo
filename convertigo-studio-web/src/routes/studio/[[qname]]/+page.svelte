@@ -558,7 +558,7 @@
 		{ id: 'references', label: 'References', icon: 'mdi:link-variant' },
 		{ id: 'schema', label: 'Schema', icon: 'mdi:file-code-outline' },
 		{ id: 'build', label: 'Build', icon: 'mdi:wrench' },
-		{ id: 'debug', label: 'Debug', icon: 'mdi:bug-outline' }
+		{ id: 'debug', label: 'Backend Debug', icon: 'mdi:bug-outline' }
 	];
 	let activityItems = $derived([
 		{
@@ -4292,21 +4292,15 @@
 	<StudioDebugPanel
 		active={Boolean(dockVisible.debug)}
 		onOpenSource={(source, frame) => {
-			const location = source.location;
-			if (location?.id) {
-				editorTarget = {
-					id: location.id,
-					propertyName: location.property,
-					sourceDocument: location.file === true,
-					line: frame.line - (location.offset ?? 0),
-					serial: Date.now()
-				};
-				selectedId = location.id;
-			}
 			debugTarget = { source, frame, serial: Date.now() };
-			if (profile === 'frontend') setFrontendResult('code');
-			else setWorkPanel('code');
-			dock?.show('editor');
+			// Opening a frame's source must keep the graph and its independent selection.
+			if (profile === 'frontend') {
+				setFrontendResult('code');
+				dock?.show('editor');
+			} else if (!dockVisible.flow) {
+				setWorkPanel('code');
+				dock?.show('editor');
+			}
 		}}
 		onStopped={() => {
 			// a script stopped on a breakpoint: the debugger shows, as the Eclipse Studio shows it

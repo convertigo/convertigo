@@ -35,7 +35,7 @@ public class JavascriptDebugLiveParticipantTest {
                         assertNull(JavascriptDebugger.participant("fake", inspect));
                         assertFalse(JavascriptDebugger.participantSelected());
                     }
-                    var participant = JavascriptDebugger.participant("fake", inspect); assertNotNull(participant);
+                    var participant = JavascriptDebugger.participant("fake", inspect); assertNotNull(participant); participant.pathEvaluation();
                     participant.enter("next", "{\"url\":\"fake:next\",\"line\":1}");
                     try (var construction = JavascriptDebugger.providerConstruction()) {
                         participant.at("next", "before");
@@ -63,7 +63,7 @@ public class JavascriptDebugLiveParticipantTest {
             while (!session.state().getBoolean("stopped") && System.nanoTime() < end) Thread.sleep(5);
             var state = session.state(); assertTrue(state.getBoolean("stopped"));
             assertEquals("fake", state.getJSONArray("frames").getJSONObject(0).getString("kind"));
-            assertEquals("42", session.evaluate(0, state.getLong("pauseId"), "path").getString("result"));
+            assertEquals("42", session.evaluate(0, state.getLong("pauseId"), "input").getString("result"));
             JavascriptDebugger.stop("live");
             assertEquals(42, (int) running.get(5, TimeUnit.SECONDS));
             assertEquals(0, JavascriptDebugger.targets("live").length());

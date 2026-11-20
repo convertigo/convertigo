@@ -39,6 +39,12 @@ public class Set extends JSonService {
 
 	@Override
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
+		try (var editor = com.twinsoft.convertigo.engine.debug.JavascriptDebugger.participantEditor(request)) {
+			setSource(request,response);
+		}
+	}
+
+	private void setSource(HttpServletRequest request, JSONObject response) throws Exception {
 		var id = request.getParameter("id");
 		var content = request.getParameter("content");
 		if (id == null || id.isBlank() || content == null) {

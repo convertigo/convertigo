@@ -7,6 +7,11 @@ import org.mozilla.javascript.Context;
 import org.codehaus.jettison.json.JSONObject;
 
 public class JavascriptDebugSessionTest {
+    @org.junit.Before public void editingEnabledFixture() throws Exception {
+        com.twinsoft.convertigo.engine.EnginePropertiesManager.initProperties();
+        com.twinsoft.convertigo.engine.EnginePropertiesManager.setProperty(com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName.WEB_STUDIO,"enabled");
+    }
+
     @Test public void functionEntryAndReturnKeepFramesInspectableAndDoNotBreakOnEvaluation() throws Exception {
         try (var session = new JavascriptDebugSession(); var pool = Executors.newCachedThreadPool()) {
             session.breakOnEnter(true); session.breakOnReturn(true);

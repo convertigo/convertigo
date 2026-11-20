@@ -56,6 +56,7 @@ public class FlowDebuggerBoundaryTest {
 
     @Test public void sharedBuildersAndInitializersCannotAttachPrivateFunctions() throws Exception {
         EnginePropertiesManager.initProperties();
+        EnginePropertiesManager.setProperty(EnginePropertiesManager.PropertyName.WEB_STUDIO, "enabled");
         try (var session = new JavascriptDebugSession(); var lease = session.enter()) {
             var cx = Context.getCurrentContext(); var scope = cx.initStandardObjects();
             session.breakOnEnter(true); session.breakOnReturn(true); session.requestPause();
@@ -93,6 +94,7 @@ public class FlowDebuggerBoundaryTest {
         var previous = Engine.theApp;
         var directory = Files.createTempDirectory("provider-private-debug-");
         EnginePropertiesManager.initProperties();
+        EnginePropertiesManager.setProperty(EnginePropertiesManager.PropertyName.WEB_STUDIO, "enabled");
         Engine.logEngine = Engine.logBeans = Engine.logContext = org.apache.log4j.Logger.getLogger("provider-debug-test");
         var file = directory.resolve("_flow/Engine.js");
         Files.createDirectories(file.getParent());
@@ -185,6 +187,7 @@ public class FlowDebuggerBoundaryTest {
         var previous = Engine.theApp;
         var directory = Files.createTempDirectory("flow-debug-boundary-");
         EnginePropertiesManager.initProperties();
+        EnginePropertiesManager.setProperty(EnginePropertiesManager.PropertyName.WEB_STUDIO, "enabled");
         Engine.logEngine = Engine.logBeans = Engine.logContext = org.apache.log4j.Logger.getLogger("flow-debug-test");
         var file = directory.resolve("_flow/Engine.js");
         Files.createDirectories(file.getParent());

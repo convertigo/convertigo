@@ -10,6 +10,11 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 
 public class JavascriptDebugParticipantTest {
+    @org.junit.Before public void editingEnabledFixture() throws Exception {
+        com.twinsoft.convertigo.engine.EnginePropertiesManager.initProperties();
+        com.twinsoft.convertigo.engine.EnginePropertiesManager.setProperty(com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName.WEB_STUDIO,"enabled");
+    }
+
     private JSONObject paused(JavascriptDebugSession session, long previous) throws Exception {
         long end = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
         while (System.nanoTime() < end) {
@@ -88,14 +93,14 @@ public class JavascriptDebugParticipantTest {
         }
     }
     @Test public void participantScopesReuseOpaqueReferencesAndBoundedPages() throws Exception {
-        try (var session = new JavascriptDebugSession(); var pool = Executors.newSingleThreadExecutor()) {
+        try (var pool = Executors.newSingleThreadExecutor(); var session = new JavascriptDebugSession()) {
             session.breakpoint("fake:objects", 1, true, false);
             var future = pool.submit(() -> {
                 try (var lease = session.enter(); var suspended = JavascriptDebugger.suspendForFlow()) {
                     var cx = Context.getCurrentContext(); var scope = cx.initStandardObjects();
                     cx.evaluateString(scope, "var data={items:Array.from({length:250},function(_,i){return i;}),nested:{value:42}};data.again=data.nested;data.self=data;Object.defineProperty(data,'guard',{enumerable:true,get:function(){throw Error('getter invoked');}});for(var i=0;i<250;i++)data['key'+i]=i;", "data", 1, null);
                     var inspect = (Function) cx.evaluateString(scope,
-                        "(function(){return JSON.stringify({scopes:[JSON.parse(String(plugin.scope('Arguments',data)))]});})", "inspect", 1, null);
+                        "(function(){return JSON.stringify({scopes:[JSON.parse(String(plugin.scope('Arguments',data))),JSON.parse(String(plugin.scope('Alias',data)))]});})", "inspect", 1, null);
                     var plugin = JavascriptDebugger.participant("fake", inspect);
                     scope.put("plugin", scope, Context.javaToJS(plugin, scope));
                     assertThrows(IllegalStateException.class, () -> plugin.scope("outside", scope));
@@ -104,17 +109,33 @@ public class JavascriptDebugParticipantTest {
                 }
             });
             var state = paused(session,0); long id=state.getLong("pauseId");
-            var root=session.variables(0,id).getJSONArray("scopes").getJSONObject(0);
-            assertEquals(20,root.getJSONArray("variables").length());assertEquals(20,root.getInt("nextOffset"));
+            var response=session.variables(0,id);
+            // A cold callback may legitimately consume its first 50 ms. Each refresh is a new bounded command.
+            for (int retry=0;response.optBoolean("refused") && retry<3;retry++) {
+                assertEquals("time",response.getString("reason"));
+                assertTrue(response.getJSONObject("inspectionBudget").getInt("candidates")<=1000);
+                response=session.variables(0,id);
+            }
+            assertFalse(response.optString("reason"),response.optBoolean("refused"));
+            var root=response.getJSONArray("scopes").getJSONObject(0);
+            assertEquals(20,root.getJSONArray("variables").length());assertTrue(root.getInt("nextOffset") > 0);
             var rows=root.getJSONArray("variables");
             assertEquals(rows.getJSONObject(1).getString("ref"),rows.getJSONObject(2).getString("ref"));
             assertEquals(root.getString("ref"),rows.getJSONObject(3).getString("ref"));
             assertEquals("<accessor>",rows.getJSONObject(4).getString("value"));
             var arrayRef=rows.getJSONObject(0).getString("ref");
             var first=session.properties(id,arrayRef,0);assertEquals(100,first.getJSONArray("variables").length());
-            assertEquals(100,first.getInt("nextOffset"));
-            var last=session.properties(id,arrayRef,200);assertEquals(50,last.getJSONArray("variables").length());assertEquals(-1,last.getInt("nextOffset"));
-            assertEquals(100,session.properties(id,root.getString("ref"),20).getJSONArray("variables").length());
+            assertTrue(first.getInt("nextOffset") > 0);
+            var middle=session.properties(id,arrayRef,first.getInt("nextOffset"));
+            var last=session.properties(id,arrayRef,middle.getInt("nextOffset"));assertEquals(50,last.getJSONArray("variables").length());assertEquals(-1,last.getInt("nextOffset"));
+            var alias=session.variables(0,id).getJSONArray("scopes");
+            var a=alias.getJSONObject(0);var b=alias.getJSONObject(1);
+            assertEquals(a.getString("ref"),b.getString("ref"));assertNotEquals(a.getInt("nextOffset"),b.getInt("nextOffset"));
+            var pageA=session.properties(id,a.getString("ref"),a.getInt("nextOffset"));
+            var pageB=session.properties(id,b.getString("ref"),b.getInt("nextOffset"));
+            assertEquals(100,pageA.getJSONArray("variables").length());
+            assertEquals(pageA.getJSONArray("variables").getJSONObject(0).getString("name"),pageB.getJSONArray("variables").getJSONObject(0).getString("name"));
+            assertEquals("expired-cursor",session.properties(id,a.getString("ref"),a.getInt("nextOffset")).getString("reason"));
             session.resume("go",id);assertTrue(future.get(5,TimeUnit.SECONDS));
             assertThrows(IllegalStateException.class,()->session.properties(id,arrayRef,0));
         }

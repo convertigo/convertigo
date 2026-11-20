@@ -49,7 +49,6 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.engine.Engine;
 
 public class RhinoUtils {
-	static public boolean debugMode = false;
 	static final public Object[] EMPTY_ARGS = new Object[0];
 	static final private Map<String, Script> compiledScript = new ConcurrentHashMap<String, Script>();
 	static final private NativeJSON json;
@@ -116,7 +115,7 @@ public class RhinoUtils {
 
 	static private Object evalCachedJavascript(DatabaseObject dbo, Context cx, Scriptable scope, String source, String sourceName, int lineno, Object securityDomain, File origin) {
 		source = CopilotHelper.addInstruction(dbo, source);
-		if (debugMode || cx.getDebugger() instanceof com.twinsoft.convertigo.engine.debug.JavascriptDebugSession) {
+		if (cx.getDebugger() instanceof com.twinsoft.convertigo.engine.debug.JavascriptDebugSession) {
 			if (dbo != null) {
 				if (cx.getDebugger() instanceof com.twinsoft.convertigo.engine.debug.JavascriptDebugSession session) session.registerSource(dbo, sourceName);
 				sourceName = dbo.getShortQName() + "-" + sourceName;

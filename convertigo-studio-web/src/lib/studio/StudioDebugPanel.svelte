@@ -18,6 +18,10 @@
 	/** @type {{active?: boolean, standalone?: boolean, eclipse?: boolean, onStopped?: () => void, onOpenSource?: (source: any, frame: any) => void}} */
 	let { active = false, standalone = false, eclipse = false, onStopped, onOpenSource } = $props();
 	let debugState = $derived(debugSession.state);
+	let nextLevel = $derived(
+		debugState?.nextLevel ??
+			(debugState?.rhinoRequested && debugState?.rhinoAvailable !== false ? 2 : 1)
+	);
 	let sourceUrl = $state('');
 	let detachedNotice = $state('');
 	let requestRevision = 0;
@@ -297,7 +301,7 @@
 	}
 </script>
 
-<section class="debug-panel" aria-label="JavaScript debugger" data-active={active}>
+<section class="debug-panel" aria-label="Backend debugger" data-active={active}>
 	<div class="debug-toolbar" role="toolbar" aria-label="Debugger controls">
 		<div class="debug-actions" role="group" aria-label="Debugger session">
 			<StudioIconButton
@@ -361,11 +365,33 @@
 			JavaScript debugging is disabled on this server.
 		</p>{/if}
 	{#if debugState?.attached}
-		<p class="debug-help">
-			{debugState.rhinoRequested && debugState.rhinoAvailable
-				? 'Rhino source debugging: selected requests use private code and fresh library state.'
-				: 'Block debugging: compiled code, prepared runners and library state stay shared.'}
-		</p>
+		<div class="debug-levels" aria-label="Debugging levels">
+			<p data-debug-current-level={debugState.currentLevel ?? ''}>
+				Current request: {debugState.currentLevel === 2
+					? 'Level 2 — Rhino sources'
+					: debugState.currentLevel === 1
+						? 'Level 1 — Blocks'
+						: 'No active request'}
+			</p>
+			<p data-debug-next-level={nextLevel}>
+				Next request: {nextLevel === 2 ? 'Level 2 — Rhino sources' : 'Level 1 — Blocks'}
+			</p>
+		</div>
+		{#if nextLevel === 2 || debugState.currentLevel === 2}
+			<p class="debug-notice" role="status">
+				Level 2 uses private code and fresh library state for each selected request.
+			</p>
+		{:else}
+			<p class="debug-help debug-ready">
+				Level 1: compiled code, prepared runners and library state stay shared.
+			</p>
+		{/if}
+		{#if debugState.currentLevel === 1 && nextLevel === 2}
+			<p class="debug-notice" role="status">
+				A source breakpoint added during this Level 1 request prepares the next execution. The
+				current request stays at Level 1.
+			</p>
+		{/if}
 		{#each debugState.targets ?? [] as target (target.id)}
 			{#if !target.selected}
 				<button
@@ -520,6 +546,9 @@
 			</section>
 			<section class="debug-section debug-scopes" aria-label="Scope">
 				<div class="debug-section-heading"><h3>Scope</h3></div>
+				{#if debugState?.stopped && (debugState.workers ?? 0) > 1}<p class="debug-help">
+						Other workers can update these values.
+					</p>{/if}
 				{#if debugState?.stopped}
 					{#if variables}
 						{#key variables}
@@ -530,6 +559,7 @@
 										variables={scope.variables ?? []}
 										reference={scope.ref}
 										nextOffset={scope.nextOffset ?? -1}
+										reason={scope.reason ?? ''}
 										load={loadProperties}
 										{loadValue}
 									/>
@@ -683,6 +713,10 @@
 		color: var(--color-surface-600-400);
 		font-size: 0.74rem;
 		overflow-wrap: anywhere;
+	}
+	.debug-levels {
+		padding: 0.35rem 0.65rem;
+		font-size: 0.74rem;
 	}
 	.debug-ready,
 	.debug-notice {

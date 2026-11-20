@@ -136,9 +136,9 @@ for (const embedded of [true, false]) {
 			await page
 				.getByRole('button', { name: 'Show the logs, references and schema', exact: true })
 				.click();
-			await page.getByRole('tab', { name: 'Debug', exact: true }).click();
+			await page.getByRole('tab', { name: 'Backend Debug', exact: true }).click();
 		}
-		const panel = page.getByRole('region', { name: 'JavaScript debugger', exact: true });
+		const panel = page.getByRole('region', { name: 'Backend debugger', exact: true });
 		await panel.getByRole('button', { name: 'Start debugger', exact: true }).waitFor();
 		await panel.getByRole('button', { name: 'Start debugger', exact: true }).click();
 		await panel.getByRole('button', { name: 'Stop debugger', exact: true }).waitFor();
@@ -256,7 +256,7 @@ for (const embedded of [true, false]) {
 		if (!embedded) {
 			// The same vertical panel can share the right-hand group with Properties.
 			await page
-				.getByRole('tab', { name: 'Debug', exact: true })
+				.getByRole('tab', { name: 'Backend Debug', exact: true })
 				.dragTo(page.getByRole('tab', { name: 'Properties', exact: true }));
 			await page.getByRole('button', { name: 'Hide the panel', exact: true }).click();
 			await expect
@@ -360,12 +360,12 @@ for (const embedded of [true, false]) {
 	});
 }
 
-test('embedded variables: lazy objects, arrays, Java fields, pagination and complete long values', async ({
+test('embedded variables: lazy objects, arrays, opaque host values, pagination and complete long values', async ({
 	page
 }) => {
 	await login(page, 'admin/eclipse/javascript-debugger/');
 	await page.setViewportSize({ width: 700, height: 1050 });
-	const panel = page.getByRole('region', { name: 'JavaScript debugger', exact: true });
+	const panel = page.getByRole('region', { name: 'Backend debugger', exact: true });
 	await panel.getByRole('button', { name: 'Start debugger', exact: true }).click();
 	await api(page, 'breakpoint', {
 		id: 'JavascriptDebuggerTest.sq:Probe.st:Script',
@@ -399,12 +399,14 @@ test('embedded variables: lazy objects, arrays, Java fields, pagination and comp
 	await expect(variables.locator('.variable-row').filter({ hasText: 'answer' })).toContainText(
 		'42'
 	);
-	await variables.getByRole('button', { name: 'Expand javaData', exact: true }).click();
-	await expect(
-		variables
-			.locator('.variable-row')
-			.filter({ has: page.getByRole('button', { name: 'Show value of x', exact: true }) })
-	).toContainText('2');
+	await expect(variables.getByRole('button', { name: 'Expand javaData', exact: true })).toHaveCount(
+		0
+	);
+	const hostValue = variables.getByRole('button', { name: 'Show value of javaData', exact: true });
+	await expect(hostValue).toHaveText('[Java java.awt.Point]');
+	await expect(hostValue.locator('xpath=ancestor::li[1]')).toContainText(
+		'This value is opaque, too large, or outside the inspection capacity.'
+	);
 	await variables.getByRole('button', { name: 'Expand many', exact: true }).click();
 	for (let i = 0; i < 2; i++)
 		await variables
@@ -422,7 +424,7 @@ test('embedded variables: lazy objects, arrays, Java fields, pagination and comp
 		variables.getByRole('region', { name: 'Value of longText', exact: true }).locator('pre')
 	).toHaveText('x'.repeat(1200));
 	await variables.getByRole('button', { name: 'Close full value', exact: true }).click();
-	expect(propertyCalls.length).toBeGreaterThanOrEqual(7);
+	expect(propertyCalls.length).toBeGreaterThanOrEqual(6);
 	if (process.env.C8O_DEBUGGER_SCREENSHOT_DIR)
 		await page.screenshot({ path: `${process.env.C8O_DEBUGGER_SCREENSHOT_DIR}/variable-tree.png` });
 	await panel.getByRole('button', { name: 'Stop debugger', exact: true }).click();
@@ -433,7 +435,7 @@ test('standalone request status and evaluations are cleared when a new run pause
 	page
 }) => {
 	await login(page, 'javascript-debugger/');
-	const panel = page.getByRole('region', { name: 'JavaScript debugger', exact: true });
+	const panel = page.getByRole('region', { name: 'Backend debugger', exact: true });
 	await panel.getByRole('button', { name: 'Start debugger', exact: true }).click();
 	await panel.getByText('Run a sequence from this view (optional)', { exact: true }).click();
 	await panel.getByRole('textbox', { name: 'Project', exact: true }).fill('JavascriptDebuggerTest');
@@ -465,7 +467,7 @@ test('standalone request status and evaluations are cleared when a new run pause
 
 test('Java strings display their contents in watches, scopes and the console', async ({ page }) => {
 	await login(page, 'admin/eclipse/javascript-debugger/');
-	const panel = page.getByRole('region', { name: 'JavaScript debugger', exact: true });
+	const panel = page.getByRole('region', { name: 'Backend debugger', exact: true });
 	await panel.getByRole('button', { name: 'Start debugger', exact: true }).click();
 	await api(page, 'breakpoint', {
 		id: 'JavascriptDebuggerTest.sq:Probe.st:Script',

@@ -64,15 +64,26 @@ public final class ParallelLanes implements AutoCloseable {
 	private volatile String cancelled;
 	private volatile long stopAfter = Long.MAX_VALUE;
 	private volatile Throwable failure;
+    private final com.twinsoft.convertigo.beans.core.RequestableObject.InvocationGuard debugOwner;
+    private final java.util.Set<Thread> debugPaused;
+    private AutoCloseable cancellationWake;
+    private com.twinsoft.convertigo.engine.debug.JavascriptDebugger.DebugSuspension budgetLease;
+    private boolean callerWaiting;
 
-	private ParallelLanes(int requested) {
+	private ParallelLanes(int requested, com.twinsoft.convertigo.beans.core.RequestableObject.InvocationGuard owner) {
 		// the window of the caller, then the end marks
 		tasks = new ArrayBlockingQueue<>(Math.max(2, 2 * requested) + requested);
+        debugOwner = owner != null && owner.isBound() ? owner : null;
+        debugPaused = debugOwner == null ? null : new java.util.HashSet<>();
+        if (debugOwner != null) cancellationWake = debugOwner.onCancellation(() -> cancel("owner cancelled"));
 	}
 
 	/** Up to requested lanes on free threads of the pool; null when none is free. */
 	static ParallelLanes open(int requested, Lane lane) {
-		var lanes = new ParallelLanes(requested);
+        return openDebuggable(requested, lane, null);
+    }
+    static ParallelLanes openDebuggable(int requested, Lane lane, com.twinsoft.convertigo.beans.core.RequestableObject.InvocationGuard owner) {
+		var lanes = new ParallelLanes(requested, owner);
 		for (int i = 0; i < requested; i++) {
 			int index = i;
 			synchronized (lanes.lock) {
@@ -90,6 +101,7 @@ public final class ParallelLanes implements AutoCloseable {
 			}
 		}
 		if (lanes.started == 0) {
+            lanes.closeCancellationWake();
 			return null;
 		}
 		return lanes;
@@ -109,6 +121,8 @@ public final class ParallelLanes implements AutoCloseable {
 			synchronized (lock) {
 				threads.remove(thread);
 				runningTasks.remove(thread);
+                if (debugPaused != null) debugPaused.remove(thread);
+                updateDebugBudget();
 				running--;
 				lock.notifyAll();
 			}
@@ -146,7 +160,10 @@ public final class ParallelLanes implements AutoCloseable {
 	 * cancelled the other lanes, whose outcomes would only say so.
 	 */
 	public Object poll(double millis) throws Exception {
-		var outcome = outcomes.poll((long) Math.max(0, millis), TimeUnit.MILLISECONDS);
+        Object outcome;
+        synchronized (lock) { callerWaiting = true; updateDebugBudget(); }
+        try { outcome = outcomes.poll((long) Math.max(0, millis), TimeUnit.MILLISECONDS); }
+        finally { synchronized (lock) { callerWaiting = false; updateDebugBudget(); } }
 		var failed = failure;
 		if (failed != null) {
 			if (failed instanceof Exception exception) throw exception;
@@ -172,6 +189,7 @@ public final class ParallelLanes implements AutoCloseable {
 		synchronized (lock) {
 			if (cancelled == null) cancelled = reason == null || reason.isEmpty() ? "cancelled" : reason;
 			interruptTasksAfter(-1);
+            updateDebugBudget();
 		}
 	}
 
@@ -204,6 +222,7 @@ public final class ParallelLanes implements AutoCloseable {
 					// checked with the interruptions: a task given after stopAfter is never one it drops
 					if (task.index() > stopAfter || cancelled != null) continue;
 					runningTasks.put(Thread.currentThread(), task.index());
+                    updateDebugBudget();
 					if (task.index() <= Integer.MAX_VALUE) startedTasks.set((int) task.index());
 				}
 				return task.value();
@@ -215,7 +234,7 @@ public final class ParallelLanes implements AutoCloseable {
 
 	/** Lane: whether the task of index may run its next block. */
 	public boolean canContinue(double index) {
-		return cancelled == null && (long) index <= stopAfter;
+		return cancelled == null && (long) index <= stopAfter && (debugOwner == null || debugOwner.isRunning());
 	}
 
 	/** Lane: the outcome of a task, read by the caller; an interruption meant for this task ends with it. */
@@ -223,9 +242,46 @@ public final class ParallelLanes implements AutoCloseable {
 		synchronized (lock) {
 			runningTasks.remove(Thread.currentThread());
 			Thread.interrupted();
+            if (debugOwner == null || debugOwner.isRunning()) outcomes.add(outcome);
+            updateDebugBudget();
 		}
-		outcomes.add(outcome);
 	}
+
+    /** A stopped task is parentage; only the caller's blocked wait justifies budget credit. */
+    public com.twinsoft.convertigo.engine.debug.JavascriptDebugger.DebugSuspension debuggerPause() {
+        if (debugOwner == null) return null;
+        var thread = Thread.currentThread();
+        Long task;
+        synchronized (lock) {
+            task = runningTasks.get(thread);
+            if (task == null) return null;
+            debugPaused.add(thread); updateDebugBudget();
+        }
+        var closed = new java.util.concurrent.atomic.AtomicBoolean();
+        return () -> {
+            if (closed.compareAndSet(false, true)) synchronized (lock) {
+                if (task.equals(runningTasks.get(thread))) debugPaused.remove(thread);
+                updateDebugBudget();
+            }
+        };
+    }
+
+    // Called under the task lock. The lease only adjusts the existing monotonic deadline counters.
+    private void updateDebugBudget() {
+        if (debugOwner == null) return;
+        boolean blocked = callerWaiting && cancelled == null && !runningTasks.isEmpty()
+                && debugPaused.containsAll(runningTasks.keySet()) && outcomes.isEmpty()
+                && tasks.stream().noneMatch(task -> task != END);
+        if (blocked && budgetLease == null && debugOwner.isRunning()) budgetLease = debugOwner.pauseDebugger();
+        if (!blocked && budgetLease != null) { var lease = budgetLease; budgetLease = null; lease.close(); }
+    }
+
+    private void closeCancellationWake() {
+        if (cancellationWake != null) {
+            try { cancellationWake.close(); } catch (Exception impossible) { throw new IllegalStateException(impossible); }
+            cancellationWake = null;
+        }
+    }
 
 	/**
 	 * Caller: ends the loop and waits for the lanes; past the grace delay they are interrupted, then left behind with a
@@ -233,7 +289,9 @@ public final class ParallelLanes implements AutoCloseable {
 	 */
 	@Override
 	public void close() {
+        synchronized (lock) { callerWaiting = false; updateDebugBudget(); }
 		finish();
+        closeCancellationWake();
 		synchronized (lock) {
 			var deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(GRACE_MILLIS);
 			awaitLanes(deadline);

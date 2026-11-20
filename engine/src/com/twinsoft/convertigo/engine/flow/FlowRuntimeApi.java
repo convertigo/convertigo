@@ -139,12 +139,15 @@ public final class FlowRuntimeApi {
         var applicationLoader = cx.getApplicationClassLoader();
         var threadLoader = Thread.currentThread().getContextClassLoader();
         var logContext = com.twinsoft.convertigo.engine.util.Log4jHelper.mdcSnapshot();
-        return ParallelLanes.open(Math.min(requested, 64), (lanes, index) -> {
+		var debuggerParent = com.twinsoft.convertigo.engine.debug.JavascriptDebugger.captureParent();
+        var debugOwner = debuggerParent == null ? null : com.twinsoft.convertigo.beans.core.RequestableObject.currentInvocationGuard();
+        return ParallelLanes.openDebuggable(Math.min(requested, 64), (lanes, index) -> {
             var thread = Thread.currentThread();
             var previousLoader = thread.getContextClassLoader();
             thread.setContextClassLoader(threadLoader);
             logContext.install();
-            try (var laneCx = Context.enter()) {
+            try (var debug = com.twinsoft.convertigo.engine.debug.JavascriptDebugger.bindChildWithBudget(debuggerParent, lanes::debuggerPause);
+				var laneCx = Context.enter()) {
                 laneCx.setLanguageVersion(languageVersion);
                 laneCx.setInterpretedMode(interpreted);
                 if (wrapFactory != null) laneCx.setWrapFactory(wrapFactory);
@@ -162,7 +165,7 @@ public final class FlowRuntimeApi {
                 com.twinsoft.convertigo.engine.util.Log4jHelper.mdcClear();
                 thread.setContextClassLoader(previousLoader);
             }
-        });
+        }, debugOwner);
     }
 
     private String childFallback(com.twinsoft.convertigo.beans.core.RequestableObject target, Scriptable input, Object parent) {

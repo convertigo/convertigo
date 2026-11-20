@@ -1,6 +1,8 @@
 <script>
 	import { Handle, Position } from '@xyflow/svelte';
 	import { agentHighlightOf, playAgentLight } from '#lib/studio/agentFollow.svelte.js';
+	import { isDebugTargetPaused } from '#lib/studio/debugSession.svelte.js';
+	import StudioTreeDebugTarget from '#lib/studio/StudioTreeDebugTarget.svelte';
 	import { objectCanRename, objectRenameValue } from '#lib/studio/dnd.js';
 	import AutoSvg from '#lib/utils/AutoSvg.svelte';
 	import { draggedData } from '#lib/utils/dndStore.js';
@@ -35,6 +37,8 @@
 			untrack(() => playAgentLight(element, light.change, 'block'));
 		}
 	});
+
+	let debugPaused = $derived(isDebugTargetPaused(data.debugTarget));
 
 	let sideInputCount = $derived(Math.max(0, data.inputs - data.bottomInputs));
 	let sideOutputCount = $derived(Math.max(0, data.outputs - data.bottomOutputs));
@@ -333,6 +337,9 @@
 <div
 	bind:this={blockElement}
 	class="flow-step-node"
+	data-debug-paused={debugPaused ? 'true' : undefined}
+	data-debug-url={data.debugTarget?.url}
+	class:flow-step-node--paused={debugPaused}
 	class:flow-step-node--terminal={data.isFlowTerminal}
 	class:flow-step-node--request={data.terminalKind === 'request'}
 	class:flow-step-node--response={data.terminalKind === 'response'}
@@ -517,6 +524,18 @@
 		{/if}
 	{/each}
 
+	{#if data.debugTarget}
+		<div class="flow-step-node__debug nodrag nopan nowheel">
+			<StudioTreeDebugTarget target={data.debugTarget} />
+			{#if debugPaused}<span
+					class="flow-step-node__pause"
+					title="Paused block"
+					aria-label="Paused block"
+				>
+					▶
+				</span>{/if}
+		</div>
+	{/if}
 	<div class="flow-step-node__accent"></div>
 	<div class="flow-step-node__icon">
 		{#if iconSource(data.icon)}
@@ -623,6 +642,27 @@
 </div>
 
 <style>
+	.flow-step-node.flow-step-node--paused {
+		border-left: 3px solid var(--color-warning-500);
+		background: color-mix(
+			in oklab,
+			var(--color-warning-500) 13%,
+			var(--flow-node-bg-start, #242b3a)
+		);
+	}
+	.flow-step-node__debug {
+		position: absolute;
+		left: 0.25rem;
+		top: -1.2rem;
+		display: flex;
+		gap: 0.25rem;
+		align-items: center;
+	}
+	.flow-step-node__pause {
+		color: var(--color-warning-500);
+		font-size: 0.8rem;
+	}
+
 	.flow-step-node {
 		position: relative;
 		display: grid;

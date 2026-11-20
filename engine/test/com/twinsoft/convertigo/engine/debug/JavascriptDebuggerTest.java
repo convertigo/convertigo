@@ -119,7 +119,7 @@ public class JavascriptDebuggerTest {
             var first = JavascriptDebugger.session("one", true);
             first.breakpoint("marked", 1, true);
             var second = JavascriptDebugger.session("two", true);
-            assertNotEquals(first.id(), second.id()); assertFalse(RhinoUtils.debugMode);
+            assertNotEquals(first.id(), second.id());
             try (var registration = JavascriptDebugger.bind(request("one", null, true))) { assertNotNull(registration); assertNull(Context.getCurrentContext()); }
             assertNull(JavascriptDebugger.bind(request("one", first.id(), false)));
             assertThrows(IllegalArgumentException.class, () -> JavascriptDebugger.bind(request("two", first.id(), true)));
@@ -143,6 +143,33 @@ public class JavascriptDebuggerTest {
             JavascriptDebugger.stop("one"); JavascriptDebugger.stop("two");
             EnginePropertiesManager.setProperty(PropertyName.WEB_STUDIO, PropertyName.WEB_STUDIO.getDefaultValue());
             EnginePropertiesManager.setProperty(PropertyName.JAVASCRIPT_DEBUGGER, "false");
+        }
+    }
+    @Test public void editorMetadataIsScopedToItsAdministratorAndDoesNotJoinAWorker() throws Exception {
+        EnginePropertiesManager.initProperties(); Engine.logAdmin = Logger.getLogger("debugger-test");
+        EnginePropertiesManager.setProperty(PropertyName.JAVASCRIPT_DEBUGGER,"true");
+        try (var cx = Context.enter()) {
+            var one = JavascriptDebugger.session("editor-one",true);
+            var two = JavascriptDebugger.session("editor-two",true);
+            var old = "{\"id\":\"opaque-source\",\"revision\":\"old\",\"targets\":[{\"url\":\"old-url\",\"line\":1,\"key\":\"key\"}]}";
+            var next = old.replace("old","new");
+            one.participantSources("plugin",old); two.participantSources("plugin",old);
+            one.breakpoint("old-url",1,true,false); two.breakpoint("old-url",1,true,false);
+            try (var editor = JavascriptDebugger.participantEditor(request("editor-one",null,true))) {
+                JavascriptDebugger.participantSources("plugin",next);
+                assertFalse(one.state().getBoolean("running"));
+                assertEquals(1,one.breakpoints("new-url").length());
+                assertEquals(1,two.breakpoints("old-url").length());
+                try (var refused = JavascriptDebugger.participantEditor(request("editor-two",null,false))) {
+                    JavascriptDebugger.participantSources("plugin",next);
+                    assertEquals(1,two.breakpoints("old-url").length());
+                }
+            }
+            JavascriptDebugger.participantSources("plugin",next);
+            assertEquals(1,two.breakpoints("old-url").length());
+        } finally {
+            JavascriptDebugger.stop("editor-one"); JavascriptDebugger.stop("editor-two");
+            EnginePropertiesManager.setProperty(PropertyName.JAVASCRIPT_DEBUGGER,"false");
         }
     }
     @Test public void compiledCacheSurvivesDebugging() throws Exception {
@@ -229,29 +256,6 @@ public class JavascriptDebuggerTest {
             assertEquals(location.toString(), session.state().getJSONObject("sourceLocations").getJSONObject(url).toString());
         }
     }
-    @Test public void legacyAndWebDebuggerAttachmentsAreMutuallyExclusiveAndRecover() throws Exception {
-        EnginePropertiesManager.initProperties(); Engine.logAdmin = Logger.getLogger("debugger-test");
-        EnginePropertiesManager.setProperty(PropertyName.WEB_STUDIO, "enabled");
-        EnginePropertiesManager.setProperty(PropertyName.JAVASCRIPT_DEBUGGER, "true");
-        boolean previous = RhinoUtils.debugMode;
-        try {
-            var web = JavascriptDebugger.session("exclusion", true);
-            assertThrows(IllegalStateException.class, JavascriptDebugger::attachLegacyDebugger);
-            assertFalse(RhinoUtils.debugMode); assertTrue(web.state().getBoolean("attached"));
-            JavascriptDebugger.stop("exclusion");
-            JavascriptDebugger.attachLegacyDebugger(); assertTrue(RhinoUtils.debugMode);
-            assertThrows(IllegalStateException.class, () -> JavascriptDebugger.session("exclusion", true));
-            try (var cx = Context.enter()) {
-                assertEquals(42, ((Number)RhinoUtils.evalCachedJavascript(cx, cx.initStandardObjects(), "40+2", "legacy", 1, null)).intValue());
-            }
-            RhinoUtils.debugMode = false;
-            assertNotNull(JavascriptDebugger.session("exclusion", true));
-        } finally {
-            JavascriptDebugger.stop("exclusion"); RhinoUtils.debugMode = previous;
-            EnginePropertiesManager.setProperty(PropertyName.WEB_STUDIO, PropertyName.WEB_STUDIO.getDefaultValue());
-            EnginePropertiesManager.setProperty(PropertyName.JAVASCRIPT_DEBUGGER, "false");
-        }
-    }
     @Test public void eclipsePauseRejectsSecondLaunchAndDetachLetsTheFirstFinish() throws Exception {
         EnginePropertiesManager.initProperties(); Engine.logAdmin = Logger.getLogger("debugger-test");
         var mode = Engine.class.getDeclaredField("bStudioMode"); mode.setAccessible(true);
@@ -281,35 +285,6 @@ public class JavascriptDebuggerTest {
             assertEquals(42, ((Number)first.get(2, java.util.concurrent.TimeUnit.SECONDS)).intValue());
             assertFalse(session.state().getBoolean("attached")); assertNull(JavascriptDebugger.studioSession());
         } finally { JavascriptDebugger.stop("paused-eclipse"); mode.setBoolean(null, previous); }
-    }
-
-    @Test(timeout = 5000) public void legacyDriverStillPausesInspectsEvaluatesStepsAndContinues() throws Exception {
-        EnginePropertiesManager.initProperties();
-        var dim = new org.mozilla.javascript.tools.debugger.Dim();
-        var lines = new java.util.ArrayList<Integer>();
-        boolean previous = RhinoUtils.debugMode;
-        try {
-            JavascriptDebugger.attachLegacyDebugger();
-            dim.setGuiCallback(new org.mozilla.javascript.tools.debugger.GuiCallback() {
-                @Override public boolean isGuiEventThread() { return true; }
-                @Override public void dispatchNextGuiEvent() { throw new AssertionError("No GUI event pump is required by this probe"); }
-                @Override public void updateSourceText(org.mozilla.javascript.tools.debugger.Dim.SourceInfo source) { source.breakpoint(2, true); }
-                @Override public void enterInterrupt(org.mozilla.javascript.tools.debugger.Dim.StackFrame frame, String thread, String alert) {
-                    lines.add(frame.getLineNumber());
-                    assertEquals(1, frame.contextData().frameCount());
-                    dim.contextSwitch(0);
-                    assertEquals(lines.size() == 1 ? "41" : "42", dim.eval("legacyValue"));
-                    assertEquals(lines.size() == 1 ? "42" : "43", dim.eval("legacyValue + 1"));
-                    assertTrue(java.util.Arrays.asList(dim.getObjectIds(frame.scope())).contains("legacyValue"));
-                    dim.setReturnValue(lines.size() == 1 ? org.mozilla.javascript.tools.debugger.Dim.STEP_OVER : org.mozilla.javascript.tools.debugger.Dim.GO);
-                }
-            });
-            dim.attachTo(org.mozilla.javascript.ContextFactory.getGlobal());
-            try (var cx = Context.enter()) {
-                assertEquals(42, ((Number)RhinoUtils.evalCachedJavascript(cx, cx.initStandardObjects(), "var legacyValue=41;\nlegacyValue++;\nlegacyValue;", "legacy-driver", 1, null)).intValue());
-            }
-            assertEquals(java.util.List.of(2, 3), lines);
-        } finally { dim.dispose(); RhinoUtils.debugMode = previous; }
     }
 
 }

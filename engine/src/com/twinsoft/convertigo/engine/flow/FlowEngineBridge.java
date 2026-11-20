@@ -539,7 +539,6 @@ public class FlowEngineBridge {
 	/** Compile once across overflow runtimes; evaluating the script still creates caller-owned exports. */
 	public static Object evalSharedModule(org.mozilla.javascript.Context cx, Scriptable scope, String source, String name) {
 		com.twinsoft.convertigo.engine.debug.JavascriptDebugger.requireUnsharedRuntime(cx);
-		if (RhinoUtils.debugMode) return RhinoUtils.evalInterpretedJavascript(cx, scope, source, name, 1, null);
 		var interpreted = cx.isInterpretedMode();
 		try { cx.setInterpretedMode(false); return compiledModules.get(cx, source, name).exec(cx, scope); }
 		finally { cx.setInterpretedMode(interpreted); }

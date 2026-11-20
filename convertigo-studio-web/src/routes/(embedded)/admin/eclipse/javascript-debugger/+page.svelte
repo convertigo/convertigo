@@ -3,7 +3,7 @@
 </script>
 
 <svelte:head>
-	<title>JavaScript debugger</title>
+	<title>Backend debugger</title>
 </svelte:head>
 
 <div class="h-full min-h-0 w-full overflow-hidden p-low">

@@ -154,6 +154,7 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 		if (runningThread.bContinue) {
 			Engine.logBeans.debug("Transaction '"+ getName() + "' is aborting...");
 			runningThread.bContinue = false;
+            notifyInvocationCancellation();
 		}
 	}
 

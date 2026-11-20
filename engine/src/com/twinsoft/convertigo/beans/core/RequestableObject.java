@@ -1048,7 +1048,16 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     public static final class InvocationGuard {
         private final RequestableThread owner;
         private InvocationGuard(RequestableThread owner) { this.owner = owner; }
-        public boolean isRunning() { return owner != null && owner.ownerIsRunning() && System.nanoTime() < owner.deadlineNanos(); }
+        public boolean isRunning() {
+            return owner != null && !owner.executionContext.removalRequired() && !owner.executionContext.isDestroying
+                    && owner.ownerIsRunning() && System.nanoTime() < owner.deadlineNanos();
+        }
+		public boolean isBound() { return owner != null; }
+		/** A child debugger pause uses its real owner and waiting callers, never a second deadline. */
+		public com.twinsoft.convertigo.engine.debug.JavascriptDebugger.DebugSuspension pauseDebugger() { return pauseRequestable(owner); }
+        public AutoCloseable onCancellation(Runnable wake) {
+            return owner == null ? () -> {} : owner.onCancellation(wake);
+        }
         public long deadlineNanos() { return owner == null ? Long.MAX_VALUE : owner.deadlineNanos(); }
         public boolean coversTimeout(long seconds) {
             return owner != null && (seconds <= 0 || deadlineNanos() != Long.MAX_VALUE
@@ -1060,21 +1069,32 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 
     /** A debugger pause suspends the existing budgets of this call and its waiting callers. */
     public static com.twinsoft.convertigo.engine.debug.JavascriptDebugger.DebugSuspension pauseCurrentRequestable() {
-        var worker = currentExecution.get();
+        return pauseRequestable(currentExecution.get());
+    }
+
+    private static com.twinsoft.convertigo.engine.debug.JavascriptDebugger.DebugSuspension pauseRequestable(RequestableThread worker) {
         if (worker == null) return null;
         var callers = new java.util.ArrayList<RequestableThread>();
         for (; worker != null; worker = worker.invocationParent) {
-            worker.beginDebuggerPause();
-            callers.add(worker);
+            if (worker.beginDebuggerPause()) callers.add(worker);
         }
+        var closed = new java.util.concurrent.atomic.AtomicBoolean();
         return () -> {
-            for (var caller : callers) caller.endDebuggerPause();
+            if (closed.compareAndSet(false, true)) for (var caller : callers) caller.endDebuggerPause();
         };
+    }
+
+    /** The business flag is published by abort before waking invocation-owned waiters. */
+    protected final void notifyInvocationCancellation() {
+        var worker = runningThread;
+        if (worker != null) worker.notifyCancellation();
     }
 
 
     public class RequestableThread extends Thread {
 		private final Log4jHelper.MdcSnapshot logContext = Log4jHelper.mdcSnapshot();
+        // Keep the invocation's cancellation owner even while mutable cleanup fields are cleared.
+        private final Context executionContext = context;
         private final String requestContextId = context.contextID;
         protected Throwable exception = null;
         protected Thread callingThread;
@@ -1084,8 +1104,10 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		private volatile long deadlineNanos = Long.MAX_VALUE;
         private volatile long debuggerPauseStarted;
         private int debuggerPauseDepth;
+        private java.util.ArrayList<Runnable> cancellationWaiters;
         private long observedStreamProgress;
         private final RequestableThread invocationParent = currentExecution.get();
+		private final com.twinsoft.convertigo.engine.debug.JavascriptDebugger.ParentLink debuggerParent = com.twinsoft.convertigo.engine.debug.JavascriptDebugger.captureParent();
 
         /** The requestable's existing deadline advances only while its worker is paused. */
         private long deadlineNanos() {
@@ -1103,7 +1125,9 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
                             getResponseTimeout() * 1000L - Math.max(0, System.currentTimeMillis() - observedStreamProgress));
         }
 
-        private synchronized void beginDebuggerPause() {
+        private synchronized boolean beginDebuggerPause() {
+            // A pause never revives a deadline which expired before admission.
+            if (System.nanoTime() >= deadlineNanos() || !ownerIsRunning() || executionContext.removalRequired()) return false;
             if (debuggerPauseDepth == 0) {
                 // Account for the latest rows before freezing this worker's budget.
                 refreshStreamingDeadline();
@@ -1111,6 +1135,24 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             }
             debuggerPauseDepth++;
             notifyAll();
+            return true;
+        }
+
+        private AutoCloseable onCancellation(Runnable wake) {
+            synchronized (this) {
+                if (cancellationWaiters == null) cancellationWaiters = new java.util.ArrayList<>();
+                cancellationWaiters.add(wake);
+            }
+            if (!ownerIsRunning() || executionContext.removalRequired()) wake.run();
+            var closed = new java.util.concurrent.atomic.AtomicBoolean();
+            return () -> { if (closed.compareAndSet(false, true)) synchronized (this) { cancellationWaiters.remove(wake); } };
+        }
+
+        private void notifyCancellation() {
+            java.util.List<Runnable> waiters;
+            synchronized (this) { waiters = cancellationWaiters == null ? java.util.List.of() : java.util.List.copyOf(cancellationWaiters); }
+            // Never invoke a transport listener under the requestable monitor.
+            for (var wake : waiters) { try { wake.run(); } catch (RuntimeException ignored) { /* The bounded poll remains a fallback. */ } }
         }
 
         private synchronized void endDebuggerPause() {
@@ -1127,13 +1169,14 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		}
 
 		private boolean ownerIsRunning() {
+            if (completed || RequestableObject.this.runningThread != this) return false;
 			return RequestableObject.this instanceof Sequence sequence ? sequence.isRunning() : isContinuing();
 		}
 
         private long engineId;
         // Guarded by this thread's monitor: cancellation must let the worker unwind first.
         // completed: this worker no longer uses the requestable's execution references.
-        private boolean completed;
+        private volatile boolean completed;
         // Set by a caller that returned before its cancelled worker ended, reset by a new execution.
         private boolean clearOnCompletion;
         
@@ -1213,7 +1256,9 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
         	
 			AutoCloseable javascriptDebug = null;
             try {
-				javascriptDebug = com.twinsoft.convertigo.engine.debug.JavascriptDebugger.bind(context.httpServletRequest, getQName());
+				javascriptDebug = debuggerParent == null
+						? com.twinsoft.convertigo.engine.debug.JavascriptDebugger.bind(context.httpServletRequest, getQName())
+						: com.twinsoft.convertigo.engine.debug.JavascriptDebugger.bindChild(debuggerParent);
     			// Set HTTP session timeout using front project defined value
             	// - the front project is the project for which the session has been created at first request
             	// - the timeout is set before requestable execution in case of inner requestable calls

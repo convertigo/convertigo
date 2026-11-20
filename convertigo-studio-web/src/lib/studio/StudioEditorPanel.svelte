@@ -246,7 +246,7 @@
 					(location.file ? tab.sourceDocument : tab.propertyName === location.property))
 		);
 		if (!tab && location.id) {
-			if (location.file) await openSourceDocument(location.id);
+			if (location.file) await openSourceDocument(location.id, 0, false);
 			else {
 				const response = await call(
 					'studio.properties.Get',
@@ -257,7 +257,7 @@
 				const property = Object.entries(response?.properties ?? {})
 					.map(([displayName, value]) => ({ displayName, ...value }))
 					.find((property) => property.name === location.property);
-				if (property) openEditorTab(location.id, property, null);
+				if (property) openEditorTab(location.id, property, null, false);
 			}
 			tab = editorTabs.find(
 				(tab) =>
@@ -266,6 +266,10 @@
 			);
 		}
 		if (debugTarget?.serial !== target.serial) return;
+		// A logical source range belongs to the execution's exact revision. Keep an
+		// edited or saved document intact and show that revision in a separate snapshot.
+		if (tab && location.span && tab.content !== source.source)
+			tab = editorTabs.find((item) => item.key === `debug:${source.url}`);
 		if (!tab) {
 			// A runtime-created script has no editable property: keep its snapshot in the main editor.
 			const key = `debug:${source.url}`;
@@ -483,8 +487,9 @@
 	 * @param {string} objectId
 	 * @param {any} property
 	 * @param {{ id?: string, value?: any, persisted?: boolean } | null} target
+	 * @param {boolean} [select] whether opening the tab also selects its object
 	 */
-	function openEditorTab(objectId, property, target) {
+	function openEditorTab(objectId, property, target, select = true) {
 		const propertyName = String(property?.name ?? property?.displayName ?? 'value');
 		const displayName = String(property?.displayName ?? property?.name ?? propertyName);
 		const key = createTabKey(objectId, propertyName);
@@ -501,7 +506,7 @@
 				existing.originalValue = persisted;
 			}
 			activeTabKey = existing.key;
-			selectObject(existing.id);
+			if (select) selectObject(existing.id);
 			return;
 		}
 
@@ -523,7 +528,7 @@
 			focused: false
 		});
 		activeTabKey = key;
-		selectObject(objectId);
+		if (select) selectObject(objectId);
 	}
 
 	// Pending loads coordinate callers and are deliberately independent from rendered state.
@@ -533,13 +538,14 @@
 	 * the Engine from a Flow virtual object. The browser never receives or submits an arbitrary path.
 	 * @param {string} objectId
 	 * @param {number} [line] a line to show, as a line a search found
+	 * @param {boolean} [select] debugger source opens preserve the tree and graph selection
 	 */
-	async function openSourceDocument(objectId, line = 0) {
+	async function openSourceDocument(objectId, line = 0, select = true) {
 		// Selection and a stopped debugger frame may request the same file in the same flush.
 		// Share its load so neither caller falls back to a second runtime-snapshot tab.
 		const pending = sourceLoads[objectId];
 		if (pending) return pending;
-		const load = loadSourceDocument(objectId, line);
+		const load = loadSourceDocument(objectId, line, select);
 		sourceLoads[objectId] = load;
 		try {
 			return await load;
@@ -547,8 +553,8 @@
 			delete sourceLoads[objectId];
 		}
 	}
-	/** @param {string} objectId @param {number} line */
-	async function loadSourceDocument(objectId, line = 0) {
+	/** @param {string} objectId @param {number} line @param {boolean} select */
+	async function loadSourceDocument(objectId, line = 0, select = true) {
 		// a tab with changes not applied shows as it is: reading the source again would lose them
 		const changed = editorTabs.find(
 			(tab) => tab.sourceDocument && tab.id === objectId && tab.content !== tab.originalValue
@@ -619,7 +625,7 @@
 				...(line ? { revealLine: line, revealSerial: Date.now() } : {})
 			});
 			activeTabKey = key;
-			selectObject(objectId);
+			if (select) selectObject(objectId);
 		} catch (err) {
 			error = String(err instanceof Error ? err.message : err);
 		} finally {

@@ -11,7 +11,7 @@
 		agentMarkOf,
 		playAgentLight
 	} from './agentFollow.svelte.js';
-	import { debugSession } from './debugSession.svelte.js';
+	import { isDebugTargetPaused } from './debugSession.svelte.js';
 	import {
 		canDropDbo,
 		canUseDboDropFallback,
@@ -247,13 +247,7 @@
 			untrack(() => playAgentLight(row, light.change, 'row'));
 		}
 	});
-	let debugPaused = $derived(
-		Boolean(
-			debugSession.state?.stopped &&
-			node?.debugTarget?.url &&
-			debugSession.state.frames?.[debugSession.frameIndex]?.url === node.debugTarget.url
-		)
-	);
+	let debugPaused = $derived(isDebugTargetPaused(node?.debugTarget));
 	let label = $derived.by(() => {
 		dataSerial;
 		revision;

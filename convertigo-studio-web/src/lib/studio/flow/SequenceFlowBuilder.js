@@ -34,6 +34,7 @@ class SequenceFlowBuilder {
 			item.children === true || (Array.isArray(item.children) && item.children.length > 0);
 		return {
 			id: item.id,
+			debugTarget: item.debugTarget,
 			label: label || item.id,
 			name: item.name,
 			renameValue: item.renameValue,
@@ -891,6 +892,7 @@ class SequenceFlowBuilder {
 				: void 0,
 			data: {
 				icon: item.icon,
+				debugTarget: item.debugTarget,
 				originalId: item.id,
 				renameValue: item.renameValue,
 				canRename: item.canRename,
