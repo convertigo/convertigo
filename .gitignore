@@ -9,6 +9,7 @@ META-INF
 !**/.settings/org.eclipse.jst.jsp.core.prefs
 !**/.settings/org.eclipse.wst.validation.prefs
 !/.settings/setupStudioDev*.launch
+!/.settings/runStudioWebDev*.launch
 
 /*/bin
 /*/build

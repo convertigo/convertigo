@@ -10,6 +10,8 @@ nvm exec 24 npm ci
 nvm exec 24 npm run dev
 ```
 
+In Eclipse, the External Tool `runStudioWebDev` (also `./gradlew runStudioWebDev`) runs the same dev server with the Gradle toolchain, against the dev Studio on port 18080 (set `C8O_PORT` in the launch environment for another port). Open http://localhost:5173/studio/; terminating the launch stops Vite.
+
 Run `npm install` and `npm audit fix` with the same toolchain when updating dependencies. The dependency tree holds a single SvelteKit 3: check it after an installation with `nvm exec 24 npm ls @sveltejs/kit`. A library declaring a SvelteKit 2 peer would bring separate Kit 2 copies back into the lockfile, which npm 11 leaves out during `npm ci` (Bits UI did through Runed, until the date range of the logs moved to the Skeleton date picker).
 
 ## Device Frames

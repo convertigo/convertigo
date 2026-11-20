@@ -683,6 +683,16 @@ task buildStudioWebBuild(type: Exec, dependsOn: ':buildStudioWebNvmInstall') {
 	commandLine studioWebCommand('npm run build')
 }
 
+// the web Studio served by Vite on http://localhost:5173/studio/, with the services of the Studio
+// started from Eclipse (port 18080, or the C8O_PORT environment variable); stopping the task stops Vite
+task runStudioWebDev(type: Exec, dependsOn: ':buildStudioWebNpmInstall') {
+	group = 'convertigo'
+	description = 'Runs the web Studio dev server against the dev Studio started from Eclipse.'
+
+	workingDir 'convertigo-studio-web'
+	commandLine studioWebOnWindows ? ['cmd', '/c', 'npm run dev'] : ['sh', '-c', ". ~/.nvm/nvm.sh && nvm use --silent ${studioWebNodeVersion} && exec npm run dev"]
+}
+
 task ciFirstStep(dependsOn: [':engine:jar', ':gradle-plugin:publish', ':buildStudioWebNpmInstall', ':buildStudioWebBuild']) {
 	group = 'convertigo'
 }
