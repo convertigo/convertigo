@@ -90,6 +90,23 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 			workers.put(Thread.currentThread(), worker); event("workerStarted"); return worker;
 		}
 	}
+	/**
+	 * A requestable called by a source-debugged request, such as a sub-sequence on its own thread, gets the same
+	 * interpreted context: its breakpoints stop it. Returns null when the parent is not source-debugged.
+	 */
+	AutoCloseable joinRhinoChild(Parent parent, java.util.function.BooleanSupplier cancelled,
+			java.util.function.Supplier<JavascriptDebugger.DebugSuspension> budgetPause) {
+		var worker = new Worker(true);
+		synchronized (lock) {
+			if (closed || !parent.worker.rhino || !workers.containsValue(parent.worker) || Context.getCurrentContext() != null) return null;
+			if (parent.frames.size() >= 128) throw new IllegalStateException("Participant ancestry limit.");
+			if (workers.containsKey(Thread.currentThread()) || workers.size() >= 64) throw new IllegalStateException("Invalid child worker.");
+			worker.parent = parent.worker; worker.root = parent.worker.root;
+			worker.ancestors = parent.frames; worker.cancelled = () -> parent.worker.cancelled.getAsBoolean() || cancelled.getAsBoolean(); worker.budgetPause = budgetPause;
+			workers.put(Thread.currentThread(), worker); event("workerStarted");
+		}
+		return enterContext(worker);
+	}
 	void identifyRoot(Object data, String root, java.util.function.BooleanSupplier cancelled) {
 		synchronized (lock) { var worker = (Worker) data; worker.root = root; worker.cancelled = cancelled; }
 	}
@@ -182,6 +199,9 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 			lastException = null;
 			event("started");
 		}
+		return enterContext(worker);
+	}
+	private AutoCloseable enterContext(Worker worker) {
 		try {
 			new ContextFactory() {
 				@Override protected Context makeContext() {

@@ -79,27 +79,39 @@ public final class JavascriptDebugger {
 		return new ParentLink(current, current.session.parent(worker), current.construction || cx != null && cx.getThreadLocal(PROVIDER_CONSTRUCTION) != null);
 	}
 	/** Bind the captured parent only for this child lifetime; pooled threads are clean after close. */
-	public static AutoCloseable bindChild(ParentLink link) { return bindChildWithBudget(link, null); }
+	public static AutoCloseable bindChild(ParentLink link) { return bindChild(link, null, true); }
     /** An optional wait-domain owns the budget; parent identity is independent of that wait. */
     public static AutoCloseable bindChildWithBudget(ParentLink link, java.util.function.Supplier<DebugSuspension> budget) {
+		return bindChild(link, budget, false);
+	}
+	/** A requestable child, like a sub-sequence, keeps the source debugging of its parent; other children stay participants. */
+	private static AutoCloseable bindChild(ParentLink link, java.util.function.Supplier<DebugSuspension> budget, boolean requestable) {
 		if (link == null || execution.get() != null) return null;
 		var current = new Execution(link.owner, link.label, link.construction ? null : link.session);
 		current.construction = link.construction;
 		if (!current.guard.isBound()) current.guard = link.guard;
 		if (link.parent == null) current.session = null;
 		if (current.session != null && link.parent != null) {
-			current.worker = current.session.joinChild(link.parent,
-					() -> current.guard.isBound() && !current.guard.isRunning() || link.guard.isBound() && !link.guard.isRunning(),
-					budget != null ? budget : () -> {
-						var local = com.twinsoft.convertigo.beans.core.RequestableObject.pauseCurrentRequestable();
-						var caller = link.guard.pauseDebugger();
-						return () -> { try { if (local != null) local.close(); } finally { if (caller != null) caller.close(); } };
-					});
-			if (current.worker == null) current.session = null;
+			java.util.function.BooleanSupplier cancelled =
+					() -> current.guard.isBound() && !current.guard.isRunning() || link.guard.isBound() && !link.guard.isRunning();
+			java.util.function.Supplier<DebugSuspension> pause = budget != null ? budget : () -> {
+				var local = com.twinsoft.convertigo.beans.core.RequestableObject.pauseCurrentRequestable();
+				var caller = link.guard.pauseDebugger();
+				return () -> { try { if (local != null) local.close(); } finally { if (caller != null) caller.close(); } };
+			};
+			if (requestable && rhinoEnabled()) current.lease = current.session.joinRhinoChild(link.parent, cancelled, pause);
+			if (current.lease == null) current.worker = current.session.joinChild(link.parent, cancelled, pause);
+			if (current.worker == null && current.lease == null) current.session = null;
             else current.cancelWake = current.guard.onCancellation(current.session::cancellationChanged);
 		}
 		execution.set(current);
-		return () -> { try { if (current.cancelWake != null) current.cancelWake.close(); } finally { try { if (current.worker != null) link.session.finishParticipantWorker(); } finally { execution.remove(); } } };
+		return () -> {
+			try { if (current.cancelWake != null) current.cancelWake.close(); }
+			finally {
+				try { if (current.lease != null) current.lease.close(); else if (current.worker != null) link.session.finishParticipantWorker(); }
+				finally { execution.remove(); }
+			}
+		};
 	}
 	private static final String STUDIO_REQUEST = CLAIM + ".studio";
 	private static volatile JavascriptDebugSession studioSession;

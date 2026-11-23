@@ -286,5 +286,43 @@ public class JavascriptDebuggerTest {
             assertFalse(session.state().getBoolean("attached")); assertNull(JavascriptDebugger.studioSession());
         } finally { JavascriptDebugger.stop("paused-eclipse"); mode.setBoolean(null, previous); }
     }
+    @Test public void subSequenceOnItsOwnThreadStopsAtItsBreakpoint() throws Exception {
+        EnginePropertiesManager.initProperties(); Engine.logAdmin = Logger.getLogger("debugger-test");
+        var mode = Engine.class.getDeclaredField("bStudioMode"); mode.setAccessible(true);
+        boolean previous = mode.getBoolean(null); mode.setBoolean(null, true);
+        try (var pool = java.util.concurrent.Executors.newCachedThreadPool()) {
+            var session = JavascriptDebugger.session("child-eclipse", true);
+            session.breakpoint("child", 2, true);
+            JavascriptDebugger.studioRequests("child-eclipse", true);
+            var root = pool.submit(() -> {
+                var request = new com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest();
+                JavascriptDebugger.selectStudioRequest(request);
+                try (var lease = JavascriptDebugger.bind(request)) {
+                    var cx = Context.getCurrentContext();
+                    cx.evaluateString(cx.initStandardObjects(), "var caller = 1;", "caller", 1, null);
+                    // Captured by the caller, then joined by the called requestable on its own thread, like a sequence step.
+                    var link = JavascriptDebugger.captureParent();
+                    return pool.submit(() -> {
+                        Object value;
+                        try (var child = JavascriptDebugger.bindChild(link); var ccx = Context.enter()) {
+                            value = ccx.evaluateString(ccx.initStandardObjects(), "var a = 5;\na += 2;\na;", "child", 1, null);
+                        }
+                        assertNull(Context.getCurrentContext());
+                        return value;
+                    }).get(10, java.util.concurrent.TimeUnit.SECONDS);
+                }
+            });
+            long until = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(5);
+            while (!session.state().getBoolean("stopped") && System.nanoTime() < until) Thread.sleep(5);
+            var state = session.state();
+            assertTrue(state.getBoolean("stopped"));
+            var frame = state.getJSONArray("frames").getJSONObject(0);
+            assertEquals("child", frame.getString("url")); assertEquals(2, frame.getInt("line"));
+            assertEquals(2, state.getInt("workers"));
+            session.resume("go", state.getLong("pauseId"));
+            assertEquals(7, ((Number) root.get(5, java.util.concurrent.TimeUnit.SECONDS)).intValue());
+            assertEquals(0, session.state().getInt("workers"));
+        } finally { JavascriptDebugger.stop("child-eclipse"); mode.setBoolean(null, previous); }
+    }
 
 }
