@@ -340,7 +340,7 @@ dependencies {
 	compileFlat    'commons-jxpath:commons-jxpath:1.4.0'
 	compileFlat    'org.snakeyaml:snakeyaml-engine:3.2'
 	compileFlat    'org.yaml:snakeyaml:2.7'
-	compileFlat    'io.swagger:swagger-models:1.6.16'
+	compileFlat    'io.swagger:swagger-models:1.6.17'
 	compileFlat    'io.swagger:swagger-parser:1.0.77'
 	compileFlat    'io.swagger.core.v3:swagger-annotations:2.2.56'
 	compileFlat    'io.swagger.core.v3:swagger-models:2.2.56'
