@@ -497,6 +497,7 @@ test('Java strings display their contents in watches, scopes and the console', a
 	await input.fill('context.name');
 	await input.press('Enter');
 	await expect(panel.locator('.debug-evaluation pre')).toHaveText(expected);
+	await expect(input).toBeFocused();
 
 	await input.fill(
 		'this.javaText=new java.lang.String("hello Java"); this.javaLongText=new java.lang.String("x".repeat(1200)); this'

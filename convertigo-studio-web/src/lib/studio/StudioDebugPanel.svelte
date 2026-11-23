@@ -635,7 +635,8 @@
 						maxlength="4096"
 						autocomplete="off"
 						spellcheck="false"
-						disabled={!debugState?.stopped || busy}
+						disabled={!debugState?.stopped}
+						readonly={busy}
 						bind:value={expression}
 					/>
 					<StudioIconButton
