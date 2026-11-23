@@ -65,9 +65,12 @@ import javax.servlet.http.HttpServletRequestWrapper;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.admin.services.ServiceException;
+import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
 import com.twinsoft.convertigo.engine.sessions.RedisHealth;
 import com.twinsoft.convertigo.engine.sessions.RedisInstanceDiscovery;
+import com.twinsoft.convertigo.engine.util.AdminUploadLimits;
 
 /**
  * For clustered admin usage (Redis session store), allows sticking an admin request to a specific
@@ -79,6 +82,8 @@ import com.twinsoft.convertigo.engine.sessions.RedisInstanceDiscovery;
  * The forward is internal traffic between instances: it never goes through the engine HTTP proxy settings.
  * When it fails, the response is an explicit error (HTTP 502 with the {@code X-C8O-Instance-Unreachable}
  * header) so that the console can tell it, instead of a silent answer from the local instance.
+ * A request body over the optional administration upload limit is refused with HTTP 413, as the target would do;
+ * without this limit (default), the body is only limited by the frontends and the disk space.
  */
 public class AdminInstanceForwardFilter implements Filter {
 	private static final String HEADER_INSTANCE = "X-C8O-Instance";
@@ -93,7 +98,6 @@ public class AdminInstanceForwardFilter implements Filter {
 
 	private static final int CONNECT_TIMEOUT_MS = 5_000;
 	private static final int READ_TIMEOUT_MS = 0; // keep long polling & log streaming working
-	private static final long MAX_CACHED_BODY_BYTES = 256L * 1024L * 1024L;
 	private static final int BODY_BUFFER_SIZE = 16 * 1024;
 	private static final int FORM_PARSE_MAX_BYTES = 1 * 1024 * 1024;
 	private static final Object SSL_MUTEX = new Object();
@@ -184,7 +188,21 @@ public class AdminInstanceForwardFilter implements Filter {
 		var proxyRequest = request;
 		try {
 			if (hasRequestBody(request.getMethod())) {
-				cachedBody = CachedBody.capture(request);
+				try {
+					cachedBody = CachedBody.capture(request, AdminUploadLimits.requestBytes());
+				} catch (BodyTooLargeException e) {
+					respondNotForwarded(request, response, requestedInstance, localInstance, HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE,
+							"The request (" + e.actual + " bytes) exceeds the administration upload limit (" + e.permitted
+							+ " bytes with its multipart envelope, engine property " + PropertyName.ADMIN_UPLOAD_MAX_SIZE.getKey() + ")");
+					return;
+				} catch (IOException e) {
+					// reading the request or storing it here (disk space) failed: the target instance is not involved
+					Engine.logEngine.warn("(AdminInstanceForwardFilter) Unable to store the request body before its forward: " + e);
+					respondNotForwarded(request, response, requestedInstance, localInstance, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+							"The request could not be stored before its forward (" + e.getClass().getSimpleName()
+							+ "): check the disk space of the instance that received it");
+					return;
+				}
 				proxyRequest = new CachedBodyRequestWrapper(request, cachedBody);
 			}
 
@@ -238,6 +256,25 @@ public class AdminInstanceForwardFilter implements Filter {
 			// the headers already carry the information
 		}
 		response.getWriter().write(body.toString());
+	}
+
+	/**
+	 * The request body was refused or could not be stored here, before contacting the target: the target is not
+	 * reported unreachable (a size or disk space problem never answers 502).
+	 */
+	private static void respondNotForwarded(HttpServletRequest request, HttpServletResponse response, String requestedInstance,
+			String localInstance, int status, String message) throws IOException, ServletException {
+		Engine.logEngine.warn("(AdminInstanceForwardFilter) Request to instance " + requestedInstance + " not forwarded by "
+				+ localInstance + ": " + message);
+		response.reset();
+		// the selected instance stays the target of the console
+		response.setHeader(HEADER_INSTANCE, requestedInstance);
+		response.setHeader("Cache-Control", "no-store");
+		try {
+			ServiceUtils.handleError(message, status, request, response);
+		} catch (ServiceException failure) {
+			throw new ServletException(failure);
+		}
 	}
 
 	@Override
@@ -505,6 +542,19 @@ public class AdminInstanceForwardFilter implements Filter {
 		return false;
 	}
 
+	/** A request body over the optional administration upload limit: not an unreachable instance. */
+	private static final class BodyTooLargeException extends IOException {
+		private static final long serialVersionUID = 1L;
+		private final long actual;
+		private final long permitted;
+
+		BodyTooLargeException(long actual, long permitted) {
+			super("Request body too large (" + actual + " bytes, limit " + permitted + " bytes)");
+			this.actual = actual;
+			this.permitted = permitted;
+		}
+	}
+
 	private static final class CachedBody {
 		private final byte[] bytes;
 		private final Path file;
@@ -522,10 +572,11 @@ public class AdminInstanceForwardFilter implements Filter {
 			this.length = length;
 		}
 
-		static CachedBody capture(HttpServletRequest request) throws IOException {
+		/** @param maxBytes the limit of the body, or -1 without limit */
+		static CachedBody capture(HttpServletRequest request, long maxBytes) throws IOException {
 			var expected = request.getContentLengthLong();
-			if (expected > MAX_CACHED_BODY_BYTES) {
-				throw new IOException("Request body too large (" + expected + " bytes)");
+			if (maxBytes > 0 && expected > maxBytes) {
+				throw new BodyTooLargeException(expected, maxBytes);
 			}
 
 			Path tmp = null;
@@ -542,8 +593,8 @@ public class AdminInstanceForwardFilter implements Filter {
 				int r;
 				while ((r = in.read(buffer)) >= 0) {
 					total += r;
-					if (total > MAX_CACHED_BODY_BYTES) {
-						throw new IOException("Request body too large (" + total + " bytes)");
+					if (maxBytes > 0 && total > maxBytes) {
+						throw new BodyTooLargeException(total, maxBytes);
 					}
 					if (tmp == null && total > FORM_PARSE_MAX_BYTES) {
 						tmp = Files.createTempFile("c8o-admin-proxy-", ".body");

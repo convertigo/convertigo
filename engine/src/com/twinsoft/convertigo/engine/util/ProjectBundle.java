@@ -194,7 +194,7 @@ public final class ProjectBundle {
 				zip.write(manifest.toString(2).getBytes(StandardCharsets.UTF_8));
 				zip.closeEntry();
 			}
-			try (var validation = ProjectBundleImport.prepare(java.util.List.of(output), staging, ProjectBundleZip.Limits.defaults())) {
+			try (var validation = ProjectBundleImport.prepare(java.util.List.of(output), staging, ProjectBundleZip.Limits.configured())) {
 				if (!validation.plan().projects().equals(plan.projects())) {
 					throw new IOException("Save the selected project descriptors before creating a bundle");
 				}

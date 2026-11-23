@@ -718,6 +718,17 @@ tasks.register('projectBundleTest', JavaExec) {
 		'com.twinsoft.convertigo.engine.admin.services.projects.ProjectBundleServicesTest'
 }
 
+tasks.register('uploadLimitsTest', JavaExec) {
+	group = 'verification'
+	description = 'Upload size limits: optional administration upload limit and HTTP 413 answer of the administration services.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.admin.util.ServiceUtilsErrorStatusTest'
+}
+
+tasks.named('check') { dependsOn 'uploadLimitsTest' }
+
 tasks.register('projectBundleLifecycleTest', JavaExec) {
 	group = 'verification'
 	description = 'Project group installation, complete import outcomes and normal backup lifecycle.'

@@ -30,6 +30,7 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.w3c.dom.Document;
 
+import com.twinsoft.convertigo.engine.util.AdminUploadLimits;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public abstract class UploadService extends XmlService {
@@ -45,14 +46,22 @@ public abstract class UploadService extends XmlService {
 
 		// Create a new file upload handler
 		ServletFileUpload upload = new ServletFileUpload(factory);
+		AdminUploadLimits.configure(upload, AdminUploadLimits.filesBytes());
 
 		// Parse the request
-		List<FileItem> items = GenericUtils.cast(upload.parseRequest(request));
+		List<FileItem> items = GenericUtils.cast(AdminUploadLimits.parse(upload, request));
 
 		// Process the uploaded items
-		handleFormFields(request);
-		for (FileItem item : items) {
-			doUpload(request, document, item);
+		try {
+			handleFormFields(request);
+			for (FileItem item : items) {
+				doUpload(request, document, item);
+			}
+		} finally {
+			// temporary files of the items not moved by doUpload
+			for (FileItem item : items) {
+				item.delete();
+			}
 		}
 	}
 
