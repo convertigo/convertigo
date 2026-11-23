@@ -25,6 +25,7 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -150,8 +151,12 @@ class ConvertigoPartListener implements IPartListener {
 			} else if (input instanceof JScriptEditorInput) {
 				try {
 					IFile file = ((JScriptEditorInput) input).getFile();
-					toDelete = file.getParent();
-					toDelete.refreshLocal(IResource.DEPTH_ONE, null);
+					// Breakpoint markers live on this file: keep it while one is set, so the breakpoint
+					// still stops the requests and shows again when the editor reopens.
+					if (!hasBreakpoint(file)) {
+						toDelete = file.getParent();
+						toDelete.refreshLocal(IResource.DEPTH_ONE, null);
+					}
 				} catch (Exception e) {
 				}
 			} else if (input instanceof FileInPlaceEditorInput) {
@@ -192,6 +197,15 @@ class ConvertigoPartListener implements IPartListener {
 
 			}
 		}
+	}
+
+	private static boolean hasBreakpoint(IFile file) {
+		for (var breakpoint : DebugPlugin.getDefault().getBreakpointManager().getBreakpoints()) {
+			if (breakpoint.getMarker() != null && file.equals(breakpoint.getMarker().getResource())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
