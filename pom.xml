@@ -26,6 +26,11 @@ mvn clean install
 		<tycho-version>5.0.1</tycho-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.release>21</maven.compiler.release>
+		<!-- Maven 3.10 sets project.build.outputTimestamp to 1980-02-01 for reproducible builds: Tycho
+		     then gives every build the same qualifier (198002010000) and Studio updates are never offered.
+		     The build time keeps an increasing qualifier. -->
+		<maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
+		<project.build.outputTimestamp>${maven.build.timestamp}</project.build.outputTimestamp>
 	</properties>
 
 <!-- SET-VERSION --><version>8.4.8-SNAPSHOT</version>
