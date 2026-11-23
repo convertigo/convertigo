@@ -27,7 +27,6 @@
 		themeContextRequestMessage
 	} from './flowAuthoring';
 	import { attachNgxAuthoring } from './ngxAuthoring';
-	import { startStyleEditor, styleEditorChanges } from './ngxStyleEditor';
 	import {
 		addCustomDevice,
 		deviceById,
@@ -78,7 +77,7 @@
 	const labeledButtonClasses =
 		'button-ico-secondary studio-preview__labeled h-8! w-fit! justify-center px-2!';
 
-	/** @type {{ projectName?: string, previewUrlOverride?: string, previewMode?: 'production' | 'development', previewModeBusy?: boolean, onPreviewModeChange?: (mode: 'production' | 'development') => void | Promise<void>, selectedDeviceId?: string, landscape?: boolean, showDeviceSelector?: boolean, showDeviceDrawer?: boolean, authoringMode?: 'browse' | 'select' | 'move', selectedAuthoringReference?: import('./flowAuthoring').FlowAuthoringReference | null, onAuthoringSelect?: (reference: import('./flowAuthoring').FlowAuthoringReference) => void | Promise<void>, onAuthoringDrop?: (request: { reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after', payload: any }) => void | Promise<void>, onAuthoringMove?: (request: { source: import('./flowAuthoring').FlowAuthoringReference, reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, onAuthoringActions?: (reference: import('./flowAuthoring').FlowAuthoringReference) => import('./flowAuthoring').FlowAuthoringAction[] | Promise<import('./flowAuthoring').FlowAuthoringAction[]>, onAuthoringAction?: (request: { reference: import('./flowAuthoring').FlowAuthoringReference, action: string }) => void | Promise<void>, onThemeContext?: (context: { mode: string, palette: string, tokens: any[] }) => void, reloadSerial?: number, onNgxStyleChanges?: (changes: any) => void | Promise<void>, ngxReference?: { id: string, classes: string[], segment: string } | null, onNgxSelect?: (priority: string) => void | Promise<void>, onNgxDrop?: (request: { priority: string, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, ngxCanDrop?: () => boolean, onNgxDragStart?: (priority: string) => void, onNgxDragEnd?: () => void, activity?: { phase: string, progress: number, result?: string, serial?: number } }} */
+	/** @type {{ projectName?: string, previewUrlOverride?: string, previewMode?: 'production' | 'development', previewModeBusy?: boolean, onPreviewModeChange?: (mode: 'production' | 'development') => void | Promise<void>, selectedDeviceId?: string, landscape?: boolean, showDeviceSelector?: boolean, showDeviceDrawer?: boolean, authoringMode?: 'browse' | 'select' | 'move', selectedAuthoringReference?: import('./flowAuthoring').FlowAuthoringReference | null, onAuthoringSelect?: (reference: import('./flowAuthoring').FlowAuthoringReference) => void | Promise<void>, onAuthoringDrop?: (request: { reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after', payload: any }) => void | Promise<void>, onAuthoringMove?: (request: { source: import('./flowAuthoring').FlowAuthoringReference, reference: import('./flowAuthoring').FlowAuthoringReference, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, onAuthoringActions?: (reference: import('./flowAuthoring').FlowAuthoringReference) => import('./flowAuthoring').FlowAuthoringAction[] | Promise<import('./flowAuthoring').FlowAuthoringAction[]>, onAuthoringAction?: (request: { reference: import('./flowAuthoring').FlowAuthoringReference, action: string }) => void | Promise<void>, onThemeContext?: (context: { mode: string, palette: string, tokens: any[] }) => void, reloadSerial?: number, ngxReference?: { id: string, classes: string[], segment: string } | null, onNgxSelect?: (priority: string) => void | Promise<void>, onNgxDrop?: (request: { priority: string, position: 'before' | 'inside' | 'after' }) => void | Promise<void>, ngxCanDrop?: () => boolean, onNgxDragStart?: (priority: string) => void, onNgxDragEnd?: () => void, activity?: { phase: string, progress: number, result?: string, serial?: number } }} */
 	let {
 		projectName = '',
 		previewUrlOverride = '',
@@ -98,7 +97,6 @@
 		onAuthoringAction,
 		onThemeContext,
 		reloadSerial = 0,
-		onNgxStyleChanges,
 		ngxReference = null,
 		onNgxSelect,
 		onNgxDrop,
@@ -372,34 +370,6 @@
 		}
 		deselectNgxComponent(true);
 	}
-	/** the style editor of the NGX application, GrapesJS in the preview */
-	let ngxStyleEditing = $state(false);
-
-	async function toggleNgxStyleEditor() {
-		const win = iframe?.contentWindow;
-		if (!win) {
-			return;
-		}
-		if (!ngxStyleEditing) {
-			ngxSelecting = false;
-			ngxShowGrids = false;
-			ngxAuthoring?.highlight([]);
-			const projectUrl = getFrontendUrl(projectName).replace(/\/DisplayObjects\/.*$/, '');
-			startStyleEditor(
-				win,
-				projectUrl,
-				isResponsivePreview ? 'desktop' : landscape ? 'mobileLandscape' : 'mobilePortrait'
-			);
-			ngxStyleEditing = true;
-			return;
-		}
-		const changes = styleEditorChanges(win);
-		ngxStyleEditing = false;
-		if (changes) {
-			await onNgxStyleChanges?.(changes);
-		}
-		reloadIframe();
-	}
 	/** the datasets of the NGX application, its recorded session data */
 	let ngxDatasets = $state(/** @type {string[]} */ ([]));
 	let ngxDataset = $state('none');
@@ -522,23 +492,6 @@
 			sessionStorage.setItem(SESSION_DATA, ngxDatasetData);
 		}
 		reloadIframe();
-	}
-
-	/**
-	 * The page of the application leaves, as when it is built again: the edits of the style editor, which
-	 * would be lost with it, are applied to the application.
-	 * @param {Window} win
-	 */
-	function leavePreviewPage(win) {
-		reapplyNgxDataset();
-		if (!ngxStyleEditing) {
-			return;
-		}
-		const changes = styleEditorChanges(win);
-		ngxStyleEditing = false;
-		if (changes) {
-			void onNgxStyleChanges?.(changes);
-		}
 	}
 
 	/**
@@ -713,9 +666,9 @@
 			return;
 		}
 		watchCompileOverlay(doc);
-		// the page of the application leaves: its style edits are applied, the next one starts with the dataset
+		// The next page starts with the selected dataset, including after a rebuild.
 		const win = iframe?.contentWindow;
-		win?.addEventListener('pagehide', () => leavePreviewPage(win));
+		win?.addEventListener('pagehide', reapplyNgxDataset);
 		let tries = 0;
 		const wait = () => {
 			// the application creates its ion-app once bootstrapped
@@ -1401,21 +1354,6 @@
 								onclick={() => (ngxHighlightHidden = !ngxHighlightHidden)}
 							/>
 						{/if}
-						<Button
-							full={false}
-							icon="mdi:palette-swatch-outline"
-							label="Styles"
-							class={[
-								labeledButtonClasses,
-								ngxStyleEditing && 'studio-preview__icon-button--active'
-							]}
-							title={ngxStyleEditing
-								? 'Apply the styles, texts and moves of the style editor'
-								: 'Edit the styles of the application'}
-							ariaLabel="Style editor"
-							aria-pressed={ngxStyleEditing}
-							onclick={() => void toggleNgxStyleEditor()}
-						/>
 						<Button
 							full={false}
 							icon="mdi:grid"

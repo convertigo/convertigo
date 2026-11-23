@@ -126,22 +126,17 @@ import com.teamdev.jxbrowser.js.JsObject;
 import com.teamdev.jxbrowser.navigation.event.FrameLoadFinished;
 import com.teamdev.jxbrowser.permission.callback.RequestPermissionCallback;
 import com.teamdev.jxbrowser.view.swt.graphics.BitmapImage;
-import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.MobileComponent;
-import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke;
-import com.twinsoft.convertigo.beans.ngx.components.UIElement;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
-import com.twinsoft.convertigo.beans.ngx.components.UIStyle;
-import com.twinsoft.convertigo.beans.ngx.components.UIText;
 import com.twinsoft.convertigo.beans.ngx.components.UIUseShared;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSource;
@@ -157,10 +152,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.DatabaseObjectFoundException;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.LocalWorkDirectory;
-import com.twinsoft.convertigo.engine.admin.services.studio.ngxbuilder.BuilderUtils;
 import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
 import com.twinsoft.convertigo.engine.enums.NgxBuilderBuildMode;
 import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
@@ -277,28 +269,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 		}
 
-		@JsAccessible
-		public void onEditorEvent(String s) {
-			Engine.logStudio.info("onEditorEvent: " + s);
-			try {
-				JSONObject json = new JSONObject(s);
-				String event = json.getString("event");
-				if ("style:target".equals(event)) {
-					JSONArray selectors = json.getJSONObject("target").getJSONArray("selectors");
-					for (int i = 0; i < selectors.length(); i++) {
-						var cls = selectors.getString(i);
-						var matcher =  pPriority.matcher(cls);
-						if (matcher.matches()) {
-							highlightPriority(Long.parseLong(matcher.group(1)));
-							return;
-						}
-					}
-				}
-				json.toString();
-			} catch (Exception e) {
-				Engine.logStudio.error("onEditorEvent", e);
-			}
-		}
 	};
 
 	private ApplicationComponentEditorInput applicationEditorInput;
@@ -311,7 +281,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	private ToolBar toolbar;
 	private ToolItem deviceOsToolItem;
 	private ToolItem showGrids;
-	private ToolItem editStyle;
 	private Text deviceName;
 	private Text deviceWidth;
 	private Text deviceHeight;
@@ -530,7 +499,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		String[] inject = {null};
 		try (InputStream is = getClass().getResourceAsStream("inject.js")) {
 			inject[0] = IOUtils.toString(is, "UTF-8");
-			inject[0] = inject[0].replace("${projectUrl}", EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/projects/" + project.getName());
 		} catch (Exception e2) {
 			Engine.logStudio.info("failure", e2);
 			inject[0] = "alert('the editor is broken, please restart the studio')";
@@ -870,10 +838,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		new ToolItem(toolbar, SWT.SEPARATOR);
 
 		item = new ToolItem(toolbar, SWT.PUSH);
-		var refreshBtn = item;
 		SwtUtils.setToolItemIcon(item, "icons/studio/refresh.svg", "Refresh", "Refresh");
 		item.addSelectionListener((SelectionListener) e -> {
-			disableEdition();
 			doReload();
 		});
 
@@ -887,163 +853,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				}
 			});
 		});
-
-		new ToolItem(toolbar, SWT.SEPARATOR);
-
-		item = new ToolItem(toolbar, SWT.CHECK);
-		editStyle = item;
-		SwtUtils.setToolItemIcon(item, "icons/studio/edit_16x16.png", "Style editor", "Style editor");
-		item.addSelectionListener((SelectionListener) e -> {
-			var selected = ((ToolItem) e.widget).getSelection();
-			for (var it: toolbar.getItems()) {
-				if (it != e.widget && it != refreshBtn) {
-					it.setEnabled(!selected);
-				}
-			}
-			int width = NumberUtils.toInt(deviceWidth.getText(), -1);
-			int height = NumberUtils.toInt(deviceHeight.getText(), -1);
-			var device = width < 1 ? "desktop" : width > height ? "mobileLandscape" : "mobilePortrait";
-			if (selected) {
-				editStyle.setData("deviceWidth", deviceWidth.getText());
-				editStyle.setData("deviceHeight", deviceHeight.getText());
-				editStyle.setData("zoomFactor", zoomFactor);
-				editStyle.setData("deviceBar.isVisible", deviceBar.isVisible());
-				deviceWidth.setText("-1");
-				deviceHeight.setText("-1");
-				zoomFactor = ZoomFactor.z100;
-				setDeviceBarVisible(false);
-				updateBrowserSize();
-			} else {
-				applySelectedDevice();
-			}
-			C8oBrowser.run(() -> {
-				if (selected) {
-					c8oBrowser.executeFunctionAndReturnValue("initGrapesJS", device);
-				} else {
-					try {
-						var changes = new JSONObject((String) c8oBrowser.executeFunctionAndReturnValue("getEditorChanges"));
-						Engine.execute(() -> {
-							try {
-								var dbosToReload = new HashSet<DatabaseObject>();
-								var scss = changes.getJSONObject("scss");
-								for (var k = scss.keys(); k.hasNext();) {
-									var p = (String) k.next();
-									try {
-										var dbo = findDatabaseObject(Long.parseLong(p));
-										if (dbo instanceof UIElement uie) {
-											var dboChanged = false;
-											var style = (UIStyle) null;
-											for (var child :uie.getDatabaseObjectChildren()) {
-												if (child instanceof UIStyle s) {
-													if (style == null) {
-														style = s;
-													} else {
-														uie.remove(s);
-														dboChanged = true;
-													}
-												}
-											};
-
-											var content = scss.getString(p);											
-											if (style == null) {
-												style = new UIStyle();
-												style.setName("styleEditor");
-												uie.addUIComponent(style);
-												BuilderUtils.dboAdded(uie);
-											} else if (!dboChanged && style.getStyleContent().getString().equals(content)) {
-												continue;
-											}
-											style.setStyleContent(new FormatedContent(content));
-											dbosToReload.add(dbo);
-										}
-									} catch (Exception ex) {
-										Engine.logStudio.error("failed", ex);
-									}
-								}
-								var text = changes.getJSONObject("text");
-								for (var i = text.keys(); i.hasNext();) {
-									var priority = (String) i.next();
-									var txt = text.getString(priority);
-									var dbo = findDatabaseObject(Long.parseLong(priority));
-									var uitext = (UIText) null;
-									for (var c: dbo.getAllChildren()) {
-										if (c instanceof UIText u) {
-											if (uitext == null) {
-												uitext = u;
-											} else {
-												uitext = null;
-												break;
-											}
-										}
-									}
-									if (uitext != null) {
-										var smart = uitext.getTextSmartType();
-										if (smart.getMode() == MobileSmartSourceType.Mode.PLAIN) {
-											var exValue = smart.getSmartValue();
-											if (!exValue.equals(txt)) {
-												smart.setSmartValue(txt);
-												dbosToReload.add(uitext);
-											}
-										}
-									}
-								}
-								var moved = changes.getJSONArray("move");
-								for (var i = 0; i < moved.length(); i++) {
-									try {
-										var move = moved.getJSONObject(i);
-										var target = (UIComponent) findDatabaseObject(Long.parseLong(move.getString("target")));
-										var parentc = (UIComponent) findDatabaseObject(Long.parseLong(move.getString("parent")));
-										var index = move.getLong("index");
-										var exParent = target.getParent();
-										if (parentc != exParent) {
-											exParent.remove(target);
-											dbosToReload.add(exParent);
-											parentc.add(target, null);
-										}
-										var order = (long) parentc.getOrder(target);
-										while (order < index) {
-											parentc.decreasePriority(target);
-											order = (long) parentc.getOrder(target);
-										}
-										while (order > index) {
-											parentc.increasePriority(target);
-											order = (long) parentc.getOrder(target);
-										}
-										dbosToReload.add(parentc);
-									} catch (Exception ex) {
-										// TODO: handle exception
-									}
-								}
-								for (var dbo: dbosToReload) {
-									BuilderUtils.dboUpdated(dbo);
-								}
-								c8oBrowser.getDisplay().asyncExec(() -> {
-									if (dbosToReload.isEmpty()) {
-										doReload();
-									} else {
-										var pew = ConvertigoPlugin.getDefault().getProjectExplorerView();
-										for (var dbo: dbosToReload) {
-											try {
-												pew.reloadDatabaseObject(dbo);
-											} catch (Exception e1) {
-												e1.printStackTrace();
-											}
-										}
-									}
-								});
-							} catch (Exception e1) {
-								// TODO Auto-generated catch block
-								e1.printStackTrace();
-							}
-						});
-					} catch (Exception e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-				}
-			});
-		});
-		item.setSelection(false);
 
 		new ToolItem(toolbar, SWT.SEPARATOR);
 
@@ -1637,18 +1446,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		}
 	}
 
-	private void applySelectedDevice() {
-		if (editStyle.getData("deviceWidth") == null) {
-			return;
-		}
-		deviceWidth.setText((String) editStyle.getData("deviceWidth"));
-		deviceHeight.setText((String) editStyle.getData("deviceHeight"));
-		zoomFactor = (ZoomFactor) editStyle.getData("zoomFactor");
-		setDeviceBarVisible((boolean) editStyle.getData("deviceBar.isVisible"));
-		editStyle.setData("deviceWidth", null);
-		updateBrowserSize();
-	}
-
 	private void updateBrowserSize() {
 		int width = NumberUtils.toInt(deviceWidth.getText(), -1);
 		int height = NumberUtils.toInt(deviceHeight.getText(), -1);
@@ -1695,7 +1492,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				// silently ignore
 			}
 		});
-		disableEdition();
 	}
 
 	private static final class BuildTask {
@@ -2654,7 +2450,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 	private void doReload() {
 		showGrids.setSelection(false);
-		editStyle.setSelection(false);
 		C8oBrowser.run(() -> {
 			if (!c8oBrowser.getURL().equals("about:blank")) {
 				c8oBrowser.reload();
@@ -2949,17 +2744,5 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			throw ex[0];
 		}
 		return ok[0];
-	}
-
-	private void disableEdition() {
-		editStyle.getDisplay().syncExec(() -> {
-			if (editStyle.getSelection()) {
-				editStyle.setSelection(false);
-				Event event = new Event();
-				event.widget = editStyle;
-				event.type = SWT.Selection;
-				editStyle.notifyListeners(SWT.Selection, event);
-			}
-		});
 	}
 }

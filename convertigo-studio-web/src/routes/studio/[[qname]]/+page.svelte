@@ -1720,28 +1720,6 @@
 		return String(event?.id ?? '');
 	}
 
-	/**
-	 * Applies to the NGX application the styles, texts and moves of the style editor of its preview.
-	 * @param {any} changes
-	 */
-	async function applyNgxStyleChanges(changes) {
-		const projectName = applicationProjectName;
-		const result = await call('studio.ngxbuilder.StyleEditor', {
-			project: projectName,
-			changes: JSON.stringify(changes)
-		});
-		const changed = Array.isArray(result?.changed) ? result.changed.map(String) : [];
-		if (changed.length) {
-			await refreshStudioProject(projectName);
-			markProjectDirty(projectName);
-			propertiesRefreshSerial += 1;
-			refreshStudioViews();
-			toaster.success({
-				description: `The style editor changed ${changed.length} object${changed.length > 1 ? 's' : ''}.`
-			});
-		}
-	}
-
 	/** The message when the preview shows an element the project no longer has */
 	const STALE_AUTHORING_MESSAGE =
 		'This element of the preview is no longer in the project: reload the preview.';
@@ -4141,7 +4119,6 @@
 		{ngxReference}
 		onNgxSelect={selectInNgxPreview}
 		onNgxDrop={dropInNgxPreview}
-		onNgxStyleChanges={applyNgxStyleChanges}
 		{ngxCanDrop}
 		onNgxDragStart={ngxDragStart}
 		onNgxDragEnd={ngxDragEnd}
