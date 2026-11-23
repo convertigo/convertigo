@@ -13,7 +13,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { convertigoVersion, electronDir, filesOf, hasCommand, isMachO, parseTarget, repoDir, resourcesDir, run, targetsOf } from './common.mjs';
+import { convertigoVersion, electronDir, filesOf, gradleProperty, hasCommand, isMachO, parseTarget, repoDir, resourcesDir, run, targetsOf } from './common.mjs';
 
 const NAME = 'Convertigo Studio';
 const version = convertigoVersion();
@@ -87,7 +87,8 @@ function macSigning(target) {
 			// the Mach-O binaries only, rather than every file of the engine
 			ignore: (file) => fs.statSync(file).isFile() && !isMachO(file),
 			optionsForFile: (file) =>
-				file.includes(`${path.sep}Contents${path.sep}Resources${path.sep}jre${path.sep}`)
+				file.includes(`${path.sep}Contents${path.sep}Resources${path.sep}jre${path.sep}`) ||
+				file.endsWith(`${path.sep}WEB-INF${path.sep}node${path.sep}bin${path.sep}node`)
 					? { hardenedRuntime: true, entitlements: JAVA_ENTITLEMENTS }
 					: {}
 		}
@@ -119,6 +120,8 @@ function signAdHoc(bundle) {
 	for (const file of filesOf(path.join(bundle, 'Contents', 'Resources', 'jre')).filter(isMachO)) {
 		run('codesign', ['--force', '--sign', '-', file]);
 	}
+	run('codesign', ['--force', '--sign', '-', '--entitlements', JAVA_ENTITLEMENTS,
+		path.join(bundle, 'Contents', 'Resources', 'engine', 'war', 'WEB-INF', 'node', 'bin', 'node')]);
 	run('codesign', ['--force', '--deep', '--sign', '-', bundle]);
 }
 
@@ -143,15 +146,20 @@ function signWindows(exe) {
 async function packageTarget(target) {
 	const { platform, arch } = parseTarget(target);
 	const jre = path.join(resourcesDir, target, 'jre');
-	for (const required of [path.join(resourcesDir, 'engine', 'war'), jre, path.join(resourcesDir, 'icon.png')]) {
+	const node = path.join(resourcesDir, target, 'node');
+	for (const required of [path.join(resourcesDir, 'engine', 'war'), jre, node, path.join(resourcesDir, 'icon.png')]) {
 		if (!fs.existsSync(required)) {
-			throw new Error(`${required} is missing: run scripts/engine.mjs and scripts/jre.mjs ${target} first`);
+			throw new Error(`${required} is missing: prepare the engine, JRE and Gradle bundleElectronNodeRuntimes first`);
 		}
+	}
+	if (fs.readFileSync(path.join(node, '.convertigo-node-version'), 'utf8').trim() !== gradleProperty('nodeRuntimeVersion')) {
+		throw new Error(`${target}: stale Node.js distribution; run bundleElectronNodeRuntimes again`);
 	}
 	if (platform === 'darwin' && process.platform !== 'darwin') {
 		throw new Error(`${target} is packaged and signed on macOS only`);
 	}
 	const staging = path.join(distDir, '.packaging');
+	const signing = platform === 'darwin' ? macSigning(target) : {};
 	fs.rmSync(staging, { recursive: true, force: true });
 	const [stagedPath] = await packager({
 		dir: electronDir,
@@ -175,7 +183,18 @@ async function packageTarget(target) {
 		extraResource: [path.join(resourcesDir, 'engine'), jre, path.join(resourcesDir, 'icon.png')],
 		// the application is main.js and preload.js; its dependencies are the build tools, left out
 		ignore: [/^\/(resources|dist|scripts|engine|\.cache)($|\/)/, /^\/(README\.md|\.gitignore)$/, /\.log$/],
-		...(platform === 'darwin' ? macSigning(target) : {})
+		...signing,
+		afterCopyExtraResources: [
+			({ buildPath }) => {
+				const resources = platform === 'darwin'
+					? path.join(buildPath, `${NAME}.app`, 'Contents', 'Resources')
+					: path.join(buildPath, 'resources');
+				fs.cpSync(node, path.join(resources, 'engine', 'war', 'WEB-INF', 'node'), {
+					recursive: true, verbatimSymlinks: true
+				});
+			},
+			...(signing.afterCopyExtraResources ?? [])
+		]
 	});
 	const appPath = path.join(distDir, path.basename(stagedPath));
 	fs.rmSync(appPath, { recursive: true, force: true });

@@ -129,6 +129,26 @@ RUN export GNUPGHOME="$(mktemp -d)" \
         && chmod -R a+rX WEB-INF/lib WEB-INF/classes \
         && rm -rf /tmp/*)
 
+## Install the default Node.js runtime for this image's architecture, outside the portable WAR.
+RUN set -eu; \
+    case "$(dpkg --print-architecture)" in amd64) node_arch=x64 ;; arm64) node_arch=arm64 ;; *) exit 1 ;; esac; \
+    node_version=v26.13.1; \
+    node_archive="node-${node_version}-linux-${node_arch}.tar.gz"; \
+    cd /tmp; \
+    curl -fsSLO "https://nodejs.org/dist/${node_version}/${node_archive}"; \
+    curl -fsSLO "https://nodejs.org/dist/${node_version}/SHASUMS256.txt"; \
+    awk -v archive="$node_archive" '$2 == archive { print; found=1 } END { if (!found) exit 1 }' SHASUMS256.txt > node.sha256; \
+    sha256sum -c node.sha256; \
+    node_dir="$CATALINA_HOME/webapps/convertigo/WEB-INF/node"; \
+    mkdir -p "$node_dir"; \
+    tar -xzf "$node_archive" --strip-components=1 -C "$node_dir"; \
+    test -s "$node_dir/LICENSE"; \
+    test "$("$node_dir/bin/node" --version)" = "$node_version"; \
+    printf '%s\n' "$node_version" > "$node_dir/.convertigo-node-version"; \
+    rm "$node_archive" SHASUMS256.txt node.sha256
+
+COPY ./third-party-notices.txt webapps/convertigo/WEB-INF/node/legal/third-party-notices.txt
+
 ## copy the ROOT index that redirect to the 'convertigo' webapp
 
 COPY ./root-index.html webapps/ROOT/index.html

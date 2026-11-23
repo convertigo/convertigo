@@ -37,6 +37,7 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -69,18 +70,32 @@ import com.twinsoft.convertigo.engine.LocalWorkDirectory;
 import com.twinsoft.convertigo.engine.proxy.ntlm.NtlmConnectProxyBridge;
 
 public class ProcessUtils {
-	private static String defaultNodeVersion = "v26.13.1";
-	private static File defaultNodeDir;
+	private static final String defaultNodeVersion = readDefaultNodeVersion();
+	private static final Object nodeInstallLock = new Object();
+	private static volatile File defaultNodeDir;
+
+	private static String readDefaultNodeVersion() {
+		try (var input = ProcessUtils.class.getResourceAsStream("/com/twinsoft/convertigo/engine/node-runtime.properties")) {
+			var properties = new Properties();
+			if (input != null) {
+				properties.load(input);
+				var version = properties.getProperty("version", "");
+				if (version.matches("v\\d+\\.\\d+\\.\\d+")) {
+					return version;
+				}
+			}
+		} catch (IOException e) {
+			throw new IllegalStateException("Cannot read the default Node.js version", e);
+		}
+		throw new IllegalStateException("Missing Node.js version: run generateNodeRuntimeProperties before building the engine");
+	}
 
 	public static String getDefaultNodeVersion() {
 		return defaultNodeVersion;
 	}
 
 	public static File getDefaultNodeDir() {
-		if (defaultNodeDir == null) {
-			defaultNodeDir = getLocalNodeDir(defaultNodeVersion);
-		}
-		return defaultNodeDir;
+		return getLocalNodeDir(defaultNodeVersion);
 	}
 
 	public static String getNodeVersion(Project project) {
@@ -159,11 +174,7 @@ public class ProcessUtils {
 	}
 
 	public static void setDefaultNodeDir(File nodeDir) {
-		String version = getNodeVersion(nodeDir);
-		if (version != null && (!version.equals(defaultNodeVersion) || defaultNodeDir == null)) {
-			defaultNodeVersion = version;
-			defaultNodeDir = nodeDir;
-		}
+		defaultNodeDir = nodeDir;
 	}
 
 	private static String searchFullPath(String paths, String command) throws IOException {
@@ -332,10 +343,44 @@ public class ProcessUtils {
 	}
 
 	private static File getLocalNodeDir(String version) {
-		if (version.equals(defaultNodeVersion) && defaultNodeDir != null) {
-			return defaultNodeDir;
+		if (version.equals(defaultNodeVersion)) {
+			var override = System.getProperty("convertigo.node.path", "").trim();
+			if (!override.isEmpty()) {
+				var bin = nodeBinDirectory(new File(override));
+				if (bin == null) {
+					throw new IllegalArgumentException("convertigo.node.path must contain an executable Node.js runtime");
+				}
+				return bin;
+			}
+			if (Engine.WEBAPP_PATH != null && !Engine.WEBAPP_PATH.isEmpty()) {
+				var bundled = new File(Engine.WEBAPP_PATH, "WEB-INF/node");
+				try {
+					var marker = new File(bundled, ".convertigo-node-version");
+					if (marker.isFile() && version.equals(Files.readString(marker.toPath()).trim())) {
+						var bin = nodeBinDirectory(bundled);
+						if (bin != null) {
+							return bin;
+						}
+					}
+				} catch (IOException e) {
+					Engine.logEngine.warn("Cannot read the bundled Node.js version", e);
+				}
+			}
+			var bin = nodeBinDirectory(defaultNodeDir);
+			if (bin != null) {
+				return bin;
+			}
 		}
 		return new File(getNodesDir(), "node-" + version + "-" + getNodeOs());
+	}
+
+	private static File nodeBinDirectory(File directory) {
+		if (directory == null) {
+			return null;
+		}
+		var bin = Engine.isWindows() || new File(directory, "node").isFile() ? directory : new File(directory, "bin");
+		var node = new File(bin, Engine.isWindows() ? "node.exe" : "node");
+		return node.isFile() && (Engine.isWindows() || node.canExecute()) ? bin : null;
 	}
 
 	public static SortedSet<String> getNodeVersions() {
@@ -379,14 +424,12 @@ public class ProcessUtils {
 	}
 
 	public static File getNodeDir(String version, ProgressListener progress) throws Exception {
-		synchronized (defaultNodeVersion) {
+		synchronized (nodeInstallLock) {
 			File dir = getLocalNodeDir(version);
 			Engine.logEngine.debug("getLocalNodeDir " + dir + (dir.exists() ? " exists" : " doesn't exist"));
-			if (dir.exists()) {
-				if (!Engine.isWindows() && !dir.getName().equals("bin")) {
-					dir = new File(dir, "bin");
-				}
-				return dir;
+			var installed = nodeBinDirectory(dir);
+			if (installed != null) {
+				return installed;
 			}
 			File archive = new File(dir.getPath() + (Engine.isWindows() ? ".zip" : ".tar.gz"));
 			// with a local working directory, the archive is kept in the workspace, a single file that shared storage

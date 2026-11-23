@@ -39,6 +39,7 @@ From the root of the repository:
 ```bash
 (cd convertigo-studio-web && npm ci && npm run build)   # writes eclipse-plugin-studio/tomcat/webapps/convertigo
 ./gradlew :engine:war                                   # writes engine/build/libs/convertigo-<version>.war
+./gradlew bundleElectronNodeRuntimes -x :engine:publish   # resources/<target>/node: the default engine Node.js
 cd convertigo-studio-electron
 npm ci
 npm run engine                  # resources/engine: the war exploded, Tomcat, DevEngine, the Tomcat conf
@@ -52,6 +53,9 @@ and no target means the one of the machine. `scripts/engine.mjs --war <file>` ta
 
 - The engine embeds the Tomcat of `tomcatVersion` in `build.gradle`, with the `context.xml` and
   `web.xml` of `eclipse-plugin-studio/tomcat/conf`.
+- Its child processes use the default Node.js selected by `nodeRuntimeVersion` in `build.gradle`,
+  bundled per target with npm and the original LICENSE. It is separate from Electron's internal
+  runtime. See [runtime resolution and packaging](../engine/docs/node-runtime.md).
 - The Java runtime is a jlink of the Temurin release of `installers/nsis/download-jdk.sh`, the one of
   the Eclipse Studio. jlink links the runtime of any target from the jmods of that target, with the
   JDK of the machine of the same release (downloaded, or `JLINK_JDK`). Its legal notices are copied

@@ -109,7 +109,14 @@ task copyWin64ServerFiles(type: Copy) {
 	into "build/convertigo-server-${convertigoVersion}-win64/"
 }
 
-task makeWin64ServerZip(type: Zip, dependsOn: [unzipWin64ServerTomcat, unzipWin64ServerJdk, unzipWin64ServerWar, copyWin64ServerIndex, copyWin64ServerFiles]) {
+tasks.register('copyWin64ServerNode', Sync) {
+	group = 'convertigo'
+	dependsOn 'prepareNodeRuntimeWinX64'
+	from layout.buildDirectory.dir('node-runtime/win-x64')
+	into "build/convertigo-server-${convertigoVersion}-win64/webapps/convertigo/WEB-INF/node"
+}
+
+task makeWin64ServerZip(type: Zip, dependsOn: [unzipWin64ServerTomcat, unzipWin64ServerJdk, unzipWin64ServerWar, copyWin64ServerIndex, copyWin64ServerFiles, 'copyWin64ServerNode']) {
 	group = 'convertigo'
 	
 	from "build/convertigo-server-${convertigoVersion}-win64"

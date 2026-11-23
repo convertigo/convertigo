@@ -1,0 +1,143 @@
+import java.security.MessageDigest
+
+// The same official distribution is used by every installer. The portable WAR does not contain it.
+def nodeTargets = [
+	LinuxX64: 'linux-x64', LinuxArm64: 'linux-arm64',
+	DarwinX64: 'darwin-x64', DarwinArm64: 'darwin-arm64', WinX64: 'win-x64'
+]
+def nodeCache = layout.buildDirectory.dir("node-downloads/${nodeRuntimeVersion}")
+
+def sha256 = { File archive ->
+	def digest = MessageDigest.getInstance('SHA-256')
+	archive.withInputStream { input ->
+		byte[] buffer = new byte[1024 * 1024]
+		int size
+		while ((size = input.read(buffer)) != -1) {
+			digest.update(buffer, 0, size)
+		}
+	}
+	HexFormat.of().formatHex(digest.digest())
+}
+
+def download = { String url, File destination ->
+	destination.parentFile.mkdirs()
+	def connection = new URI(url).toURL().openConnection()
+	connection.connectTimeout = 30000
+	connection.readTimeout = 120000
+	def partial = new File(destination.path + '.part')
+	try {
+		connection.inputStream.withCloseable { input -> partial.withOutputStream { it << input } }
+		java.nio.file.Files.move(partial.toPath(), destination.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+	} finally {
+		partial.delete()
+	}
+}
+
+tasks.register('downloadNodeChecksums') {
+	group = 'distribution'
+	inputs.property('version', nodeRuntimeVersion)
+	outputs.file(nodeCache.map { it.file('SHASUMS256.txt') })
+	doLast {
+		download("https://nodejs.org/dist/${nodeRuntimeVersion}/SHASUMS256.txt", nodeCache.get().file('SHASUMS256.txt').asFile)
+	}
+}
+
+def installNode = { String target, File destination ->
+	def name = "node-${nodeRuntimeVersion}-${target}." + (target.startsWith('win-') ? 'zip' : 'tar.gz')
+	def archive = nodeCache.get().file(name).asFile
+	def checksum = nodeCache.get().file('SHASUMS256.txt').asFile.readLines('UTF-8')
+		.collect { it.trim().split(/\s+/) }.find { it.size() == 2 && it[1] == name }?.getAt(0)
+	if (checksum == null || !(checksum ==~ /[0-9a-f]{64}/)) {
+		throw new GradleException("No official Node.js checksum for ${name}")
+	}
+	if (!archive.isFile() || sha256(archive) != checksum) {
+		download("https://nodejs.org/dist/${nodeRuntimeVersion}/${name}", archive)
+	}
+	if (sha256(archive) != checksum) {
+		throw new GradleException("Node.js checksum mismatch for ${name}")
+	}
+	// Only this generated distribution directory is replaced; never a user's runtime or workspace.
+	delete destination
+	destination.mkdirs()
+	if (target.startsWith('win-')) {
+		copy {
+			from zipTree(archive)
+			into destination
+			includeEmptyDirs = false
+			eachFile { it.path = it.path.replaceFirst('^[^/]+/', '') }
+		}
+	} else {
+		// Preserve executable modes and npm/npx relative symlinks (a Gradle Copy dereferences them).
+		def process = new ProcessBuilder('tar', '-xzf', archive.absolutePath, '--strip-components=1', '-C', destination.absolutePath)
+			.inheritIO().start()
+		if (process.waitFor() != 0) {
+			throw new GradleException("Cannot extract ${name}")
+		}
+	}
+	def node = new File(destination, target.startsWith('win-') ? 'node.exe' : 'bin/node')
+	if (!node.isFile() || !new File(destination, 'LICENSE').isFile()) {
+		throw new GradleException("Incomplete Node.js distribution: ${name}")
+	}
+	new File(destination, '.convertigo-node-version').text = nodeRuntimeVersion + '\n'
+	copy { from 'legal/third-party-notices.txt'; into new File(destination, 'legal') }
+}
+
+nodeTargets.each { suffix, target ->
+	tasks.register("prepareNodeRuntime${suffix}") {
+		group = 'distribution'
+		dependsOn 'downloadNodeChecksums'
+		inputs.property('version', nodeRuntimeVersion)
+		inputs.file('legal/third-party-notices.txt')
+		outputs.dir(layout.buildDirectory.dir("node-runtime/${target}"))
+		doLast { installNode(target, layout.buildDirectory.dir("node-runtime/${target}").get().asFile) }
+	}
+}
+
+tasks.register('prepareNodeRuntimes') {
+	group = 'distribution'
+	dependsOn nodeTargets.keySet().collect { "prepareNodeRuntime${it}" }
+}
+
+tasks.register('bundleStudioNodeRuntimes') {
+	group = 'distribution'
+	description = 'Adds the matching Node.js distribution to each assembled Eclipse Studio before signing.'
+	dependsOn 'downloadNodeChecksums'
+	doLast {
+		def products = file('eclipse-repository/target/products/com.convertigo.studio')
+		def layouts = [
+			'win32/win32/x86_64': ['win-x64', 'plugins'],
+			'linux/gtk/x86_64': ['linux-x64', 'plugins'],
+			'macosx/cocoa/x86_64': ['darwin-x64', 'ConvertigoStudio.app/Contents/Eclipse/plugins'],
+			'macosx/cocoa/aarch64': ['darwin-arm64', 'ConvertigoStudio.app/Contents/Eclipse/plugins']
+		]
+		int installed = 0
+		layouts.each { layout, settings ->
+			def product = new File(products, layout)
+			if (product.isDirectory()) {
+				def plugins = new File(product, settings[1]).listFiles()?.findAll { it.name.startsWith('com.twinsoft.convertigo.studio_') && it.isDirectory() }
+				if (plugins?.size() != 1) {
+					throw new GradleException("Expected one Studio plugin in ${product}")
+				}
+				installNode(settings[0], new File(plugins[0], 'tomcat/webapps/convertigo/WEB-INF/node'))
+				installed++
+			}
+		}
+		if (installed == 0) {
+			throw new GradleException('No assembled Eclipse Studio; build the products first')
+		}
+	}
+}
+
+tasks.register('bundleElectronNodeRuntimes') {
+	group = 'distribution'
+	description = 'Prepares Node.js for the four Electron Studio packaging targets.'
+	dependsOn 'downloadNodeChecksums'
+	inputs.property('version', nodeRuntimeVersion)
+	inputs.file('legal/third-party-notices.txt')
+	def targets = ['linux-x64', 'darwin-x64', 'darwin-arm64', 'win-x64']
+	def electronTarget = { String target -> target.startsWith('win-') ? target.replaceFirst('win-', 'win32-') : target }
+	targets.each { target -> outputs.dir("convertigo-studio-electron/resources/${electronTarget(target)}/node") }
+	doLast {
+		targets.each { target -> installNode(target, file("convertigo-studio-electron/resources/${electronTarget(target)}/node")) }
+	}
+}

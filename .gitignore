@@ -64,6 +64,7 @@ graphify-out/
 /eclipse-repository/Convertigo.product
 /eclipse-repository/Convertigo.product.tmp
 /engine/src/com/twinsoft/convertigo/engine/admin/services/mobiles/res
+/engine/src/com/twinsoft/convertigo/engine/node-runtime.properties
 /resources
 /workspace
 /diagnostics/

@@ -53,19 +53,27 @@ def node_candidate(current, releases, lane):
     return 'v' + '.'.join(map(str, best)) if best and best > base else None
 
 
+def node_version_source(repo):
+    """Gradle is authoritative; keep reading Java for older maintenance branches."""
+    for name, pattern in [('build.gradle', r"(?m)^ext\.nodeRuntimeVersion\s*=\s*'([^']+)'"),
+                          (NODE_SOURCE, r'defaultNodeVersion\s*=\s*"([^"]+)"')]:
+        path = repo / name
+        if path.is_file():
+            source = path.read_text()
+            match = re.search(pattern, source)
+            if match:
+                return match[1], name, source.count('\n', 0, match.start()) + 1
+    raise ValueError('Node.js default absent from Gradle and the legacy Java source')
+
+
 def check_node(repo, lane):
     """Prints the default Node.js status; returns True when the check is incomplete."""
-    source = (repo / NODE_SOURCE).read_text()
-    match = re.search(r'defaultNodeVersion\s*=\s*"([^"]+)"', source)
-    if not match:
-        print(f"REVIEW Node.js default: defaultNodeVersion absent or changed in {NODE_SOURCE}")
-        return True
-    line = source.count('\n', 0, match.start()) + 1
     try:
+        current, source, line = node_version_source(repo)
         with urllib.request.urlopen(NODE_INDEX, timeout=20) as response:
-            newer = node_candidate(match[1], json.load(response), lane)
-        status = f"UPDATE {match[1]} -> {newer}" if newer else f"CURRENT {match[1]}"
-        print(f"{status}: Node.js default ({NODE_SOURCE}:{line})")
+            newer = node_candidate(current, json.load(response), lane)
+        status = f"UPDATE {current} -> {newer}" if newer else f"CURRENT {current}"
+        print(f"{status}: Node.js default ({source}:{line})")
         return False
     except Exception as error:
         print(f"INCOMPLETE Node.js default: {error}")

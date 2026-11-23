@@ -1,5 +1,16 @@
 // Engine test source set and verification tasks.
 
+tasks.register('nodeRuntimeTest', JavaExec) {
+	group = 'verification'
+	description = 'Bundled Node.js, overrides, pinned project versions and on-demand archive extraction.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.NodeRuntimeTest'
+}
+
+tasks.named('check') { dependsOn 'nodeRuntimeTest' }
+
 tasks.register('xmlRuntimeCompatibilityTest', JavaExec) {
 	group = 'verification'
 	description = 'XML, StAX, JAXB, local WSDL/SOAP and Hibernate runtime compatibility.'

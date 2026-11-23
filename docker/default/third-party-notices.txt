@@ -1,0 +1,15 @@
+Third-party runtime distributions
+=================================
+
+Node.js (https://nodejs.org/)
+
+Convertigo distributions for Docker, desktop Studios and Windows Server include
+the official Node.js runtime, with npm. Its version is selected by
+nodeRuntimeVersion in build.gradle. Project templates may request another Node.js
+version, downloaded separately when needed. The portable WAR does not bundle it.
+
+Node.js is licensed under the MIT license and includes third-party components
+under their respective licenses. The original LICENSE file is shipped unchanged
+at the root of the Node.js distribution (WEB-INF/node/LICENSE). It contains the
+Node.js license and notices for its included third-party software. The upstream
+distribution's other license and notice files are retained as well.

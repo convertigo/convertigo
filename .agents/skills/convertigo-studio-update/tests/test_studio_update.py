@@ -159,6 +159,16 @@ class CheckoutTests(unittest.TestCase):
 
 
 class ForcedVersionTests(unittest.TestCase):
+    def test_node_version_comes_from_gradle_before_legacy_java(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repo = Path(directory)
+            java = repo / forced_versions.NODE_SOURCE
+            java.parent.mkdir(parents=True)
+            java.write_text('private static String defaultNodeVersion = "v22.16.0";')
+            self.assertEqual(forced_versions.node_version_source(repo)[0], 'v22.16.0')
+            (repo / 'build.gradle').write_text("ext.nodeRuntimeVersion = 'v26.13.1'\n")
+            self.assertEqual(forced_versions.node_version_source(repo), ('v26.13.1', 'build.gradle', 1))
+
     def test_stable_final_is_allowed_but_prereleases_are_not(self):
         self.assertEqual(forced_versions.version_key("4.1.130.Final"), (4, 1, 130))
         self.assertIsNone(forced_versions.version_key("4.1.131.CR1"))
