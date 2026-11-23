@@ -1862,9 +1862,13 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			nodeDir = ProcessUtils.getDefaultNodeDir();
 			try {
 				nodeDir = ProcessUtils.getNodeDir(nodeVersion, (r , t, x) -> {
-					appendOutput("Downloading nodejs " + nodeVersion + ": " + Math.round((r * 100f) / t) + "%");
-				});
+					appendOutput("Downloading nodejs " + nodeVersion + ": " + (t > 0 ? Math.round((r * 100f) / t) + "%" : r + " bytes"));
+				}, message -> appendOutput(message));
 			} catch (Exception e1) {
+				appendOutput("Unable to prepare Node.js: " + e1.getMessage());
+				Engine.logStudio.warn("Unable to prepare Node.js for the application build", e1);
+				error(e1.getMessage());
+				return;
 			}
 
 			{

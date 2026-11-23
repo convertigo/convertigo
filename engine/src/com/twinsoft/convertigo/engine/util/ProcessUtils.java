@@ -30,7 +30,6 @@ import java.io.InputStreamReader;
 import java.lang.ProcessBuilder.Redirect;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -40,7 +39,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -336,6 +334,13 @@ public class ProcessUtils {
 		return Engine.isWindows() ? "win-x64" : Engine.isLinux() ? (arm64 ? "linux-arm64" : "linux-x64") : arm64 ? "darwin-arm64" : "darwin-x64";
 	}
 
+	private static String getNodeOs(String version) {
+		var platform = getNodeOs();
+		// Official Apple Silicon archives start at Node.js 16; older templates retain the Intel distribution.
+		return platform.equals("darwin-arm64") && VersionUtils.compare(version, "v16.0.0") < 0
+				? "darwin-x64" : platform;
+	}
+
 	/** The Node.js distributions, rebuildable: in the local working directory when one is configured. */
 	private static File getNodesDir() {
 		var local = LocalWorkDirectory.getDirectory("nodes");
@@ -371,7 +376,7 @@ public class ProcessUtils {
 				return bin;
 			}
 		}
-		return new File(getNodesDir(), "node-" + version + "-" + getNodeOs());
+		return new File(getNodesDir(), "node-" + version + "-" + getNodeOs(version));
 	}
 
 	private static File nodeBinDirectory(File directory) {
@@ -424,128 +429,19 @@ public class ProcessUtils {
 	}
 
 	public static File getNodeDir(String version, ProgressListener progress) throws Exception {
+		return getNodeDir(version, progress, null);
+	}
+
+	/** Reports download, verification and extraction to a Studio build output as well as the engine log. */
+	public static File getNodeDir(String version, ProgressListener progress, java.util.function.Consumer<String> status) throws Exception {
 		synchronized (nodeInstallLock) {
 			File dir = getLocalNodeDir(version);
-			Engine.logEngine.debug("getLocalNodeDir " + dir + (dir.exists() ? " exists" : " doesn't exist"));
 			var installed = nodeBinDirectory(dir);
 			if (installed != null) {
 				return installed;
 			}
-			File archive = new File(dir.getPath() + (Engine.isWindows() ? ".zip" : ".tar.gz"));
-			// with a local working directory, the archive is kept in the workspace, a single file that shared storage
-			// reads well: a new instance extracts it locally (about a second) instead of downloading it again
-			File cached = LocalWorkDirectory.isEnabled() ? new File(new File(Engine.USER_WORKSPACE_PATH, "nodes"), archive.getName()) : null;
-			boolean fromCache = cached != null && cached.isFile();
-			// an extraction interrupted in the local working directory is removed at the next startup
-			File folder = LocalWorkDirectory.beginWork(dir);
-			HttpGet get = new HttpGet("https://nodejs.org/dist/" + version + "/" + archive.getName());
-			boolean retry;
-			do {
-				retry = false;
-				// instances sharing the workspace may download at once: each one writes its own file
-				File source = fromCache ? cached : cached != null ? new File(cached.getPath() + ".part-" + UUID.randomUUID()) : archive;
-				boolean extracted = false;
-				try {
-					if (fromCache) {
-						Engine.logEngine.info("getNodeDir archive " + dir + " extracted from " + cached);
-					} else {
-						Engine.logEngine.info("getNodeDir archive " + dir + " downloaded from " + get.getURI().toString());
-
-						try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
-							FileUtils.deleteQuietly(source);
-							source.getParentFile().mkdirs();
-							if (progress != null) {
-								long length = response.getEntity().getContentLength();
-								try (FileOutputStream fos = new FileOutputStream(source)) {
-									InputStream is = response.getEntity().getContent();
-									byte[] buf = new byte[1024 * 1024];
-									int n;
-									long t = 0, now, ts = 0;
-									while ((n = is.read(buf)) > -1) {
-										fos.write(buf, 0, n);
-										t += n;
-										now = System.currentTimeMillis();
-										if (now > ts) {
-											progress.update(t, length, 1);
-											ts = now + 2000;
-										}
-									}
-									progress.update(t, length, 1);
-								}
-							} else {
-								FileUtils.copyInputStreamToFile(response.getEntity().getContent(), source);
-							}
-						}
-					}
-					if (Engine.isWindows()) {
-						Level l = Engine.logEngine.getLevel();
-						try {
-							Engine.logEngine.info("prepare to unzip " + source.getAbsolutePath() + " to " + dir.getAbsolutePath());
-							Engine.logEngine.setLevel(Level.OFF);
-							ZipUtils.expandZip(source.getAbsolutePath(), dir.getAbsolutePath(), dir.getName());
-							extracted = true;
-							Engine.logEngine.setLevel(l);
-							Engine.logEngine.info("unzip terminated!");
-						} catch (Exception e) {
-							if (!fromCache) {
-								throw e;
-							}
-							Engine.logEngine.setLevel(l);
-							Engine.logEngine.warn("getNodeDir unable to extract " + cached + ", it is downloaded again", e);
-						} finally {
-							Engine.logEngine.setLevel(l);
-						}
-					} else {
-						Engine.logEngine.info("tar -zxf " + source.getAbsolutePath() + " into " + dir.getParentFile());
-						dir.getParentFile().mkdirs();
-						int status = waitFor(ProcessUtils.getProcessBuilder(null, "tar", "-zxf", source.getAbsolutePath(), "-C", dir.getParentFile().getAbsolutePath())
-								.redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start(), TAR_TIMEOUT, "tar");
-						extracted = status == 0;
-						if (!extracted && fromCache) {
-							Engine.logEngine.warn("getNodeDir unable to extract " + cached + ", it is downloaded again");
-							retry = true;
-						} else if (archive.getName().contains("darwin-arm64")) {
-							if (status != 0) {
-								retry = true;
-								get = new HttpGet("https://nodejs.org/dist/" + version + "/" + archive.getName().replace("arm64", "x64"));
-							} else if (!dir.exists()) {
-								File dir64 = new File(dir.getParentFile(), dir.getName().replace("arm64", "x64"));
-								if (dir64.exists()) {
-									dir64.renameTo(dir);
-								}
-							}
-						}
-						if (!retry) {
-							dir = new File(dir, "bin");
-						}
-					}
-				} finally {
-					if (source != archive && source != cached) {
-						// only an archive extracted successfully is shared with the other instances
-						if (extracted) {
-							try {
-								Files.move(source.toPath(), cached.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-							} catch (IOException e) {
-								Engine.logEngine.debug("getNodeDir unable to keep " + cached, e);
-							}
-						}
-						FileUtils.deleteQuietly(source);
-					}
-				}
-				if (fromCache && !extracted) {
-					// a damaged archive is not kept
-					FileUtils.deleteQuietly(cached);
-					fromCache = false;
-					retry = true;
-				}
-				if (cached == null) {
-					FileUtils.deleteQuietly(archive);
-				}
-			} while(retry);
-			if (folder.exists()) {
-				LocalWorkDirectory.endWork(folder);
-			}
-			return dir;
+			var archives = new File(Engine.USER_WORKSPACE_PATH, "nodes");
+			return new NodeRuntimeInstaller(version, getNodeOs(version), dir, archives, progress, status).install();
 		}
 	}
 

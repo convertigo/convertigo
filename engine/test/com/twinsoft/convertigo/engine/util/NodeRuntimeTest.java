@@ -75,7 +75,7 @@ public class NodeRuntimeTest {
 		var bin = Engine.isWindows() ? root : root.resolve("bin");
 		Files.createDirectories(bin);
 		var executable = bin.resolve(Engine.isWindows() ? "node.exe" : "node").toFile();
-		Files.writeString(executable.toPath(), "fixture");
+		Files.writeString(executable.toPath(), "#!/bin/sh\nprintf '%s\\n' '" + ProcessUtils.getDefaultNodeVersion() + "'\n");
 		assertTrue(executable.setExecutable(true));
 		return bin.toFile();
 	}
@@ -195,10 +195,13 @@ public class NodeRuntimeTest {
 
 	@Test
 	public void portableWarDownloadsOnceEvenWithConcurrentFirstUses() throws Exception {
+		org.junit.Assume.assumeFalse("The executable fixture is a POSIX script", Engine.isWindows());
 		var expectedRoot = ProcessUtils.getDefaultNodeDir().toPath();
 		var name = expectedRoot.getFileName().toString();
 		var fixture = temporary.resolve("archive contents");
 		var bin = runtime(fixture.resolve(name));
+		Files.writeString(bin.toPath().resolve("npm"), "fixture");
+		Files.writeString(fixture.resolve(name).resolve("LICENSE"), "fixture");
 		byte[] bytes;
 		if (Engine.isWindows()) {
 			var output = new java.io.ByteArrayOutputStream();
@@ -210,10 +213,16 @@ public class NodeRuntimeTest {
 			bytes = output.toByteArray();
 		} else {
 			var archive = temporary.resolve("runtime.tar.gz");
-			assertEquals(0, new ProcessBuilder("tar", "-czf", archive.toString(), "-C", fixture.toString(), name).start().waitFor());
+			var builder = new ProcessBuilder("tar", "-czf", archive.toString(), "-C", fixture.toString(), name);
+			builder.environment().put("COPYFILE_DISABLE", "1");
+			assertEquals(0, builder.start().waitFor());
 			bytes = Files.readAllBytes(archive);
 		}
+		String hash = java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(bytes));
 		Engine.theApp.httpClient4 = request -> {
+			if (request.getURI().toString().endsWith("SHASUMS256.txt")) {
+				return new ArchiveResponse((hash + "  " + name + ".tar.gz\n").getBytes(java.nio.charset.StandardCharsets.UTF_8));
+			}
 			assertEquals("https://nodejs.org/dist/" + ProcessUtils.getDefaultNodeVersion() + "/" + name + (Engine.isWindows() ? ".zip" : ".tar.gz"), request.getURI().toString());
 			downloads.incrementAndGet();
 			return new ArchiveResponse(bytes);

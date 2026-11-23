@@ -7,6 +7,7 @@ tasks.register('nodeRuntimeTest', JavaExec) {
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.util.NodeRuntimeTest'
+	args 'com.twinsoft.convertigo.engine.util.NodeArchiveTest'
 }
 
 tasks.named('check') { dependsOn 'nodeRuntimeTest' }

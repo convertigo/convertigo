@@ -32,6 +32,44 @@ and uses that version's cache/download. CLI builds, local builds and NGX editors
 retain this behavior. Libraries with explicit executable paths retain their
 own choices too.
 
+## Manual download when a network or workstation policy blocks Node.js
+
+If a requested runtime is not already available and its download fails, the
+engine log and Studio build output show the failing stage, the original error,
+the **exact archive URL** and the **absolute `nodes` directory** to use. The
+default-runtime startup job in Eclipse also displays the error. A failed NGX
+download stops the build instead of silently switching to the default version.
+
+1. Download the archive at the displayed URL using an allowed browser or machine.
+   Keep its original name: `node-<version>-win-x64.zip` on Windows, or the matching
+   `node-<version>-<platform>.tar.gz` on Linux/macOS. Do not rename or unpack it.
+2. Place that file directly in the displayed `nodes` directory, normally
+   `<workspace>/nodes`. When a local working directory is configured, archives
+   in either its `nodes` folder or `<workspace>/nodes` are accepted; extraction
+   remains in the local working directory.
+3. If possible, also download the release's `SHASUMS256.txt` from the URL shown
+   in the message and place it beside the archive. This allows verification
+   without any network access.
+4. Retry the build, or restart the Studio for its default-runtime startup job.
+   Convertigo reports local archive detection, SHA-256 verification, extraction,
+   executable version verification and the final location.
+
+A matching local archive is preferred to another download and is retained after
+installation. Files for other versions/platforms are left alone. If no matching
+local checksum is found, Convertigo tries the official checksum URL with a short
+timeout. If it remains unavailable (including a proxy block page), a warning
+explicitly states that SHA-256 was **not verified**. The archive directory and
+the executable's actual `node --version` must still match the request. A checksum
+mismatch, wrong version, incomplete archive or unusable executable stops the
+installation; the original local archive is kept for inspection/replacement.
+
+Extraction happens in a temporary directory. Only a complete, checked runtime
+becomes the installed version. A previous incomplete directory is kept aside
+with an `.incomplete-…` suffix. Downloads use `.part-…` files until checked, so
+an interrupted download is never mistaken for a manually supplied archive.
+The original download error cannot identify an antivirus or proxy product with
+certainty; the message describes the observed failure without guessing its cause.
+
 ## Packaging
 
 - `generateDockerfile` renders the default and AKS Dockerfiles with the Gradle

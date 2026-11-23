@@ -983,15 +983,17 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 								monitor.worked(110);
 							}
 						}
-					});
+					}, monitor::subTask);
 					monitor.worked(120);
 					File nodeExe = new File(nodeDir, Engine.isWindows() ? "node.exe" : "node");
 					Engine.logStudio.warn("node ready: " + nodeExe.getAbsolutePath() + " exists ? " + nodeExe.exists());
 					System.setProperty("org.eclipse.wildwebdeveloper.nodeJSLocation", nodeExe.getAbsolutePath());
 					ProcessUtils.setDefaultNodeDir(nodeDir);
-					monitor.done();
 				} catch (Exception e) {
 					Engine.logStudio.error("Failed to init NPM: " + e.getMessage(), e);
+					logException(e, "Unable to prepare the default Node.js runtime");
+				} finally {
+					monitor.done();
 				}
 			});
 			job.schedule();

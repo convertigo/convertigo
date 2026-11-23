@@ -245,10 +245,10 @@ public class WsBuilder extends WebSocketService {
 				var nodeDir = ProcessUtils.getDefaultNodeDir();
 				try {
 					nodeDir = ProcessUtils.getNodeDir(nodeVersion, (r, t, x) -> {
-						appendOutput("Downloading nodejs " + nodeVersion + ": " + Math.round((r * 100f) / t) + "%");
-					});
+						appendOutput("Downloading nodejs " + nodeVersion + ": " + (t > 0 ? Math.round((r * 100f) / t) + "%" : r + " bytes"));
+					}, message -> appendOutput(message));
 				} catch (Exception e) {
-					log("Failed to get nodejs " + nodeVersion + ": " + e.getMessage());
+					throw new IOException("Failed to get nodejs " + nodeVersion + ": " + e.getMessage(), e);
 				}
 				var versions = "Will use nodejs " + ProcessUtils.getNodeVersion(nodeDir) + " and npm "
 						+ ProcessUtils.getNpmVersion(nodeDir);
