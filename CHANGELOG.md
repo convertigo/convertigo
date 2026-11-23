@@ -6,11 +6,26 @@
 
 - [#1296](https://github.com/convertigo/convertigo/issues/1296) [Admin] Deploy and export several projects together, optionally include declared dependencies in exports, and produce the same project bundles with Gradle
 
+#### Improvements:
+
+- [#1285](https://github.com/convertigo/convertigo/issues/1285) [Studio] Engine preference categories are readable in dark and light themes and can be expanded with the keyboard
+- [#1290](https://github.com/convertigo/convertigo/issues/1290) [Docker] Helm installations use installation-specific credentials and create the No Code Studio Baserow administrator with public sign-ups disabled
+- [#1292](https://github.com/convertigo/convertigo/issues/1292) [Engine] Log masking now covers transactions called by sequences, including HTTP bodies, headers and URL parameters, without changing the values sent to the target service
+
 #### Bug Fixes:
 
+- [#1282](https://github.com/convertigo/convertigo/issues/1282) [Admin] Fixed, the REST API console sends the response format displayed by default and preserves explicit JSON or XML selections
+- [#1283](https://github.com/convertigo/convertigo/issues/1283) [Engine] Fixed, requestables run correctly in projects that bundle their own XML libraries
+- [#1284](https://github.com/convertigo/convertigo/issues/1284) [Studio] Fixed, closing an editor or the Studio during an execution no longer freezes the interface, including when execution is paused in debug mode
+- [#1286](https://github.com/convertigo/convertigo/issues/1286) [Studio] Fixed, the embedded PouchDB server stops with its Studio, including after a forced shutdown, without affecting other workspaces or restarting in a loop
+- [#1289](https://github.com/convertigo/convertigo/issues/1289) [Docker] Fixed, Helm installations complete reliably with several replicas sharing a workspace, resume interrupted setup and keep AWS Marketplace metering disabled unless enabled
+- [#1291](https://github.com/convertigo/convertigo/issues/1291) [FullSync] Fixed, loaded projects synchronize their design documents even when their migrated version cannot be saved, and the Admin console reports the save error
+- [#1293](https://github.com/convertigo/convertigo/issues/1293) [Admin] Fixed, the instance list refreshes when a selected instance becomes unreachable, and a new login no longer keeps a removed instance selected
 - [#1294](https://github.com/convertigo/convertigo/issues/1294) [Engine] Fixed, billing initializes with a custom cryptographic passphrase; these servers now apply the same analytics and server monitoring settings as other servers, while existing passphrases and stored values are preserved
-
-**Compatibility note:** [#1279](https://github.com/convertigo/convertigo/issues/1279) [Engine] Guava 33.8.0 may require changes to project libraries overriding methods of `ForwardingMap.StandardValues`, because some methods are now final.
+- [#1295](https://github.com/convertigo/convertigo/issues/1295) [Admin] Fixed, cancelling the deployment file chooser keeps the displayed selection consistent, and choosing the same project archive again is accepted
+- [#1298](https://github.com/convertigo/convertigo/issues/1298) [Engine] Fixed, PAC proxy lists and DIRECT responses are accepted, and manual or automatic proxy settings apply consistently to HTTP connections and helper processes
+- [#1299](https://github.com/convertigo/convertigo/issues/1299) [Studio] Fixed, displaying new lines in the Engine Log view no longer freezes the Studio on Windows; full messages remain available by double-clicking a line
+- [#1301](https://github.com/convertigo/convertigo/issues/1301) [Engine] Fixed, failed SQL transactions report the original query error and return their connection to the pool, allowing subsequent transactions of the same context to run normally
 
 ## 8.4.7
 
