@@ -113,11 +113,12 @@
 		if (sourceUrl === url && debugState?.attached && debugState.sessionId === sessionId)
 			source = result?.source ?? null;
 	}
-	async function selectFrame(index) {
+	/** A refresh of the same frame keeps its scope until the new one arrives: the panel keeps its height and scroll. */
+	async function selectFrame(index, refresh = false) {
 		const revision = ++selectionRevision;
 		frameIndex = index;
 		debugSession.frameIndex = index;
-		variables = null;
+		if (!refresh) variables = null;
 		const snapshot = debugState;
 		const selected = snapshot?.frames?.[index];
 		if (selected && (standalone || !eclipse)) {
@@ -275,7 +276,7 @@
 			expression = '';
 			if (!failed) {
 				invalidateInspection();
-				await selectFrame(frameIndex);
+				await selectFrame(frameIndex, true);
 			}
 		} finally {
 			busy = false;
