@@ -11,7 +11,9 @@ const studioClasses = path.join(base, 'eclipse-plugin-studio/target/classes');
 const studioLib = path.join(base, 'eclipse-plugin-studio/lib');
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'palette-selection-test-'));
 const javaBin = process.env.JAVA_HOME ? path.join(process.env.JAVA_HOME, 'bin') : '';
-const tests = ['PaletteSelectionTest', 'PaletteComponentFilterTest', 'PaletteFilterKeyTest'];
+const tests = ['PaletteSelectionTest', 'PaletteComponentFilterTest', 'PaletteFilterKeyTest', 'PaletteRequiredProjectTest'];
+// the plug-in's SWT resources need the first thread on macOS
+const jvmArgs = process.platform === 'darwin' ? ['-XstartOnFirstThread'] : [];
 
 function jars(parent) {
   if (!fs.existsSync(parent)) return [];
@@ -33,7 +35,7 @@ try {
     ...tests.map(name => path.join(__dirname, 'java', packagePath, `${name}.java`))];
   execFileSync(path.join(javaBin, 'javac'), ['--release', '21', '-cp', classpath, '-d', dir, ...sources], { stdio: 'inherit' });
   for (const name of tests) {
-    execFileSync(path.join(javaBin, 'java'), ['-cp', classpath, `com.twinsoft.convertigo.eclipse.views.palette.${name}`], { stdio: 'inherit' });
+    execFileSync(path.join(javaBin, 'java'), [...jvmArgs, '-cp', classpath, `com.twinsoft.convertigo.eclipse.views.palette.${name}`], { stdio: 'inherit' });
   }
 } finally {
   fs.rmSync(dir, { recursive: true, force: true });

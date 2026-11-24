@@ -104,6 +104,7 @@ import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
+import com.twinsoft.convertigo.engine.util.RequiredProjects;
 
 
 public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEditableTreeObject, IResourceChangeListener {
@@ -160,7 +161,13 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		// clear Source picker view if needed
 		clearSourcePickerView();
 		
-		Engine.execute(() -> Engine.theApp.databaseObjectsManager.clearCache(getObject()));
+		Engine.execute(() -> {
+			Engine.theApp.databaseObjectsManager.clearCache(getObject());
+			if (RequiredProjects.isRequired(getName())) {
+				// the beans of this library project are no longer offered
+				ConvertigoPlugin.asyncExec(() -> ConvertigoPlugin.getDefault().refreshPaletteView());
+			}
+		});
 		return true;
 	}
 

@@ -20,10 +20,13 @@ package com.twinsoft.convertigo.eclipse.views.palette;
 import java.util.List;
 import java.util.Set;
 
-/** Immutable snapshot of every user-controlled palette filter. */
+/**
+ * Immutable snapshot of every palette filter: the user-controlled ones and the library projects loaded, whose beans
+ * are offered only while they are loaded.
+ */
 record PaletteFilterKey(String query, String targetType, String target, String project,
 		Set<String> hiddenCategories, List<String> favorites, List<String> lastUsed,
-		boolean builtIn, boolean shared) {
+		boolean builtIn, boolean shared, String loadedLibraries) {
 	PaletteFilterKey {
 		hiddenCategories = Set.copyOf(hiddenCategories);
 		favorites = List.copyOf(favorites);

@@ -128,6 +128,7 @@ import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
 import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.DocumentationHelper;
+import com.twinsoft.convertigo.engine.util.RequiredProjects;
 
 public class PaletteView extends ViewPart implements IPartListener2, ISelectionListener, TreeObjectListener {
 	private static final int MAX_USED_HISTORY = 50;
@@ -428,6 +429,14 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 		} catch (UnsupportedOperationException e) {
 			return false;
 		}
+	}
+
+	/**
+	 * a bean the palette does not offer: the bean of a library project while that project is not loaded, a native
+	 * JSON step without the experimental features
+	 */
+	static boolean isHiddenBean(DboBean bean) {
+		return RequiredProjects.isHiddenBean(bean) || ExperimentalFeatures.isHiddenBean(bean);
 	}
 
 	private static String flowPaletteKey(DatabaseObject target) {
@@ -1043,8 +1052,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 									@Override
 									boolean allowedIn(DatabaseObject parent) {
 										try {
-											// a native JSON step is offered only with the experimental features
-											if (ExperimentalFeatures.isHiddenBean(b)) {
+											if (isHiddenBean(b)) {
 												return false;
 											}
 											boolean force = false;
@@ -1266,7 +1274,7 @@ public class PaletteView extends ViewPart implements IPartListener2, ISelectionL
 							selected != null ? selected.getFullQName() : parent != null ? parent.getFullQName() : "null",
 							selectedProject != null ? selectedProject.getName() : "null", hiddenCategories,
 							favorites.stream().map(Item::id).toList(), lastUsed.stream().map(Item::id).toList(),
-							tiInternal.getSelection(), tiShared.getSelection());
+							tiInternal.getSelection(), tiShared.getSelection(), RequiredProjects.getLoadedKey());
 					var lastSkipKey = bag.getData("LastSkipKey");
 					if (skipKey.equals(lastSkipKey)) {
 						return;

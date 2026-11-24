@@ -34,6 +34,7 @@ public class DboBean {
 	private final DocumentedMode documentedMode;
 	private final boolean bDefault;
 	private final boolean bExperimental;
+	private final String requiredProject;
 	private final Collection<DboParent> parents;
 	private final Collection<String> emulatorTechnologies;
 
@@ -44,8 +45,14 @@ public class DboBean {
 
 	DboBean(String className, boolean bEnable, DocumentedMode documentedMode, boolean bDefault, boolean bExperimental,
 			Collection<DboParent> parents, Collection<String> emulatorTechnologies) {
+		this(className, bEnable, documentedMode, bDefault, bExperimental, null, parents, emulatorTechnologies);
+	}
+
+	DboBean(String className, boolean bEnable, DocumentedMode documentedMode, boolean bDefault, boolean bExperimental,
+			String requiredProject, Collection<DboParent> parents, Collection<String> emulatorTechnologies) {
 		this.className = className;
 		this.bExperimental = bExperimental;
+		this.requiredProject = requiredProject == null || requiredProject.isBlank() ? null : requiredProject;
 		this.bEnable = bEnable;
 		this.documentedMode = documentedMode;
 		this.bDefault = bDefault;
@@ -76,6 +83,14 @@ public class DboBean {
 	/** a bean of the new experimental features (experimental="true"): see ExperimentalFeatures */
 	public boolean isExperimental() {
 		return bExperimental;
+	}
+
+	/**
+	 * the project that brings this bean (requires="project"), null if none: the bean is offered and documented only
+	 * while this project is loaded, see RequiredProjects
+	 */
+	public String getRequiredProject() {
+		return requiredProject;
 	}
 
 	public Collection<DboParent> getParents() {

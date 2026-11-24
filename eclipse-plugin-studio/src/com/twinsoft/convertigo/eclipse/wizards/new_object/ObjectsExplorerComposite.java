@@ -69,6 +69,7 @@ import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.DocumentationHelper;
+import com.twinsoft.convertigo.engine.util.RequiredProjects;
 import org.apache.commons.lang3.StringUtils;
 
 public class ObjectsExplorerComposite extends Composite {
@@ -133,8 +134,9 @@ public class ObjectsExplorerComposite extends Composite {
 								if (!bean.isEnable()) continue;
 
 								String className = bean.getClassName();
-								// a native JSON step is offered only with the experimental features
-								if (ExperimentalFeatures.isHiddenBean(bean)) continue;
+								// a native JSON step is offered only with the experimental features,
+								// the bean of a library project only while it is loaded
+								if (ExperimentalFeatures.isHiddenBean(bean) || RequiredProjects.isHiddenBean(bean)) continue;
 								if (bean.isDefault()) {
 									defaultDboList.add(className);
 								}

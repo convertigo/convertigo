@@ -58,6 +58,7 @@ import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.NgxConverter;
 import com.twinsoft.convertigo.engine.util.DocumentationHelper;
 import com.twinsoft.convertigo.engine.util.ExperimentalFeatures;
+import com.twinsoft.convertigo.engine.util.RequiredProjects;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class BeansDoc {
@@ -135,8 +136,9 @@ public class BeansDoc {
 					beansCategoryName = beansCategory.getName();
 					List<DboBean> beans = beansCategory.getBeans();
 					for (DboBean bean : beans) {
-						// the steps of the experimental features are not documented while they are not shown
-						if (bean.isEnable() && !ExperimentalFeatures.isHiddenBean(bean)) {
+						// the steps of the experimental features are not documented while they are not shown,
+						// nor the beans of a library project that is not loaded
+						if (bean.isEnable() && !ExperimentalFeatures.isHiddenBean(bean) && !RequiredProjects.isHiddenBean(bean)) {
 							if (count == max) {
 								return count;
 							} else {

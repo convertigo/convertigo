@@ -154,8 +154,9 @@ public class DboExplorerManager {
 		}
 
 		boolean bExperimental = "true".equals(elementBean.getAttribute("experimental"));
+		String requiredProject = elementBean.getAttribute("requires");
 
-		DboBean bean = new DboBean(className, bEnable, documentedMode, bDefault, bExperimental, parents, EmulatorTechnologies);
+		DboBean bean = new DboBean(className, bEnable, documentedMode, bDefault, bExperimental, requiredProject, parents, EmulatorTechnologies);
 		return bean;
 	}
 

@@ -165,6 +165,7 @@ import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
+import com.twinsoft.convertigo.engine.util.RequiredProjects;
 import com.twinsoft.util.Log;
 
 /**
@@ -2217,6 +2218,10 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		if (projectName.startsWith("mobilebuilder_tpl_")) {
 			ConvertigoPlugin.logDebug("Skip loading of the mobilebuilder template project '" + projectName +"'.");
 			return;
+		}
+		if (RequiredProjects.isRequired(projectName)) {
+			// the beans of this library project are offered from now on
+			asyncExec(this::refreshPaletteView);
 		}
 		asyncExec(() -> {
 			ProjectExplorerView pew = getProjectExplorerView();

@@ -49,6 +49,7 @@ import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
 import com.twinsoft.convertigo.engine.flow.FlowStudioSupport;
 import com.twinsoft.convertigo.engine.util.DocumentationHelper;
 import com.twinsoft.convertigo.engine.util.ExperimentalFeatures;
+import com.twinsoft.convertigo.engine.util.RequiredProjects;
 
 @ServiceDefinition(name = "Get", roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_VIEW }, parameters = {}, returnValue = "")
 public class Get extends JSonService {
@@ -97,8 +98,9 @@ public class Get extends JSonService {
 
 					for (DboBean b : bs.getBeans()) {
 						String cn = b.getClassName();
-						// the steps of the experimental features are offered only while they are shown
-						if (ExperimentalFeatures.isHiddenBean(b)) {
+						// the steps of the experimental features are offered only while they are shown,
+						// the beans of a library project only while it is loaded
+						if (ExperimentalFeatures.isHiddenBean(b) || RequiredProjects.isHiddenBean(b)) {
 							continue;
 						}
 						if ((cn.startsWith("com.twinsoft.convertigo.beans.ngx.components.")
