@@ -785,3 +785,15 @@ tasks.register('subprocessProxyTest', JavaExec) {
 	args 'com.twinsoft.convertigo.engine.SubprocessProxyTest'
 }
 tasks.named('check') { dependsOn 'subprocessProxyTest' }
+
+tasks.register('adminInstanceForwardTest', JavaExec) {
+	group = 'verification'
+	description = 'Forward of administration requests between instances: the body is streamed to the target without being stored, and the size, client and target failures are answered apart.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	maxHeapSize = '256m'
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.servlets.AdminInstanceForwardFilterTest'
+}
+
+tasks.named('check') { dependsOn 'adminInstanceForwardTest' }
