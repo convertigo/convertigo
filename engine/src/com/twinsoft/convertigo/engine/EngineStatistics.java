@@ -337,10 +337,9 @@ public class EngineStatistics extends Statistics {
 			dothers -= dasch;
 		if (dwht != -1)
 			dothers -= dwht;
+		// the calls of a sequence (ExecuteSequenceCalls) run inside its steps, already in ExecuteSequenceSteps
 		if (dess != -1)
 			dothers -= dess;
-		if (desc != -1)
-			dothers -= desc;
 		if (dgdom != -1)
 			dothers -= dgdom;
 		if (dwts != -1)
