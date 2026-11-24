@@ -39,6 +39,7 @@ tasks.named('check') {
 	dependsOn 'projectBundleTest'
 	dependsOn 'ionBeanTest'
 	dependsOn 'mdcLifecycleTest'
+	dependsOn 'stdoutLogFormatTest'
 	dependsOn 'workspaceLoadingTest'
 	dependsOn 'fullSyncReplicationPolicyTest'
 	dependsOn 'stepSourceTest'
@@ -204,6 +205,15 @@ tasks.register('mdcLifecycleTest', JavaExec) {
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.MdcLifecycleTest'
+}
+
+tasks.register('stdoutLogFormatTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression tests for the text and JSON formats of the stdout logs.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.StdoutLogFormatTest'
 }
 
 tasks.register('requestScopedSessionTest', JavaExec) {

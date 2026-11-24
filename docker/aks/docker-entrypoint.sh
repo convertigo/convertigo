@@ -56,6 +56,11 @@ if [ "$1" = "convertigo" ]; then
     	export JAVA_OPTS="-Dconvertigo.engine.log.stdout.enable=true $JAVA_OPTS"
         unset LOG_STDOUT
     fi
+
+    if [ "$LOG_STDOUT_FORMAT" != "" ]; then
+        export JAVA_OPTS="-Dconvertigo.engine.log.stdout.format=$LOG_STDOUT_FORMAT $JAVA_OPTS"
+        unset LOG_STDOUT_FORMAT
+    fi
     
     if [ "$LOG_FILE" = "false" ]; then
     	export JAVA_OPTS="-Dconvertigo.engine.log.file.enable=false $JAVA_OPTS"

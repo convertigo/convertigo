@@ -69,6 +69,7 @@ import com.twinsoft.convertigo.engine.sessions.RedisStartupFallback;
 import com.twinsoft.convertigo.engine.sessions.RedisTopology;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.JsonLogLayout;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 
 public class EnginePropertiesManager {
@@ -174,6 +175,28 @@ public class EnginePropertiesManager {
 		final String value;
 
 		NativeScope(String value, String display) {
+			this.display = display;
+			this.value = value;
+		}
+
+		public String getDisplay() {
+			return display;
+		}
+
+		public String getValue() {
+			return value;
+		}
+	}
+
+	/** the format of the standard console output */
+	private enum LogStdoutFormat implements ComboEnum {
+		text ("text", "text: the lines of engine.log"),
+		json ("json", "json: one JSON object per line");
+
+		final String display;
+		final String value;
+
+		LogStdoutFormat(String value, String display) {
 			this.display = display;
 			this.value = value;
 		}
@@ -509,6 +532,8 @@ public class EnginePropertiesManager {
 		LOG_FILE_ENABLE("log.file.enable", "true", "Log into files", PropertyCategory.Logs),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN_CLOUD)
 		LOG_STDOUT_ENABLE("log.stdout.enable", "false", "Log into the standard console output", PropertyCategory.Logs),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = LogStdoutFormat.class, visibility = Visibility.HIDDEN_CLOUD)
+		LOG_STDOUT_FORMAT("log.stdout.format", LogStdoutFormat.text.getValue(), "Format of the standard console output: text (the lines of engine.log) or json (one JSON object per line, with the contextual parameters as fields); engine.log keeps its format", PropertyCategory.Logs),
 		@PropertyOptions(advance = true)
 		LOG4J_MESSAGE_TRUNCATE("log4j.message.truncate", "" + DEFAULT_LOG_MESSAGE_MAX_LENGTH, "Maximum number of characters per log message before truncation (-1 means unlimited)", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = RootLogLevels.class)
@@ -1271,7 +1296,7 @@ public class EnginePropertiesManager {
 			}
 			if (changed) {
 				changedProperties.add(property);
-				shouldReconfigureLog4J |= property.getKey().startsWith("log4j.");
+				shouldReconfigureLog4J |= property.getKey().startsWith("log4j.") || property.getKey().startsWith("log.");
 			}
 		}
 
@@ -1648,11 +1673,8 @@ public class EnginePropertiesManager {
 		}
 		
 		if (getPropertyAsBoolean(PropertyName.LOG_STDOUT_ENABLE)) {
-			log4jProperties.put("log4j.appender.stdout", "org.apache.log4j.ConsoleAppender");
-			log4jProperties.put("log4j.appender.stdout.target", "System.out");
-			log4jProperties.put("log4j.appender.stdout.layout", "org.apache.log4j.PatternLayout");
-			log4jProperties.put("log4j.appender.stdout.layout.ConversionPattern", getProperty(PropertyName.LOG4J_APPENDER_CEMSAPPENDER_LAYOUT_CONVERSIONPATTERN));
-			log4jProperties.put(PropertyName.LOG4J_LOGGER_CEMS.getKey(), log4jProperties.get(PropertyName.LOG4J_LOGGER_CEMS.getKey()) + ", stdout");
+			addStdoutAppender(log4jProperties, getProperty(PropertyName.LOG_STDOUT_FORMAT),
+					getProperty(PropertyName.LOG4J_APPENDER_CEMSAPPENDER_LAYOUT_CONVERSIONPATTERN));
 		}
 		
 		PropertyConfigurator.configure(log4jProperties);
@@ -1667,6 +1689,23 @@ public class EnginePropertiesManager {
 		else {
 			System.out.println(getPropertiesAsString("Log4J properties:", log4jProperties));
 		}
+	}
+
+	/**
+	 * The stdout appender of the cems logger: the pattern of engine.log, or one JSON object per line. Only the layout
+	 * of this appender changes with the format; the JSON lines are flushed one by one for the log collectors.
+	 */
+	static void addStdoutAppender(Properties log4jProperties, String format, String conversionPattern) {
+		log4jProperties.put("log4j.appender.stdout", "org.apache.log4j.ConsoleAppender");
+		log4jProperties.put("log4j.appender.stdout.target", "System.out");
+		if (LogStdoutFormat.json.getValue().equalsIgnoreCase(format == null ? "" : format.trim())) {
+			log4jProperties.put("log4j.appender.stdout.layout", JsonLogLayout.Bridge.class.getName());
+			log4jProperties.put("log4j.appender.stdout.ImmediateFlush", "true");
+		} else {
+			log4jProperties.put("log4j.appender.stdout.layout", "org.apache.log4j.PatternLayout");
+			log4jProperties.put("log4j.appender.stdout.layout.ConversionPattern", conversionPattern);
+		}
+		log4jProperties.put(PropertyName.LOG4J_LOGGER_CEMS.getKey(), log4jProperties.get(PropertyName.LOG4J_LOGGER_CEMS.getKey()) + ", stdout");
 	}
 
 	public static void unload() {
