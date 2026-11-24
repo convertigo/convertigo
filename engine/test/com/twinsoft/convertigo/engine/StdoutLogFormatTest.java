@@ -50,6 +50,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.util.JsonLogLayout;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 
 /** The stdout appender built as in production, through the Log4j 1.x bridge, in its text and JSON formats. */
@@ -169,6 +170,20 @@ public class StdoutLogFormatTest {
 	}
 
 	@Test
+	public void jsonFormatsUseTheirLayouts() {
+		for (var format : Map.of("json", JsonLogLayout.Bridge.class, "JSON", JsonLogLayout.Bridge.class,
+				"json-ecs", JsonLogLayout.EcsBridge.class, " Json-ECS ", JsonLogLayout.EcsBridge.class).entrySet()) {
+			var properties = new Properties();
+			properties.put("log4j.logger.cems", "INFO");
+			EnginePropertiesManager.addStdoutAppender(properties, format.getKey(), PATTERN);
+			assertEquals(format.getKey(), format.getValue().getName(), properties.get("log4j.appender.stdout.layout"));
+			assertEquals("true", properties.get("log4j.appender.stdout.ImmediateFlush"));
+			assertNull(properties.get("log4j.appender.stdout.layout.ConversionPattern"));
+			assertEquals("INFO, stdout", properties.get("log4j.logger.cems"));
+		}
+	}
+
+	@Test
 	public void textFormatWritesTheEngineLogLine() {
 		configure("text");
 		request("Shop", "'alice'");
@@ -280,6 +295,88 @@ public class StdoutLogFormatTest {
 	}
 
 	@Test
+	public void ecsSimpleLine() throws IOException {
+		configure("json-ecs");
+		logger.warn("simple message");
+		String raw = output();
+		assertTrue("@timestamp, log.level and message first: " + raw,
+				raw.startsWith("{\"@timestamp\":\"") && raw.indexOf("\"log.level\":\"WARN\",\"message\":\"simple message\",") > 0);
+		var line = jsonLine();
+		assertTrue(line.toString(), ((String) line.get("@timestamp")).matches("\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d\\.\\d{3}Z"));
+		assertEquals("WARN", line.get("log.level"));
+		assertEquals("cems.Test", line.get("log.logger"));
+		assertEquals(Thread.currentThread().getName(), line.get("process.thread.name"));
+		assertEquals("simple message", line.get("message"));
+		assertEquals(JsonLogLayout.ECS_VERSION, line.get("ecs.version"));
+		assertEquals("convertigo", line.get("service.name"));
+		assertEquals("convertigo.log", line.get("event.dataset"));
+		for (String name : new String[] { "time", "level", "logger", "thread", "app", "instance", "error.type" }) {
+			assertFalse(name, line.containsKey(name));
+		}
+	}
+
+	@Test
+	public void ecsContextualParameters() throws IOException {
+		configure("json-ecs");
+		request("Shop", "'alice'");
+		for (var key : Log4jHelper.mdcKeys.values()) {
+			if (key != Log4jHelper.mdcKeys.Project && key != Log4jHelper.mdcKeys.User) {
+				Log4jHelper.mdcPut(key, key.name() + "-value");
+			}
+		}
+		Log4jHelper.mdcPut(Log4jHelper.mdcKeys.ClientIP, "2001:db8::7");
+		((LogParameters) MDC.get("ContextualParameters")).put("platform", "android");
+		Log4jHelper.mdcSet((LogParameters) MDC.get("ContextualParameters"));
+		logger.error("failed");
+		var line = jsonLine();
+		assertEquals("alice", line.get("user.name"));
+		assertEquals("2001:db8::7", line.get("client.ip"));
+		assertEquals("ClientHostName-value", line.get("client.domain"));
+		assertEquals("Shop", line.get("convertigo.project"));
+		assertEquals("Sequence-value", line.get("convertigo.sequence"));
+		assertEquals("Transaction-value", line.get("convertigo.transaction"));
+		assertEquals("Connector-value", line.get("convertigo.connector"));
+		assertEquals("ContextID-value", line.get("convertigo.contextid"));
+		assertEquals("UID-value", line.get("convertigo.uid"));
+		assertEquals("UUID-value", line.get("convertigo.uuid"));
+		assertEquals(Map.of("platform", "android"), line.get("convertigo.context"));
+		for (String name : new String[] { "project", "user", "clientip", "context" }) {
+			assertFalse(name, line.containsKey(name));
+		}
+
+		out.reset();
+		Log4jHelper.mdcPut(Log4jHelper.mdcKeys.ClientIP, "unknown");
+		logger.info("not an address");
+		line = jsonLine();
+		assertFalse("client.ip only takes an address", line.containsKey("client.ip"));
+		assertEquals("unknown", line.get("client.address"));
+	}
+
+	@Test
+	public void ecsErrorAndDuration() throws Exception {
+		configure("json-ecs");
+		var failure = new EngineException("outer failure", new IllegalStateException("inner\nsecond line"));
+		logger.error("request failed", failure);
+		var line = jsonLine();
+		assertEquals(EngineException.class.getName(), line.get("error.type"));
+		assertEquals("outer failure", line.get("error.message"));
+		String stack = (String) line.get("error.stack_trace");
+		assertTrue(stack, stack.startsWith(EngineException.class.getName() + ": outer failure\n\tat "));
+		assertTrue(stack, stack.contains("Caused by: java.lang.IllegalStateException: inner\nsecond line"));
+		assertFalse(line.containsKey("exception"));
+
+		out.reset();
+		var statistics = new EngineStatistics();
+		statistics.add(EngineStatistics.GET_DOCUMENT, 30);
+		statistics.add(EngineStatistics.REQUEST, 42);
+		Logger.getLogger("cems.Statistics").info("Statistics:\n" + statistics.printStatistics());
+		line = jsonLine();
+		assertEquals("event.duration is in nanoseconds", 42_000_000L, line.get("event.duration"));
+		assertEquals(42L, line.get("convertigo.duration_ms"));
+		assertFalse(line.containsKey("duration_ms"));
+	}
+
+	@Test
 	public void reconfigurationSwitchesTheFormat() throws IOException {
 		configure("json");
 		logger.info("first");
@@ -287,8 +384,11 @@ public class StdoutLogFormatTest {
 		configure("text");
 		logger.info("second");
 		assertTrue(output(), output().startsWith("!Test "));
-		configure("json");
+		configure("json-ecs");
 		logger.info("third");
-		assertEquals("third", jsonLine().get("message"));
+		assertEquals("INFO", jsonLine().get("log.level"));
+		configure("json");
+		logger.info("fourth");
+		assertEquals("INFO", jsonLine().get("level"));
 	}
 }

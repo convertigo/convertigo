@@ -191,7 +191,8 @@ public class EnginePropertiesManager {
 	/** the format of the standard console output */
 	private enum LogStdoutFormat implements ComboEnum {
 		text ("text", "text: the lines of engine.log"),
-		json ("json", "json: one JSON object per line");
+		json ("json", "json: one JSON object per line"),
+		json_ecs ("json-ecs", "json-ecs: one JSON object per line with the Elastic Common Schema fields");
 
 		final String display;
 		final String value;
@@ -533,7 +534,7 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN_CLOUD)
 		LOG_STDOUT_ENABLE("log.stdout.enable", "false", "Log into the standard console output", PropertyCategory.Logs),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = LogStdoutFormat.class, visibility = Visibility.HIDDEN_CLOUD)
-		LOG_STDOUT_FORMAT("log.stdout.format", LogStdoutFormat.text.getValue(), "Format of the standard console output: text (the lines of engine.log) or json (one JSON object per line, with the contextual parameters as fields); engine.log keeps its format", PropertyCategory.Logs),
+		LOG_STDOUT_FORMAT("log.stdout.format", LogStdoutFormat.text.getValue(), "Format of the standard console output: text (the lines of engine.log), json (one JSON object per line, with the contextual parameters as fields) or json-ecs (the same with the Elastic Common Schema fields); engine.log keeps its format", PropertyCategory.Logs),
 		@PropertyOptions(advance = true)
 		LOG4J_MESSAGE_TRUNCATE("log4j.message.truncate", "" + DEFAULT_LOG_MESSAGE_MAX_LENGTH, "Maximum number of characters per log message before truncation (-1 means unlimited)", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = RootLogLevels.class)
@@ -1692,14 +1693,16 @@ public class EnginePropertiesManager {
 	}
 
 	/**
-	 * The stdout appender of the cems logger: the pattern of engine.log, or one JSON object per line. Only the layout
-	 * of this appender changes with the format; the JSON lines are flushed one by one for the log collectors.
+	 * The stdout appender of the cems logger: the pattern of engine.log, or one JSON object per line in one of the
+	 * JsonLogLayout formats. Only the layout of this appender changes with the format; the JSON lines are flushed one
+	 * by one for the log collectors.
 	 */
 	static void addStdoutAppender(Properties log4jProperties, String format, String conversionPattern) {
 		log4jProperties.put("log4j.appender.stdout", "org.apache.log4j.ConsoleAppender");
 		log4jProperties.put("log4j.appender.stdout.target", "System.out");
-		if (LogStdoutFormat.json.getValue().equalsIgnoreCase(format == null ? "" : format.trim())) {
-			log4jProperties.put("log4j.appender.stdout.layout", JsonLogLayout.Bridge.class.getName());
+		var jsonFormat = JsonLogLayout.Format.of(format);
+		if (jsonFormat != null) {
+			log4jProperties.put("log4j.appender.stdout.layout", jsonFormat.bridge().getName());
 			log4jProperties.put("log4j.appender.stdout.ImmediateFlush", "true");
 		} else {
 			log4jProperties.put("log4j.appender.stdout.layout", "org.apache.log4j.PatternLayout");
