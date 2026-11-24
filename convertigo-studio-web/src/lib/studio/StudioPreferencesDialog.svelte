@@ -1,6 +1,6 @@
 <script>
-	import { onMount } from 'svelte';
 	import { call } from '#lib/utils/service.js';
+	import { onMount } from 'svelte';
 	import { setExperimentalFeatures } from './experimentalFeatures.svelte.js';
 	import { registration } from './registration.svelte.js';
 	import {
@@ -132,10 +132,10 @@
 					/>
 					<span>
 						Build the production app while editing
-						<small
-							>After frontend changes, update the production app when dev mode is running. Kept in
-							this workspace.</small
-						>
+						<small>
+							After frontend changes, update the production app when dev mode is running. Kept in
+							this workspace.
+						</small>
 					</span>
 				</label>
 				<label class="studio-dialog__check">

@@ -2,8 +2,8 @@
 	import { Handle, Position } from '@xyflow/svelte';
 	import { agentHighlightOf, playAgentLight } from '#lib/studio/agentFollow.svelte.js';
 	import { isDebugTargetPaused } from '#lib/studio/debugSession.svelte.js';
-	import StudioTreeDebugTarget from '#lib/studio/StudioTreeDebugTarget.svelte';
 	import { objectCanRename, objectRenameValue } from '#lib/studio/dnd.js';
+	import StudioTreeDebugTarget from '#lib/studio/StudioTreeDebugTarget.svelte';
 	import AutoSvg from '#lib/utils/AutoSvg.svelte';
 	import { draggedData } from '#lib/utils/dndStore.js';
 	import Ico from '#lib/utils/Ico.svelte';
