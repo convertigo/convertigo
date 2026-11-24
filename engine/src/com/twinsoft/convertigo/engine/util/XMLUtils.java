@@ -1686,6 +1686,12 @@ public class XMLUtils {
 		return localName;
 	}
 	
+	/*
+	 * getValue and handleElement walk the children with getFirstChild and getNextSibling, never with getChildNodes:
+	 * the Xerces node lists share a per document cache that is not thread-safe, even for reading. The branches of a
+	 * ParallelStep convert their own parts of the same sequence document at the same time: through that cache, a
+	 * branch read the children of another element (wrong JSON) or an element as its own child (endless recursion).
+	 */
 	private static Object getValue(Element elt, boolean ignoreStepIds, boolean useType) throws JSONException {
 		Object value = null;
 		try {
@@ -1695,10 +1701,7 @@ public class XMLUtils {
 				if (type.equals("object")) {
 					JSONObject jsonObject = new JSONObject();
 
-					NodeList nl = elt.getChildNodes();
-					for (int i = 0; i < nl.getLength(); i++) {
-						Node node = nl.item(i);
-
+					for (Node node = elt.getFirstChild(); node != null; node = node.getNextSibling()) {
 						if (node instanceof Element) {
 							Element child = (Element) node;
 							String childName = child.hasAttribute("originalKeyName") ? child.getAttribute("originalKeyName") : child.getTagName();
@@ -1715,10 +1718,7 @@ public class XMLUtils {
 				} else if (type.equals("array")) {
 					JSONArray array = new JSONArray();
 
-					NodeList nl = elt.getChildNodes();
-					for (int i = 0; i < nl.getLength(); i++) {
-						Node node = nl.item(i);
-
+					for (Node node = elt.getFirstChild(); node != null; node = node.getNextSibling()) {
 						if (node instanceof Element) {
 							Element child = (Element) node;
 							Object childValue = getValue(child, ignoreStepIds, useType);
@@ -1760,8 +1760,9 @@ public class XMLUtils {
 					elt.removeAttribute(type);
 				}
 			}
-		} catch (Throwable t) {
-			Engine.logEngine.debug("failed to convert the element " + elt.getTagName(), t);
+		} catch (Exception e) {
+			// not an Error: a StackOverflowError caught here was retried by handleElement at each level, for hours
+			Engine.logEngine.debug("failed to convert the element " + elt.getTagName(), e);
 		}
 		
 		return value;
@@ -1770,11 +1771,8 @@ public class XMLUtils {
 	public static  void handleElement(Element elt, JSONObject obj, boolean ignoreStepIds, boolean useType) throws JSONException {
 		String key = elt.getTagName();
 		JSONObject value = new JSONObject();
-		NodeList nl = elt.getChildNodes();
 		
-		for (int i = 0; i < nl.getLength(); i++) {
-			Node node = nl.item(i);
-			
+		for (Node node = elt.getFirstChild(); node != null; node = node.getNextSibling()) {
 			if (node instanceof Element) {
 				Element child = (Element) node;
 				Object childValue = useType ? getValue(child, ignoreStepIds, useType) : null;

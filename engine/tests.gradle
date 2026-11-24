@@ -674,6 +674,16 @@ tasks.register('xmlProjectLibrariesTest', JavaExec) {
 }
 tasks.named('check') { dependsOn 'xmlProjectLibrariesTest' }
 
+tasks.register('xmlParallelJsonTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: parallel branches convert their own parts of a sequence document to JSON, and a too deep element fails at once.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.XMLUtilsParallelJsonTest'
+}
+tasks.named('check') { dependsOn 'xmlParallelJsonTest' }
+
 tasks.register('projectMigrationSaveTest', JavaExec) {
 	group = 'verification'
 	description = 'Migrated project import and FullSync initialization survive a project save failure.'
