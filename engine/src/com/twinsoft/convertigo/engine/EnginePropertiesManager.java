@@ -859,7 +859,8 @@ public class EnginePropertiesManager {
 		@PropertyOptions(propertyType = PropertyType.Boolean)
 		NET_REVERSE_DNS ("net.reverse_dns", "false", "Use DNS reverse search for finding host names", PropertyCategory.Network),
 		FILE_UPLOAD_MAX_REQUEST_SIZE ("net.upload.max_request_size", "-1", "Maximum allowed size of a complete multipart request (in bytes). Value -1 indicates no limit.", PropertyCategory.Network),
-		FILE_UPLOAD_MAX_FILE_SIZE ("net.upload.max_request_size", "10485760", "Maximum allowed size of a single uploaded file (in bytes).", PropertyCategory.Network),
+		FILE_UPLOAD_MAX_FILE_SIZE ("net.upload.max_file_size", "10485760", "Maximum allowed size of a single uploaded file (in bytes).", PropertyCategory.Network),
+		ADMIN_UPLOAD_MAX_SIZE ("net.upload.admin.max_size", "-1", "Maximum total size of the files of one administration upload: project archives, bundles, imports (in bytes). Value -1 indicates no limit: the reverse proxy or ingress in front of Convertigo limits the requests. Also applies to the administration requests forwarded to another instance.", PropertyCategory.Network),
 
 		/** HTTPCLIENT */
 		HTTP_CLIENT_MAX_TOTAL_CONNECTIONS ("http_client.max_total_connections", "100", "Maximal number of HTTP connections (from 1 to 65535)", PropertyCategory.HttpClient),
@@ -1165,9 +1166,12 @@ public class EnginePropertiesManager {
 			throw new IllegalStateException("Not initialized EnginePropertiesManager");
 		}
 
-		String result = system_properties.getProperty(SYSTEM_PROP_PREFIX + property);
-		if (result == null) {
-			result = properties.getProperty(property.key);
+		String result = getConfiguredValue(property);
+
+		if (result == null && property == PropertyName.FILE_UPLOAD_MAX_FILE_SIZE) {
+			// both upload limits used to be stored under the net.upload.max_request_size key: a configuration
+			// that only sets this key keeps applying its value to each uploaded file
+			result = getConfiguredValue(PropertyName.FILE_UPLOAD_MAX_REQUEST_SIZE);
 		}
 
 		if (result == null) {
@@ -1190,6 +1194,15 @@ public class EnginePropertiesManager {
 		// Migration -> 3.1
 		if (property.equals(PropertyName.DOCUMENT_XSLT_ENGINE) && (result != null) && result.equals("xalan")) result = "xalan/xsltc";
 
+		return result;
+	}
+
+	/** The value set by a system property or by the configuration file, or null. */
+	private static String getConfiguredValue(PropertyName property) {
+		String result = system_properties.getProperty(SYSTEM_PROP_PREFIX + property);
+		if (result == null) {
+			result = properties.getProperty(property.key);
+		}
 		return result;
 	}
 
@@ -1235,6 +1248,10 @@ public class EnginePropertiesManager {
 	}
 
 	public static void setProperty(PropertyName property, String value) {
+		if (property == PropertyName.FILE_UPLOAD_MAX_REQUEST_SIZE && getConfiguredValue(PropertyName.FILE_UPLOAD_MAX_FILE_SIZE) == null) {
+			// changing the request limit keeps the current limit of each uploaded file
+			setProperty(PropertyName.FILE_UPLOAD_MAX_FILE_SIZE, getOriginalProperty(PropertyName.FILE_UPLOAD_MAX_FILE_SIZE), true);
+		}
 		setProperty(property, value, false);
 	}
 
@@ -1542,7 +1559,10 @@ public class EnginePropertiesManager {
 		Properties modifiedProperties = new Properties();
 		for (PropertyName property : PropertyName.values()) {
 			String propertyValue = getOriginalProperty(property);
-			if (!property.getDefaultValue().equals(propertyValue)) {
+			// the file limit is saved with a configured request limit, so that it is not taken from it when reloaded
+			boolean explicit = property == PropertyName.FILE_UPLOAD_MAX_FILE_SIZE
+					&& getConfiguredValue(PropertyName.FILE_UPLOAD_MAX_REQUEST_SIZE) != null;
+			if (explicit || !property.getDefaultValue().equals(propertyValue)) {
 				if (property.isCiphered()) {
 					propertyValue = Crypto2.encodeToHexString(propertyValue);
 				}

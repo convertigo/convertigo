@@ -1155,7 +1155,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		try {
 			com.twinsoft.convertigo.engine.util.ProjectBundlePlan.validateName(projectName);
 			var budget = new com.twinsoft.convertigo.engine.util.ProjectBundleZip.Budget(
-					com.twinsoft.convertigo.engine.util.ProjectBundleZip.Limits.defaults());
+					com.twinsoft.convertigo.engine.util.ProjectBundleZip.Limits.configured());
 			var archive = Path.of(filename);
 			var entries = com.twinsoft.convertigo.engine.util.ProjectBundleZip.inspect(archive, budget);
 			for (var entry : entries) if (!entry.name().startsWith(projectName + "/")) throw new IOException("The prepared archive contains another project");

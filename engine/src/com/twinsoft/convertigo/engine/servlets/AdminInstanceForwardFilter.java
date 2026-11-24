@@ -19,27 +19,15 @@
 
 package com.twinsoft.convertigo.engine.servlets;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URI;
 import java.net.URLDecoder;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -53,21 +41,21 @@ import javax.net.ssl.X509TrustManager;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
-import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpServletRequestWrapper;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.admin.services.ServiceException;
+import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 import com.twinsoft.convertigo.engine.sessions.ConvertigoHttpSessionManager;
 import com.twinsoft.convertigo.engine.sessions.RedisHealth;
 import com.twinsoft.convertigo.engine.sessions.RedisInstanceDiscovery;
+import com.twinsoft.convertigo.engine.util.AdminUploadLimits;
 
 /**
  * For clustered admin usage (Redis session store), allows sticking an admin request to a specific
@@ -79,6 +67,11 @@ import com.twinsoft.convertigo.engine.sessions.RedisInstanceDiscovery;
  * The forward is internal traffic between instances: it never goes through the engine HTTP proxy settings.
  * When it fails, the response is an explicit error (HTTP 502 with the {@code X-C8O-Instance-Unreachable}
  * header) so that the console can tell it, instead of a silent answer from the local instance.
+ * <p>
+ * The request body is streamed to the target as it arrives: it is never stored on the instance that forwards it.
+ * A request body over the optional administration upload limit is refused with HTTP 413, as the target would do:
+ * from its Content-Length before contacting the target, or while it is counted when its length is unknown. Without
+ * this limit (default), the body is only limited by the frontends and by the target instance.
  */
 public class AdminInstanceForwardFilter implements Filter {
 	private static final String HEADER_INSTANCE = "X-C8O-Instance";
@@ -93,9 +86,7 @@ public class AdminInstanceForwardFilter implements Filter {
 
 	private static final int CONNECT_TIMEOUT_MS = 5_000;
 	private static final int READ_TIMEOUT_MS = 0; // keep long polling & log streaming working
-	private static final long MAX_CACHED_BODY_BYTES = 256L * 1024L * 1024L;
 	private static final int BODY_BUFFER_SIZE = 16 * 1024;
-	private static final int FORM_PARSE_MAX_BYTES = 1 * 1024 * 1024;
 	private static final Object SSL_MUTEX = new Object();
 	private static volatile SSLSocketFactory trustAllSocketFactory;
 	private static final HostnameVerifier TRUST_ALL_HOSTNAME = new HostnameVerifier() {
@@ -186,26 +177,61 @@ public class AdminInstanceForwardFilter implements Filter {
 			return;
 		}
 
-		CachedBody cachedBody = null;
-		var proxyRequest = request;
-		try {
-			if (hasRequestBody(request.getMethod())) {
-				cachedBody = CachedBody.capture(request);
-				proxyRequest = new CachedBodyRequestWrapper(request, cachedBody);
-			}
+		var targetInstance = target.routingId != null ? target.routingId : target.instanceId;
+		forward(request, response, targetUrl, baseUrl, requestedInstance, targetInstance, localInstance, forwardedBy,
+				AdminUploadLimits.requestBytes());
+	}
 
-			response.setHeader(HEADER_INSTANCE, target.routingId != null ? target.routingId : target.instanceId);
-			proxy(proxyRequest, response, targetUrl, localInstance, forwardedBy);
+	/**
+	 * Forwards the request to the target instance, its body streamed as it arrives.
+	 *
+	 * @param targetInstance the routing identifier of the target, answered when it is reached
+	 * @param maxBytes the limit of the request body, or -1 without limit
+	 */
+	static void forward(HttpServletRequest request, HttpServletResponse response, String targetUrl, String baseUrl,
+			String requestedInstance, String targetInstance, String localInstance, String forwardedBy, long maxBytes)
+			throws IOException, ServletException {
+		var hasBody = hasRequestBody(request.getMethod());
+		var declared = hasBody ? request.getContentLengthLong() : -1;
+		if (maxBytes > 0 && declared > maxBytes) {
+			// refused before contacting the target: nothing of the body is read
+			respondTooLarge(request, response, requestedInstance, localInstance, declared, maxBytes);
+			return;
+		}
+		ForwardedBody body = null;
+		try {
+			if (hasBody) {
+				body = new ForwardedBody(request.getInputStream(), maxBytes);
+			}
+			response.setHeader(HEADER_INSTANCE, targetInstance);
+			proxy(request, body, response, targetUrl, localInstance, forwardedBy);
+		} catch (BodyTooLargeException e) {
+			// a body of unknown length counted over the limit: the target got an incomplete request and dropped it
+			respondTooLarge(request, response, requestedInstance, localInstance, e.actual, e.permitted);
+		} catch (ClientBodyException e) {
+			// the client stopped sending its body (abort, timeout): the target got an incomplete request and dropped it
+			if (response.isCommitted()) {
+				throw e;
+			}
+			respondNotForwarded(request, response, requestedInstance, localInstance, HttpServletResponse.SC_BAD_REQUEST,
+					"The request body could not be read until its end (" + e.getCause() + ")");
 		} catch (Exception e) {
 			if (response.isCommitted()) {
 				throw e;
 			}
-			respondUnreachable(response, requestedInstance, localInstance, baseUrl, e);
-		} finally {
-			if (cachedBody != null) {
-				cachedBody.close();
+			if (body != null) {
+				// read the rest of the body, without storing it, so that the client receives the answer
+				body.drain();
 			}
+			respondUnreachable(response, requestedInstance, localInstance, baseUrl, e);
 		}
+	}
+
+	private static void respondTooLarge(HttpServletRequest request, HttpServletResponse response, String requestedInstance,
+			String localInstance, long actual, long permitted) throws IOException, ServletException {
+		respondNotForwarded(request, response, requestedInstance, localInstance, HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE,
+				"The request (" + actual + " bytes) exceeds the administration upload limit (" + permitted
+				+ " bytes with its multipart envelope, engine property " + PropertyName.ADMIN_UPLOAD_MAX_SIZE.getKey() + ")");
 	}
 
 	private static void respondUnreachable(HttpServletResponse response, String requestedInstance, String localInstance,
@@ -244,6 +270,25 @@ public class AdminInstanceForwardFilter implements Filter {
 			// the headers already carry the information
 		}
 		response.getWriter().write(body.toString());
+	}
+
+	/**
+	 * The request body was refused or could not be read here: the target is not reported unreachable (a size
+	 * problem or a client that stops sending never answers 502).
+	 */
+	private static void respondNotForwarded(HttpServletRequest request, HttpServletResponse response, String requestedInstance,
+			String localInstance, int status, String message) throws IOException, ServletException {
+		Engine.logEngine.warn("(AdminInstanceForwardFilter) Request to instance " + requestedInstance + " not forwarded by "
+				+ localInstance + ": " + message);
+		response.reset();
+		// the selected instance stays the target of the console
+		response.setHeader(HEADER_INSTANCE, requestedInstance);
+		response.setHeader("Cache-Control", "no-store");
+		try {
+			ServiceUtils.handleError(message, status, request, response);
+		} catch (ServiceException failure) {
+			throw new ServletException(failure);
+		}
 	}
 
 	@Override
@@ -289,8 +334,8 @@ public class AdminInstanceForwardFilter implements Filter {
 		return url;
 	}
 
-	private static void proxy(HttpServletRequest request, HttpServletResponse response, String targetUrl, String localInstance,
-			String forwardedBy) throws IOException {
+	private static void proxy(HttpServletRequest request, ForwardedBody body, HttpServletResponse response, String targetUrl,
+			String localInstance, String forwardedBy) throws IOException {
 		HttpURLConnection conn = null;
 		try {
 			var uri = URI.create(targetUrl);
@@ -312,18 +357,24 @@ public class AdminInstanceForwardFilter implements Filter {
 
 			copyRequestHeaders(request, conn, localInstance, forwardedBy);
 
-			var hasBody = hasRequestBody(method);
-			if (hasBody) {
+			if (body != null) {
 				conn.setDoOutput(true);
-				var contentLength = request.getContentLength();
+				var contentLength = request.getContentLengthLong();
 				if (contentLength >= 0) {
 					conn.setFixedLengthStreamingMode(contentLength);
 				} else {
-					conn.setChunkedStreamingMode(16 * 1024);
+					conn.setChunkedStreamingMode(BODY_BUFFER_SIZE);
 				}
-				try (OutputStream out = conn.getOutputStream(); InputStream in = request.getInputStream()) {
-					copy(in, out);
+				var out = conn.getOutputStream();
+				try {
+					copy(body, out);
+				} catch (ClientBodyException | BodyTooLargeException e) {
+					// never close the stream here, which would end a chunked body: the target must receive an
+					// incomplete request, not a shorter one that looks complete
+					conn.disconnect();
+					throw e;
 				}
+				out.close();
 			}
 
 			var status = conn.getResponseCode();
@@ -336,8 +387,8 @@ public class AdminInstanceForwardFilter implements Filter {
 			if (!"HEAD".equalsIgnoreCase(method)) {
 				var in = status >= 400 ? conn.getErrorStream() : conn.getInputStream();
 				if (in != null) {
-					try (InputStream body = in; OutputStream out = response.getOutputStream()) {
-						copy(body, out, isStreamingResponse(conn));
+					try (InputStream answer = in; OutputStream out = response.getOutputStream()) {
+						copy(answer, out, isStreamingResponse(conn));
 						out.flush();
 					}
 				}
@@ -530,267 +581,77 @@ public class AdminInstanceForwardFilter implements Filter {
 		return false;
 	}
 
-	private static final class CachedBody {
-		private final byte[] bytes;
-		private final Path file;
-		private final long length;
+	/** A request body over the optional administration upload limit: not an unreachable instance. */
+	private static final class BodyTooLargeException extends IOException {
+		private static final long serialVersionUID = 1L;
+		private final long actual;
+		private final long permitted;
 
-		private CachedBody(byte[] bytes) {
-			this.bytes = bytes;
-			this.file = null;
-			this.length = bytes == null ? 0 : bytes.length;
-		}
-
-		private CachedBody(Path file, long length) {
-			this.bytes = null;
-			this.file = file;
-			this.length = length;
-		}
-
-		static CachedBody capture(HttpServletRequest request) throws IOException {
-			var expected = request.getContentLengthLong();
-			if (expected > MAX_CACHED_BODY_BYTES) {
-				throw new IOException("Request body too large (" + expected + " bytes)");
-			}
-
-			Path tmp = null;
-			OutputStream out = null;
-			try (InputStream in = request.getInputStream()) {
-				var initialSize = BODY_BUFFER_SIZE;
-				if (expected > 0 && expected <= Integer.MAX_VALUE) {
-					initialSize = (int) Math.min(expected, FORM_PARSE_MAX_BYTES);
-				}
-				var memory = new ByteArrayOutputStream(initialSize);
-
-				long total = 0;
-				var buffer = new byte[BODY_BUFFER_SIZE];
-				int r;
-				while ((r = in.read(buffer)) >= 0) {
-					total += r;
-					if (total > MAX_CACHED_BODY_BYTES) {
-						throw new IOException("Request body too large (" + total + " bytes)");
-					}
-					if (tmp == null && total > FORM_PARSE_MAX_BYTES) {
-						tmp = Files.createTempFile("c8o-admin-proxy-", ".body");
-						out = Files.newOutputStream(tmp);
-						memory.writeTo(out);
-						memory = null;
-					}
-					if (tmp != null) {
-						out.write(buffer, 0, r);
-					} else {
-						memory.write(buffer, 0, r);
-					}
-				}
-				if (tmp != null) {
-					out.close();
-					out = null;
-					return new CachedBody(tmp, total);
-				}
-				return new CachedBody(memory.toByteArray());
-			} catch (IOException e) {
-				if (tmp != null) {
-					try {
-						Files.deleteIfExists(tmp);
-					} catch (Exception ignore) {
-					}
-				}
-				throw e;
-			} finally {
-				if (out != null) {
-					try {
-						out.close();
-					} catch (Exception ignore) {
-					}
-				}
-			}
-		}
-
-		long length() {
-			return length;
-		}
-
-		InputStream openStream() throws IOException {
-			if (bytes != null) {
-				return new ByteArrayInputStream(bytes);
-			}
-			return Files.newInputStream(file);
-		}
-
-		byte[] getBytesIfSmall(long maxBytes) throws IOException {
-			if (length > maxBytes) {
-				return null;
-			}
-			if (bytes != null) {
-				return bytes;
-			}
-			return Files.readAllBytes(file);
-		}
-
-		void close() {
-			if (file != null) {
-				try {
-					Files.deleteIfExists(file);
-				} catch (Exception ignore) {
-				}
-			}
+		BodyTooLargeException(long actual, long permitted) {
+			super("Request body too large (" + actual + " bytes, limit " + permitted + " bytes)");
+			this.actual = actual;
+			this.permitted = permitted;
 		}
 	}
 
-	private static final class CachedBodyRequestWrapper extends HttpServletRequestWrapper {
-		private final CachedBody cachedBody;
-		private final Map<String, String[]> parameterMap;
-		private final String characterEncoding;
+	/** The client stopped sending the request body (abort, timeout): not an unreachable instance. */
+	private static final class ClientBodyException extends IOException {
+		private static final long serialVersionUID = 1L;
 
-		CachedBodyRequestWrapper(HttpServletRequest request, CachedBody cachedBody) throws IOException {
-			super(request);
-			this.cachedBody = cachedBody;
-			this.characterEncoding = request.getCharacterEncoding();
-			this.parameterMap = Collections.unmodifiableMap(parseParameterMap(request, cachedBody));
-		}
-
-		@Override
-		public int getContentLength() {
-			var length = cachedBody.length();
-			return length > Integer.MAX_VALUE ? -1 : (int) length;
-		}
-
-		@Override
-		public long getContentLengthLong() {
-			return cachedBody.length();
-		}
-
-		@Override
-		public String getCharacterEncoding() {
-			return characterEncoding != null ? characterEncoding : StandardCharsets.UTF_8.name();
-		}
-
-		@Override
-		public ServletInputStream getInputStream() throws IOException {
-			return new RepeatableServletInputStream(cachedBody.openStream());
-		}
-
-		@Override
-		public BufferedReader getReader() throws IOException {
-			return new BufferedReader(new InputStreamReader(getInputStream(), getCharacterEncoding()));
-		}
-
-		@Override
-		public String getParameter(String name) {
-			var values = getParameterValues(name);
-			return values != null && values.length > 0 ? values[0] : null;
-		}
-
-		@Override
-		public Map<String, String[]> getParameterMap() {
-			return parameterMap;
-		}
-
-		@Override
-		public Enumeration<String> getParameterNames() {
-			return Collections.enumeration(parameterMap.keySet());
-		}
-
-		@Override
-		public String[] getParameterValues(String name) {
-			return parameterMap.get(name);
+		ClientBodyException(IOException cause) {
+			super("Unable to read the request body: " + cause, cause);
 		}
 	}
 
-	private static Map<String, String[]> parseParameterMap(HttpServletRequest request, CachedBody cachedBody) throws IOException {
-		var charsetName = trimToNull(request.getCharacterEncoding());
-		var charset = StandardCharsets.UTF_8;
-		if (charsetName != null) {
-			try {
-				charset = Charset.forName(charsetName);
-			} catch (Exception ignore) {
-				charset = StandardCharsets.UTF_8;
-			}
-		}
+	/**
+	 * The request body, read as it is forwarded: counted against the optional limit, and its read errors told apart
+	 * from those of the target instance. Nothing is kept.
+	 */
+	private static final class ForwardedBody extends InputStream {
+		private final InputStream in;
+		private final long maxBytes;
+		private long count;
 
-		var accumulator = new LinkedHashMap<String, List<String>>();
-		parseParamsInto(accumulator, request.getQueryString(), charset);
-
-		var contentType = trimToNull(request.getContentType());
-		if (contentType != null && contentType.toLowerCase().startsWith("application/x-www-form-urlencoded")) {
-			var bytes = cachedBody.getBytesIfSmall(FORM_PARSE_MAX_BYTES);
-			if (bytes != null && bytes.length > 0) {
-				parseParamsInto(accumulator, new String(bytes, charset), charset);
-			}
-		}
-
-		var result = new LinkedHashMap<String, String[]>();
-		for (var e : accumulator.entrySet()) {
-			var values = e.getValue();
-			result.put(e.getKey(), values.toArray(new String[0]));
-		}
-		return result;
-	}
-
-	private static void parseParamsInto(Map<String, List<String>> accumulator, String paramString, java.nio.charset.Charset charset) {
-		if (paramString == null || paramString.isBlank()) {
-			return;
-		}
-		for (var part : paramString.split("&")) {
-			if (part.isEmpty()) {
-				continue;
-			}
-			var idx = part.indexOf('=');
-			var rawKey = idx >= 0 ? part.substring(0, idx) : part;
-			var rawValue = idx >= 0 ? part.substring(idx + 1) : "";
-			try {
-				var key = URLDecoder.decode(rawKey, charset.name());
-				if (key == null || key.isBlank()) {
-					continue;
-				}
-				var value = URLDecoder.decode(rawValue, charset.name());
-				accumulator.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
-			} catch (Exception ignore) {
-				// ignore malformed pairs
-			}
-		}
-	}
-
-	private static final class RepeatableServletInputStream extends ServletInputStream {
-		private final InputStream delegate;
-		private boolean finished = false;
-
-		RepeatableServletInputStream(InputStream delegate) {
-			this.delegate = delegate;
+		/** @param maxBytes the limit of the body, or -1 without limit */
+		ForwardedBody(InputStream in, long maxBytes) {
+			this.in = in;
+			this.maxBytes = maxBytes;
 		}
 
 		@Override
 		public int read() throws IOException {
-			var r = delegate.read();
-			finished = r < 0;
-			return r;
+			var one = new byte[1];
+			var r = read(one, 0, 1);
+			return r < 0 ? -1 : one[0] & 0xFF;
 		}
 
 		@Override
 		public int read(byte[] b, int off, int len) throws IOException {
-			var r = delegate.read(b, off, len);
-			finished = r < 0;
+			int r;
+			try {
+				r = in.read(b, off, len);
+			} catch (IOException e) {
+				throw new ClientBodyException(e);
+			}
+			if (r > 0) {
+				count += r;
+				if (maxBytes > 0 && count > maxBytes) {
+					throw new BodyTooLargeException(count, maxBytes);
+				}
+			}
 			return r;
 		}
 
-		@Override
-		public boolean isFinished() {
-			return finished;
-		}
-
-		@Override
-		public boolean isReady() {
-			return true;
-		}
-
-		@Override
-		public void setReadListener(ReadListener readListener) {
-			// synchronous
-		}
-
-		@Override
-		public void close() throws IOException {
-			delegate.close();
+		/** Reads and discards the rest of the body, until its end, the limit or a read error. */
+		void drain() {
+			var buffer = new byte[BODY_BUFFER_SIZE];
+			try {
+				while (read(buffer, 0, buffer.length) >= 0) {
+					// discard
+				}
+			} catch (IOException ignore) {
+				// the answer is sent anyway
+			}
 		}
 	}
 }

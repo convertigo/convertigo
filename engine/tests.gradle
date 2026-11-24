@@ -1187,6 +1187,18 @@ tasks.register('projectBundleTest', JavaExec) {
 		'com.twinsoft.convertigo.engine.admin.services.projects.ProjectBundleServicesTest'
 }
 
+tasks.register('uploadLimitsTest', JavaExec) {
+	group = 'verification'
+	description = 'Upload size limits: separate request and file engine properties, optional administration upload limit and HTTP 413 answer of the administration services.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.UploadLimitPropertiesTest',
+		'com.twinsoft.convertigo.engine.admin.util.ServiceUtilsErrorStatusTest'
+}
+
+tasks.named('check') { dependsOn 'uploadLimitsTest' }
+
 tasks.register('projectBundleLifecycleTest', JavaExec) {
 	group = 'verification'
 	description = 'Project group installation, complete import outcomes and normal backup lifecycle.'
@@ -1242,3 +1254,15 @@ tasks.register('subprocessProxyTest', JavaExec) {
 	args 'com.twinsoft.convertigo.engine.SubprocessProxyTest'
 }
 tasks.named('check') { dependsOn 'subprocessProxyTest' }
+
+tasks.register('adminInstanceForwardTest', JavaExec) {
+	group = 'verification'
+	description = 'Forward of administration requests between instances: the body is streamed to the target without being stored, and the size, client and target failures are answered apart.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	maxHeapSize = '256m'
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.servlets.AdminInstanceForwardFilterTest'
+}
+
+tasks.named('check') { dependsOn 'adminInstanceForwardTest' }

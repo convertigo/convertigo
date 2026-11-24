@@ -57,6 +57,17 @@ public final class ProjectBundleZip {
 		public static Limits defaults() {
 			return new Limits(200, 200_000, 4L << 30, 1L << 30, 200, 1L << 30, 64);
 		}
+
+		/**
+		 * The quotas of the defaults, with the upload size of the optional administration upload limit engine
+		 * property: unlimited when it is not set, the frontends limit the requests.
+		 */
+		public static Limits configured() {
+			var limits = defaults();
+			long upload = AdminUploadLimits.filesBytes();
+			return new Limits(limits.projects(), limits.entries(), limits.totalBytes(), limits.entryBytes(), limits.ratio(),
+					upload > 0 ? upload : Long.MAX_VALUE, limits.uploads());
+		}
 	}
 
 	/** One instance must cover the outer ZIP and every project archive in a request. */

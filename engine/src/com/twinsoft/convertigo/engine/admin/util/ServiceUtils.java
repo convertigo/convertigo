@@ -45,6 +45,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.sessions.SessionStoreUnavailableException;
+import com.twinsoft.convertigo.engine.util.AdminUploadLimits;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -117,10 +118,10 @@ public class ServiceUtils {
 		return new FileAndProperties(file, storesProperties);
 	}
 	
-	private static void handleError(Document document, HttpServletRequest request, HttpServletResponse response) throws ServiceException {
+	private static void handleError(Document document, int status, HttpServletRequest request, HttpServletResponse response) throws ServiceException {
 		try {
 			HttpUtils.applyCorsHeaders(request, response);
-			response.setStatus(500);
+			response.setStatus(status);
 			// Bugfix IE #1622: do not forget to set the content type!
 			response.setContentType(MimeType.TextXml.value());
 			response.setCharacterEncoding("UTF-8");
@@ -140,16 +141,22 @@ public class ServiceUtils {
 		if (SessionStoreUnavailableException.respond(response, throwable)) {
 			return;
 		}
+		// an upload over a size limit is refused as such, not as a server failure
+		int status = AdminUploadLimits.isTooLarge(throwable) ? HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE : 500;
 		try {
-	        handleError(DOMUtils.handleError(throwable), request, response);
+	        handleError(DOMUtils.handleError(throwable), status, request, response);
 		} catch (ParserConfigurationException e) {
 			throw new ServiceException("Unable to create error document from throwable", e);
 		}
 	}
 	
 	public static void handleError(String sMessage, HttpServletRequest request, HttpServletResponse response) throws ServiceException {
+		handleError(sMessage, 500, request, response);
+	}
+
+	public static void handleError(String sMessage, int status, HttpServletRequest request, HttpServletResponse response) throws ServiceException {
 		try {
-	        handleError(DOMUtils.handleError(sMessage), request, response);
+	        handleError(DOMUtils.handleError(sMessage), status, request, response);
 		} catch (ParserConfigurationException e) {
 			throw new ServiceException("Unable to create error document string", e);
 		}

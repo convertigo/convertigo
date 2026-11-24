@@ -67,8 +67,9 @@ public class ProjectBundleServicesTest {
 	@Test public void enforcesHttpSizeFileCountAndFormFieldBoundsBeforeDeployment() throws Exception {
 		var oversized = new Deployment();
 		oversized.configured = new Limits(2, 100, 100_000, 100_000, 200, 10, 2);
-		assertThrows(org.apache.commons.fileupload.FileUploadBase.SizeLimitExceededException.class,
+		var oversizedError = assertThrows(org.apache.commons.fileupload.FileUploadBase.SizeLimitExceededException.class,
 				() -> oversized.getServiceResult(new Multipart().file("file", "A.car", car("A")).request("/"), document()));
+		assertTrue(oversizedError.getMessage().contains("net.upload.admin.max_size"));
 		assertTrue(oversized.calls.isEmpty());
 		assertFalse(Files.exists(oversized.temporary));
 		var count = new Deployment();
@@ -82,6 +83,42 @@ public class ProjectBundleServicesTest {
 				.file("file", "A.car", car("A")).request("/"), document()));
 		assertTrue(fields.calls.isEmpty());
 		assertFalse(Files.exists(fields.temporary));
+	}
+
+	@Test public void acceptsArchivesUpToTheUploadSizeWithTheirMultipartEnvelope() throws Exception {
+		var archive = car("A");
+		var service = new Deployment();
+		// the multipart envelope of this request is larger than the 16 bytes left above the archive
+		service.configured = new Limits(2, 100, 100_000, 100_000, 200, archive.length + 16, 2);
+		service.getServiceResult(new Multipart().file("file", "A.car", archive).request("/"), document());
+		assertEquals(List.of("A"), service.calls);
+		assertFalse(Files.exists(service.temporary));
+	}
+
+	@Test public void refusesArchivesOverTheUploadSizeTogetherBeforeDeployment() throws Exception {
+		var a = car("A");
+		var b = car("B");
+		var service = new Deployment();
+		service.configured = new Limits(2, 100, 100_000, 100_000, 200, Math.max(a.length, b.length) + 16, 2);
+		var error = assertThrows(org.apache.commons.fileupload.FileUploadBase.SizeLimitExceededException.class,
+				() -> service.getServiceResult(new Multipart().file("file", "A.car", a).file("file", "B.car", b).request("/"), document()));
+		assertTrue(error.getMessage().contains("net.upload.admin.max_size"));
+		assertTrue(com.twinsoft.convertigo.engine.util.AdminUploadLimits.isTooLarge(error));
+		assertTrue(service.calls.isEmpty());
+		assertFalse(Files.exists(service.temporary));
+	}
+
+	@Test public void deploysWithoutUploadSizeLimitByDefaultAndKeepsTheBundleQuotas() throws Exception {
+		var configured = Limits.configured();
+		var defaults = Limits.defaults();
+		assertEquals(Long.MAX_VALUE, configured.uploadBytes());
+		assertEquals(List.of(defaults.projects(), defaults.entries(), defaults.totalBytes(), defaults.entryBytes(), defaults.ratio(), defaults.uploads()),
+				List.of(configured.projects(), configured.entries(), configured.totalBytes(), configured.entryBytes(), configured.ratio(), configured.uploads()));
+		var service = new Deployment();
+		service.configured = configured;
+		service.getServiceResult(new Multipart().file("file", "A.car", car("A")).request("/"), document());
+		assertEquals(List.of("A"), service.calls);
+		assertFalse(Files.exists(service.temporary));
 	}
 
 	@Test public void exportsTheSelectionAndOptionsThroughTheSharedAdapter() throws Exception {

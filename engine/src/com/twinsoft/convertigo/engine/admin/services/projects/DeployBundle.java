@@ -38,6 +38,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
+import com.twinsoft.convertigo.engine.util.AdminUploadLimits;
 import com.twinsoft.convertigo.engine.util.JakartaServletFileUploadSupport;
 import com.twinsoft.convertigo.engine.util.ProjectBundleDeployment;
 import com.twinsoft.convertigo.engine.util.ProjectBundleImport;
@@ -45,7 +46,7 @@ import com.twinsoft.convertigo.engine.util.ProjectBundleZip.Limits;
 
 @ServiceDefinition(name = "DeployBundle", roles = { Role.WEB_ADMIN, Role.TRIAL, Role.PROJECTS_CONFIG }, parameters = {}, returnValue = "")
 public class DeployBundle extends XmlService {
-	protected Limits limits() { return Limits.defaults(); }
+	protected Limits limits() { return Limits.configured(); }
 
 	protected Path createTemporaryDirectory() throws IOException {
 		return Files.createTempDirectory("convertigo-project-upload-");
@@ -102,11 +103,12 @@ public class DeployBundle extends XmlService {
 		try {
 			var factory = new DiskFileItemFactory(16 * 1024, temporary.toFile());
 			var upload = new ServletFileUpload(factory);
-			upload.setSizeMax(limits.uploadBytes());
-			upload.setFileSizeMax(limits.uploadBytes());
+			// the archives share the upload size, if any, the multipart envelope comes on top of it
+			AdminUploadLimits.configure(upload, limits.uploadBytes());
 			upload.setFileCountMax(limits.uploads() + 8L);
-			items = JakartaServletFileUploadSupport.parseRequest(upload, request);
+			items = AdminUploadLimits.parse(upload, request);
 			var files = new ArrayList<Path>();
+			long uploadedBytes = 0;
 			boolean assemble = Boolean.parseBoolean(request.getParameter("bAssembleXsl"));
 			for (var item : items) {
 				if (item.isFormField()) {
@@ -116,6 +118,8 @@ public class DeployBundle extends XmlService {
 					String name = item.getName();
 					if (name == null || !name.toLowerCase(Locale.ROOT).matches(".+\\.(car|zip)")) throw new IOException("Choose .car or .zip project archives");
 					if (files.size() >= limits.uploads()) throw new IOException("Too many project archives");
+					uploadedBytes += item.getSize();
+					if (uploadedBytes > limits.uploadBytes()) throw AdminUploadLimits.tooLarge(uploadedBytes, limits.uploadBytes());
 					var target = temporary.resolve("upload-" + files.size());
 					try (var input = item.getInputStream()) { Files.copy(input, target); }
 					files.add(target);
