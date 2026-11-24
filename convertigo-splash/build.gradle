@@ -26,6 +26,8 @@ run.systemProperties(
 )
 
 run {
+	// Draw without a GUI toolkit: on macOS, AWT would otherwise keep the JVM running after the image is written
+	jvmArgs '-Djava.awt.headless=true'
 	inputs.files 'convertigo-splash/convertigo_background.png', 'convertigo-splash/eclipse_builton.png'
 	inputs.properties run.systemProperties
 	outputs.files '../eclipse-plugin-product/splash.bmp', '../eclipse-plugin-product/content/convertigoBox.png'
