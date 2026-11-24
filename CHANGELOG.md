@@ -5,7 +5,7 @@
 #### New Features:
 
 - [#1296](https://github.com/convertigo/convertigo/issues/1296) [Admin] Deploy and export several projects together, optionally include declared dependencies in exports, and produce the same project bundles with Gradle
-- [#1302](https://github.com/convertigo/convertigo/issues/1302) [Engine] Standard output logs can be written as JSON lines with the log.stdout.format property (LOG_STDOUT_FORMAT in Docker), with the contextual parameters, the stack trace and the request time as fields, while engine.log keeps its format
+- [#1302](https://github.com/convertigo/convertigo/issues/1302) [Engine] Standard output logs can be written as JSON lines with the log.stdout.format property (LOG_STDOUT_FORMAT in Docker), with the contextual parameters, the stack trace and the request time as fields, either with Convertigo field names (json) or Elastic Common Schema ones (json-ecs), while engine.log keeps its format
 
 #### Improvements:
 

@@ -24,10 +24,11 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.bridge.LayoutWrapper;
@@ -41,34 +42,132 @@ import com.fasterxml.jackson.core.JsonGenerator;
 /**
  * One JSON object per line, for the standard output read by log collectors that only split JSON lines into fields.
  * The contextual parameters of the line become separate fields and the stack trace stays inside the line. The
- * statistics line written at the end of each request gives its total time as duration_ms.
+ * statistics line written at the end of each request gives its total time. The names and the order of the fields come
+ * from the {@link Format} chosen by log.stdout.format.
  */
 public final class JsonLogLayout extends AbstractStringLayout {
 	static final String CONTEXTUAL_PARAMETERS = "ContextualParameters";
 
-	/** the parameters of Log4jHelper.mdcKeys, written as top-level fields */
-	static final Set<String> CONTEXT_FIELDS = Set.of("project", "sequence", "transaction", "connector", "user",
-			"contextid", "clientip", "clienthostname", "uid", "uuid");
+	/** the version of the Elastic Common Schema followed by the json-ecs format */
+	public static final String ECS_VERSION = "9.5.0";
 
 	/** the logger and the "Total" row of the table that GenericRequester logs with EngineStatistics.printStatistics() */
 	static final String STATISTICS_LOGGER = "cems.Statistics";
 	private static final Pattern STATISTICS_TOTAL = Pattern.compile("\\| Total +\\| +(-?\\d+) ms");
+
+	private static final Pattern IP_LITERAL = Pattern.compile("[0-9A-Fa-f:.]*[.:][0-9A-Fa-f:.]*");
 
 	private static final JsonFactory JSON_FACTORY = new JsonFactory()
 			.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
 
 	private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
+	/** the parts of a line, written in the order a format gives */
+	enum Part {
+		TIME, LEVEL, LOGGER, THREAD, MESSAGE, SERVICE, PARAMETERS, DURATION, ERROR
+	}
+
+	/**
+	 * The names of the fields of a JSON format, null for a field the format leaves out. The parameters are the keys
+	 * of Log4jHelper.mdcKeys in lower case; the other contextual parameters go in one object.
+	 */
+	record Fields(List<Part> order, String time, boolean utc, String level, String logger, String thread,
+			String message, List<Map.Entry<String, String>> constants, String instance, Map<String, String> parameters,
+			String otherParameters, String durationMs, String durationNs, String errorType, String errorMessage,
+			String stackTrace) {
+	}
+
+	/**
+	 * The JSON values of log.stdout.format. A new convention is a new constant with its own Bridge class: the names
+	 * of the existing formats never change.
+	 */
+	public enum Format {
+		/** our names, with the contextual parameters at the top level */
+		json("json", new Fields(
+				List.of(Part.TIME, Part.LEVEL, Part.LOGGER, Part.THREAD, Part.MESSAGE, Part.PARAMETERS, Part.DURATION,
+						Part.ERROR, Part.SERVICE),
+				"time", false, "level", "logger", "thread", "message",
+				List.of(Map.entry("app", "convertigo")), "instance",
+				parameters("project", "project", "sequence", "sequence", "transaction", "transaction",
+						"connector", "connector", "user", "user", "contextid", "contextid", "clientip", "clientip",
+						"clienthostname", "clienthostname", "uid", "uid", "uuid", "uuid"),
+				"context", "duration_ms", null, "exception_class", null, "exception")),
+
+		/**
+		 * Elastic Common Schema {@value JsonLogLayout#ECS_VERSION}, with flat dotted keys and @timestamp, log.level and
+		 * message first, as the ecs-logging-java encoders write them. The parameters without an ECS field go under
+		 * convertigo.*, and event.duration is in nanoseconds.
+		 */
+		json_ecs("json-ecs", new Fields(
+				List.of(Part.TIME, Part.LEVEL, Part.MESSAGE, Part.SERVICE, Part.THREAD, Part.LOGGER, Part.PARAMETERS,
+						Part.DURATION, Part.ERROR),
+				"@timestamp", true, "log.level", "log.logger", "process.thread.name", "message",
+				List.of(Map.entry("ecs.version", ECS_VERSION), Map.entry("service.name", "convertigo"),
+						Map.entry("event.dataset", "convertigo.log")), "service.node.name",
+				parameters("user", "user.name", "clientip", "client.ip", "clienthostname", "client.domain",
+						"project", "convertigo.project", "sequence", "convertigo.sequence",
+						"transaction", "convertigo.transaction", "connector", "convertigo.connector",
+						"contextid", "convertigo.contextid", "uid", "convertigo.uid", "uuid", "convertigo.uuid"),
+				"convertigo.context", "convertigo.duration_ms", "event.duration", "error.type", "error.message",
+				"error.stack_trace"));
+
+		private final String value;
+		private final Fields fields;
+
+		Format(String value, Fields fields) {
+			this.value = value;
+			this.fields = fields;
+		}
+
+		public String value() {
+			return value;
+		}
+
+		Fields fields() {
+			return fields;
+		}
+
+		/** the class to name in a "log4j.appender.X.layout" property */
+		public Class<? extends LayoutWrapper> bridge() {
+			return this == json ? Bridge.class : EcsBridge.class;
+		}
+
+		/** the format of a log.stdout.format value, null for text or an unknown value */
+		public static Format of(String value) {
+			String name = value == null ? "" : value.trim();
+			for (Format format : values()) {
+				if (format.value.equalsIgnoreCase(name)) {
+					return format;
+				}
+			}
+			return null;
+		}
+
+		private static Map<String, String> parameters(String... names) {
+			var parameters = new LinkedHashMap<String, String>();
+			for (int i = 0; i < names.length; i += 2) {
+				parameters.put(names[i], names[i + 1]);
+			}
+			return parameters;
+		}
+	}
+
+	private final Fields fields;
 	private final DateTimeFormatter timeFormat;
 	private final String instance;
 
 	public JsonLogLayout() {
-		this(ZoneId.systemDefault(), System.getenv("HOSTNAME"));
+		this(Format.json);
 	}
 
-	JsonLogLayout(ZoneId zone, String instance) {
+	public JsonLogLayout(Format format) {
+		this(format, ZoneId.systemDefault(), System.getenv("HOSTNAME"));
+	}
+
+	JsonLogLayout(Format format, ZoneId zone, String instance) {
 		super(StandardCharsets.UTF_8);
-		this.timeFormat = TIME_FORMAT.withZone(zone);
+		this.fields = format.fields();
+		this.timeFormat = TIME_FORMAT.withZone(fields.utc() ? ZoneOffset.UTC : zone);
 		this.instance = instance == null || instance.isBlank() ? null : instance;
 	}
 
@@ -77,53 +176,85 @@ public final class JsonLogLayout extends AbstractStringLayout {
 		var writer = new StringWriter(512);
 		try (var json = JSON_FACTORY.createGenerator(writer)) {
 			json.writeStartObject();
-			var instant = event.getInstant();
-			json.writeStringField("time", timeFormat.format(
-					java.time.Instant.ofEpochSecond(instant.getEpochSecond(), instant.getNanoOfSecond())));
-			json.writeStringField("level", String.valueOf(event.getLevel()));
-			String logger = event.getLoggerName();
-			json.writeStringField("logger", logger);
-			json.writeStringField("thread", event.getThreadName());
 			Message message = event.getMessage();
 			String text = message == null ? "" : String.valueOf(message.getFormattedMessage());
-			json.writeStringField("message", text);
-
-			Object parameters = event.getContextData().getValue(CONTEXTUAL_PARAMETERS);
-			if (parameters != null) {
-				writeContext(json, parseContextualParameters(parameters.toString()));
-			}
-			if (STATISTICS_LOGGER.equals(logger)) {
-				var total = STATISTICS_TOTAL.matcher(text);
-				if (total.find()) {
-					json.writeNumberField("duration_ms", Long.parseLong(total.group(1)));
-				}
-			}
-
-			Throwable thrown = event.getThrown();
-			if (thrown != null) {
-				json.writeStringField("exception_class", thrown.getClass().getName());
-				json.writeStringField("exception", stackTrace(thrown));
-			}
-			json.writeStringField("app", "convertigo");
-			if (instance != null) {
-				json.writeStringField("instance", instance);
+			for (Part part : fields.order()) {
+				write(json, part, event, text);
 			}
 			json.writeEndObject();
 		} catch (IOException | RuntimeException e) {
 			// a StringWriter does not fail: keep a valid line anyway
-			return "{\"level\":\"ERROR\",\"message\":\"JSON log line failed\",\"app\":\"convertigo\"}\n";
+			return "{\"message\":\"JSON log line failed\"}\n";
 		}
 		writer.write('\n');
 		return writer.toString();
 	}
 
-	private static void writeContext(JsonGenerator json, Map<String, String> parameters) throws IOException {
+	private void write(JsonGenerator json, Part part, LogEvent event, String text) throws IOException {
+		switch (part) {
+		case TIME -> {
+			var instant = event.getInstant();
+			json.writeStringField(fields.time(), timeFormat.format(
+					java.time.Instant.ofEpochSecond(instant.getEpochSecond(), instant.getNanoOfSecond())));
+		}
+		case LEVEL -> json.writeStringField(fields.level(), String.valueOf(event.getLevel()));
+		case LOGGER -> json.writeStringField(fields.logger(), event.getLoggerName());
+		case THREAD -> json.writeStringField(fields.thread(), event.getThreadName());
+		case MESSAGE -> json.writeStringField(fields.message(), text);
+		case SERVICE -> {
+			for (var constant : fields.constants()) {
+				json.writeStringField(constant.getKey(), constant.getValue());
+			}
+			if (instance != null) {
+				json.writeStringField(fields.instance(), instance);
+			}
+		}
+		case PARAMETERS -> {
+			Object parameters = event.getContextData().getValue(CONTEXTUAL_PARAMETERS);
+			if (parameters != null) {
+				writeParameters(json, parseContextualParameters(parameters.toString()));
+			}
+		}
+		case DURATION -> {
+			if (STATISTICS_LOGGER.equals(event.getLoggerName())) {
+				var total = STATISTICS_TOTAL.matcher(text);
+				if (total.find()) {
+					long ms = Long.parseLong(total.group(1));
+					if (fields.durationNs() != null) {
+						json.writeNumberField(fields.durationNs(), ms * 1_000_000L);
+					}
+					json.writeNumberField(fields.durationMs(), ms);
+				}
+			}
+		}
+		case ERROR -> {
+			Throwable thrown = event.getThrown();
+			if (thrown != null) {
+				json.writeStringField(fields.errorType(), thrown.getClass().getName());
+				if (fields.errorMessage() != null && thrown.getMessage() != null) {
+					json.writeStringField(fields.errorMessage(), thrown.getMessage());
+				}
+				json.writeStringField(fields.stackTrace(), stackTrace(thrown));
+			}
+		}
+		}
+	}
+
+	private void writeParameters(JsonGenerator json, Map<String, String> parameters) throws IOException {
 		Map<String, String> others = null;
 		for (var entry : parameters.entrySet()) {
 			String key = entry.getKey();
 			String value = entry.getValue();
-			if (CONTEXT_FIELDS.contains(key)) {
-				json.writeStringField(key, "user".equals(key) ? unquote(value) : value);
+			String name = fields.parameters().get(key);
+			if (name != null) {
+				if ("user".equals(key)) {
+					value = unquote(value);
+				}
+				// an ECS ip field only takes an address: anything else is kept as the raw address
+				if (name.endsWith(".ip") && !IP_LITERAL.matcher(value).matches()) {
+					name = name.substring(0, name.length() - 3) + ".address";
+				}
+				json.writeStringField(name, value);
 			} else {
 				if (others == null) {
 					others = new LinkedHashMap<>();
@@ -133,7 +264,7 @@ public final class JsonLogLayout extends AbstractStringLayout {
 		}
 		// other parameters, such as the environment sent with the client logs, stay apart from the line fields
 		if (others != null) {
-			json.writeObjectFieldStart("context");
+			json.writeObjectFieldStart(fields.otherParameters());
 			for (var entry : others.entrySet()) {
 				json.writeStringField(entry.getKey(), entry.getValue());
 			}
@@ -202,7 +333,14 @@ public final class JsonLogLayout extends AbstractStringLayout {
 	 */
 	public static final class Bridge extends LayoutWrapper {
 		public Bridge() {
-			super(new JsonLogLayout());
+			super(new JsonLogLayout(Format.json));
+		}
+	}
+
+	/** {@link Bridge} of the json-ecs format */
+	public static final class EcsBridge extends LayoutWrapper {
+		public EcsBridge() {
+			super(new JsonLogLayout(Format.json_ecs));
 		}
 	}
 }

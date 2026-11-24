@@ -295,7 +295,7 @@ Log file still exists until you add the `LOG_FILE=false` environment variable :
 
     docker run -d --name C8O -e LOG_STDOUT=true -e LOG_FILE=false -p 28080:28080 convertigo
 
-Add `LOG_STDOUT_FORMAT=json` to write one JSON object per line on the standard output, with the time, the level, the logger, the thread, the message, the stack trace and the contextual parameters (project, sequence, transaction, user, client IP...) as separate fields. The **engine.log** file keeps its text format:
+Add `LOG_STDOUT_FORMAT=json` to write one JSON object per line on the standard output, with the time, the level, the logger, the thread, the message, the stack trace and the contextual parameters (project, sequence, transaction, user, client IP...) as separate fields, or `LOG_STDOUT_FORMAT=json-ecs` for the same lines with the field names of the Elastic Common Schema (`@timestamp`, `log.level`, `error.stack_trace`, `user.name`, `convertigo.project`...). The **engine.log** file keeps its text format:
 
     docker run -d --name C8O -e LOG_STDOUT=true -e LOG_STDOUT_FORMAT=json -p 28080:28080 convertigo
 
