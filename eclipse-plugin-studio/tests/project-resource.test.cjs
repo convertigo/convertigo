@@ -51,6 +51,7 @@ try {
   fs.writeFileSync(path.join(root, 'src/repair/ProjectResourceTest.java'), `
 package repair;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
 import org.eclipse.core.resources.*;
@@ -60,7 +61,9 @@ import org.osgi.framework.*;
 public class ProjectResourceTest implements BundleActivator {
   ${section('\tpublic static final String PLUGIN_UNIQUE_ID =', '\n\n\tstatic final String PLUGIN_PERSPECTIVE_ID')}
   ${source.match(/\tprivate static final QualifiedName qnInit =[^\n]+/)[0]}
-  static void logInfo(String message) { System.out.println(message); }
+  static final List<String> logs = new ArrayList<>();
+  static void logInfo(String message) { logs.add(message); System.out.println(message); }
+  static void logStudioDebug(String message) { logs.add(message); System.out.println(message); }
   ${section('\tpublic IProject createProjectPluginResource(String projectName, String projectDir)', '\n\tpublic IProject getProjectPluginResource(String projectName)')}
   static int checks;
   static void check(boolean value, String message) {
@@ -82,7 +85,8 @@ public class ProjectResourceTest implements BundleActivator {
   }
   static void verify(IProject project, java.nio.file.Path expected) throws Exception {
     check(project.exists() && project.isOpen(), "project registered and open: " + project.getName());
-    check(directory(project).equals(expected), "original project location: " + project.getName());
+    // Eclipse keeps canonical locations (the temporary folder is behind a link on macOS).
+    check(directory(project).toRealPath().equals(expected.toRealPath()), "original project location: " + project.getName());
     var xml = Files.readString(expected.resolve(".project"));
     check(xml.contains("<name>" + project.getName() + "</name>"), "correct persisted Eclipse name");
     check(Files.readString(expected.resolve("c8oProject.yaml")).equals("project payload"), "YAML unchanged");
@@ -136,6 +140,44 @@ public class ProjectResourceTest implements BundleActivator {
         project.close(null); Files.delete(expected.resolve(".project"));
         createProjectPluginResource(name, null); verify(project, expected);
       }
+      // The Studio declares a workspace project with its folder, and a reload closes it before declaring it again.
+      var workspaceDir = workspace.getRoot().getLocation().toFile().toPath();
+      var reloadDir = workspaceDir.resolve("Reload");
+      var reload = createProjectPluginResource("Reload", reloadDir.toString());
+      payload(reload);
+      check(reload.getDescription().getLocationURI() == null, "workspace folder registered as the default location");
+      var kept = new QualifiedName("repair.tests", "kept");
+      reload.setPersistentProperty(kept, "registration kept");
+      for (int i = 0; i < 3; i++) {
+        logs.clear();
+        reload.close(null);
+        createProjectPluginResource("Reload", reloadDir.toString());
+        verify(reload, reloadDir);
+        check("registration kept".equals(reload.getPersistentProperty(kept)), "reload reopens the registration instead of recreating it");
+        check(reload.getDescription().getLocationURI() == null, "reload keeps the default location");
+        check(logs.stream().noneMatch(m -> m.contains("isn't in the workspace folder")), "no misleading message on reload");
+        check(logs.stream().anyMatch(m -> m.endsWith(": reopened.")), "reload logged as reopened");
+      }
+      // The same workspace folder written differently: through a link, and with another case on a case-insensitive disk.
+      var link = root.resolve("workspace-link");
+      Files.createSymbolicLink(link, workspaceDir);
+      Files.createDirectories(workspaceDir.resolve("Linked"));
+      var linked = createProjectPluginResource("Linked", link.resolve("Linked").toString());
+      check(linked.isOpen() && linked.getDescription().getLocationURI() == null, "workspace folder through a link registered as the default location");
+      Files.createDirectories(workspaceDir.resolve("CaseVariant"));
+      if (Files.isDirectory(workspaceDir.resolve("CASEVARIANT"))) {
+        var variant = createProjectPluginResource("CaseVariant", workspaceDir.resolve("CASEVARIANT").toString());
+        check(variant.isOpen() && variant.getDescription().getLocationURI() == null, "workspace folder with another case registered as the default location");
+      }
+      // A project outside the workspace keeps its own location across a reload.
+      var outside = root.resolve("outside");
+      var external = createProjectPluginResource("Outside", outside.toString());
+      check(external.getDescription().getLocationURI() != null, "external folder registered at its own location");
+      external.setPersistentProperty(kept, "registration kept");
+      external.close(null);
+      createProjectPluginResource("Outside", outside.toString());
+      check(external.isOpen() && directory(external).toRealPath().equals(outside.toRealPath()), "external project reopened at its location");
+      check("registration kept".equals(external.getPersistentProperty(kept)), "external reload keeps the registration");
       // These descriptions are removed only after Eclipse has fully stopped, then restored next process.
       for (String name : List.of("RestartDefault", "RestartReference")) {
         var project = createProjectPluginResource(name, name.endsWith("Reference") ? root.resolve("restart-external").toString() : null);

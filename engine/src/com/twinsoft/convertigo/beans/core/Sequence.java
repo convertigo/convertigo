@@ -72,6 +72,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.RequestableEngineEvent;
 import com.twinsoft.convertigo.engine.enums.DatabaseObjectTypes;
 import com.twinsoft.convertigo.engine.enums.FolderType;
@@ -1345,28 +1346,34 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	    	if (hasSteps()) {
 	    		Long t1 = System.currentTimeMillis();
 	    		
-	    		// Generate sequence working dom (see also appendStepNode(Step))
-	    		for (int i=0; i < numberOfSteps(); i++) {
-	        		if (isRunning()) {
-        				executeNextStep((Step)getSteps().get(i), javascriptContext, scope);
+	    		// One measure for all the steps: a step nested in a block or run by a parallel step is in the time of its parent
+	    		String ts = context.statistics.start(EngineStatistics.EXECUTE_SEQUENCE_STEPS);
+	    		try {
+	    			// Generate sequence working dom (see also appendStepNode(Step))
+	    			for (int i=0; i < numberOfSteps(); i++) {
+		        		if (isRunning()) {
+        					executeNextStep((Step)getSteps().get(i), javascriptContext, scope);
 
-	            		try {
-	            			boolean hasWait = false;
-	            			while (nbAsyncThreadRunning > 0) {
-	            				// If this sequence contains ParallelSteps, waits until child's threads finish
-	            				if (Engine.logBeans.isTraceEnabled())
-	            					Engine.logBeans.trace("Sequence '"+ getName() + "' waiting...");
-	            				Thread.sleep(100);
-	            				hasWait = true;
-	            			}
-	            			if (hasWait) Engine.logBeans.trace("Sequence '"+ getName() + "' ends wait");
-	            		} catch (InterruptedException e) {
-	            			if (Engine.logBeans.isTraceEnabled())
-	            				Engine.logBeans.trace("Sequence '"+ getName() + "' has been interrupted");
-	            		}
-	        		}
-	        		if (skipSteps)
-	        			break;
+		            		try {
+		            			boolean hasWait = false;
+		            			while (nbAsyncThreadRunning > 0) {
+		            				// If this sequence contains ParallelSteps, waits until child's threads finish
+		            				if (Engine.logBeans.isTraceEnabled())
+		            					Engine.logBeans.trace("Sequence '"+ getName() + "' waiting...");
+		            				Thread.sleep(100);
+		            				hasWait = true;
+		            			}
+		            			if (hasWait) Engine.logBeans.trace("Sequence '"+ getName() + "' ends wait");
+		            		} catch (InterruptedException e) {
+		            			if (Engine.logBeans.isTraceEnabled())
+		            				Engine.logBeans.trace("Sequence '"+ getName() + "' has been interrupted");
+		            		}
+		        		}
+		        		if (skipSteps)
+		        			break;
+	    			}
+	    		} finally {
+	    			context.statistics.stop(ts);
 	    		}
 	    		
 	    		// Finally modify sequence working dom to output dom (a native sequence may have none)

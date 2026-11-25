@@ -6,6 +6,7 @@
 
 - [#1296](https://github.com/convertigo/convertigo/issues/1296) [Admin] Deploy and export several projects together, optionally include declared dependencies in exports, and produce the same project bundles with Gradle
 - [#1302](https://github.com/convertigo/convertigo/issues/1302) [Engine] Standard output logs can be written as JSON lines with the log.stdout.format property (LOG_STDOUT_FORMAT in Docker), with the contextual parameters, the stack trace and the request time as fields, either with Convertigo field names (json) or Elastic Common Schema ones (json-ecs), while engine.log keeps its format
+- [#1305](https://github.com/convertigo/convertigo/issues/1305) [Studio] The Design tab of the SQL connector can also generate, for each selected table, a COUNT transaction, two NGX shared components over its CRUD sequences, a grid and a form, configurable with variables and events, and a sample page that shows the selected row under the grid; the CRUD transactions it generates now save empty values as NULL
 
 #### Improvements:
 
@@ -27,6 +28,10 @@
 - [#1298](https://github.com/convertigo/convertigo/issues/1298) [Engine] Fixed, PAC proxy lists and DIRECT responses are accepted, and manual or automatic proxy settings apply consistently to HTTP connections and helper processes
 - [#1299](https://github.com/convertigo/convertigo/issues/1299) [Studio] Fixed, displaying new lines in the Engine Log view no longer freezes the Studio on Windows; full messages remain available by double-clicking a line
 - [#1301](https://github.com/convertigo/convertigo/issues/1301) [Engine] Fixed, failed SQL transactions report the original query error and return their connection to the pool, allowing subsequent transactions of the same context to run normally
+- [#1303](https://github.com/convertigo/convertigo/issues/1303) [Engine] Fixed, the request statistics count the time of nested steps only once: ExecuteSequenceSteps no longer exceeds the request time and (others) is no longer negative.
+- [#1304](https://github.com/convertigo/convertigo/issues/1304) [Engine] Fixed, the branches of a parallel step convert their JSON source steps reliably, without mixing their rows or looping on the sequence document.
+- [#1306](https://github.com/convertigo/convertigo/issues/1306) [Studio] Fixed, reloading a project no longer registers it again nor logs that it isn't in the workspace folder, and the Console no longer shows parse errors when a palette describes a dynamic component.
+- [#1307](https://github.com/convertigo/convertigo/issues/1307) [Studio] Fixed, the JavaScript dialogs of an application in the viewer no longer block the Studio: alerts, confirmations and prompts are shown in a bar of the viewer.
 
 ## 8.4.7
 

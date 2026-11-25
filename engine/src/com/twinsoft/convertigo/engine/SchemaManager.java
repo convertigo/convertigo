@@ -1158,7 +1158,9 @@ public class SchemaManager implements AbstractManager {
 				//					transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
 				//					transformer.transform(new DOMSource(schema.getSchemaDocument()), new StreamResult(System.out));
 				//				}
-				System.out.println("Schema for project \"" + projectName + "\" | Times >> total : " + (timeStop - timeStart) + " ms");
+				if (Engine.logEngine != null && Engine.logEngine.isDebugEnabled()) {
+					Engine.logEngine.debug("Schema for project \"" + projectName + "\" | Times >> total : " + (timeStop - timeStart) + " ms");
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 				throw e;
