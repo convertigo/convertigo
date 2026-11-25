@@ -260,7 +260,31 @@ public class ProcessUtils {
 			}
 		}
 
-		return getProcessBuilder(paths, command);
+		var pb = getProcessBuilder(paths, command);
+		configureNpmEnvironment(pb.environment());
+		return pb;
+	}
+
+	/** Name of the npm 11 setting that runs the install scripts of all the dependencies, as npm 10 did. */
+	static final String NPM_ALLOW_ALL_SCRIPTS_ENV = "npm_config_dangerously_allow_all_scripts";
+
+	/**
+	 * npm 11 skips the install scripts that are not approved (native modules such as leveldown are not compiled):
+	 * restore the npm 10 behavior unless a value is already set or the engine property npm.allow_all_scripts is false.
+	 * An --ignore-scripts given on the command line stays prioritary in npm.
+	 */
+	static void configureNpmEnvironment(Map<String, String> environment) {
+		for (String key : environment.keySet()) {
+			if (key.equalsIgnoreCase(NPM_ALLOW_ALL_SCRIPTS_ENV)) return;
+		}
+		boolean enabled;
+		try {
+			enabled = EnginePropertiesManager.getPropertyAsBoolean(EnginePropertiesManager.PropertyName.NPM_ALLOW_ALL_SCRIPTS);
+		} catch (RuntimeException uninitialized) {
+			// Process discovery also runs before the engine properties are initialized: keep the default.
+			enabled = true;
+		}
+		if (enabled) environment.put(NPM_ALLOW_ALL_SCRIPTS_ENV, "true");
 	}
 
 	/** Apply the engine proxy to any child process, without exporting upstream credentials. */
