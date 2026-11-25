@@ -14,23 +14,23 @@ function section(start, end) {
 }
 const repo = process.env.MAVEN_REPO || path.join(os.homedir(), '.m2/repository');
 const bundles = path.join(repo, 'p2/osgi/bundle');
-// Pin the branch's Eclipse 2026-09 target instead of mixing other installed Eclipse releases.
+// Pin the branch's Eclipse 2026-12 target instead of mixing other installed Eclipse releases.
 const target = {
-  "org.eclipse.osgi": "3.24.300.v20260721-1251",
-  "org.eclipse.equinox.common": "3.21.0.v20260604-1221",
+  "org.eclipse.osgi": "3.25.0.v20261008-2211",
+  "org.eclipse.equinox.common": "3.21.100.v20260829-1451",
   "org.eclipse.core.jobs": "3.15.900.v20260604-0622",
-  "org.eclipse.equinox.registry": "3.12.600.v20250906-0651",
-  "org.eclipse.equinox.preferences": "3.12.100.v20251111-0704",
+  "org.eclipse.equinox.registry": "3.12.700.v20261023-0641",
+  "org.eclipse.equinox.preferences": "3.12.200.v20261023-0641",
   "org.osgi.service.prefs": "1.1.2.202109301733",
-  "org.eclipse.equinox.app": "1.7.600.v20251211-1038",
-  "org.eclipse.core.runtime": "3.35.0.v20260623-1631",
-  "org.eclipse.core.contenttype": "3.9.900.v20260617-0626",
-  "org.eclipse.core.filesystem": "1.11.500.v20260721-1509",
-  "org.eclipse.core.expressions": "3.9.700.v20260710-0925",
-  "org.eclipse.core.resources": "3.24.100.v20260812-0827",
+  "org.eclipse.equinox.app": "1.7.700.v20261023-0641",
+  "org.eclipse.core.runtime": "3.35.100.v20261023-0640",
+  "org.eclipse.core.contenttype": "3.9.1000.v20261023-0640",
+  "org.eclipse.core.filesystem": "1.12.0.v20261023-0640",
+  "org.eclipse.core.expressions": "3.9.800.v20261023-0640",
+  "org.eclipse.core.resources": "3.25.0.v20261105-1843",
   "com.sun.jna": "5.19.1.v20260612-1000",
   "com.sun.jna.platform": "5.19.1",
-  "org.apache.felix.scr": "2.2.18",
+  "org.apache.felix.scr": "2.3.0",
   "org.osgi.service.component": "1.5.1.202212101352",
   "org.osgi.util.promise": "1.3.0.202212101352",
   "org.osgi.util.function": "1.2.0.202109301733",
@@ -38,7 +38,7 @@ const target = {
 };
 const jars = Object.entries(target).map(([name, version]) => {
   const jar = path.join(bundles, name, version, name + '-' + version + '.jar');
-  assert(fs.existsSync(jar), 'Build the Eclipse 2026-09 Maven target first: missing ' + jar);
+  assert(fs.existsSync(jar), 'Build the Eclipse 2026-12 Maven target first: missing ' + jar);
   return jar;
 });
 const java = name => process.env.JAVA_HOME ? path.join(process.env.JAVA_HOME, 'bin', name) : name;
