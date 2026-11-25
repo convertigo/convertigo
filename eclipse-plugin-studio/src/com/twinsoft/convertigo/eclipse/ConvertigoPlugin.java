@@ -1742,7 +1742,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		IProject resourceProject;
 		StringBuilder sb = new StringBuilder();
 		try {
-			sb.append("createProjectPluginResource for projet '" + projectName + "'");
+			sb.append("createProjectPluginResource for project '" + projectName + "'");
 			if (projectDir != null) {
 				sb.append(" from: " + projectDir);
 			}
@@ -1756,6 +1756,20 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				return resourceProject;
 			}
 			
+			// Reloading a project closes it, then the engine declares it again: reopen it where it is,
+			// instead of removing its registration (and its persistent properties) to create it again.
+			boolean reopened = false;
+			if (resourceProject.exists() && !resourceProject.isOpen()
+					&& (requestedLocation == null || isSameLocation(resourceProject.getLocation(), requestedLocation))) {
+				try {
+					openProject(resourceProject, monitor);
+					reopened = true;
+					sb.append(": reopened.");
+				} catch (CoreException e) {
+					// unreadable registration: registered again below
+				}
+			}
+
 			String existingProjectName;
 			try {
 				existingProjectName = resourceProject.getDescription().getName();
@@ -1768,33 +1782,47 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			}
 			
 			if (existingProjectName == null) {
-				if (projectDir == null) {
-					sb.append(" in the workspace folder.");
-					resourceProject.create(monitor);
-				} else {
-					sb.append(" isn't in the workspace folder.");
-					IPath projectPath = new Path(projectDir).makeAbsolute();
-					IProjectDescription description = myWorkspace.newProjectDescription(projectName);
-					description.setLocation(projectPath);
-					resourceProject.create(description, monitor);
-				}
+				// Eclipse compares an explicit location with the workspace folder strictly (case, links):
+				// a project folder of the workspace is registered at the default location.
+				boolean inWorkspace = requestedLocation == null || isSameLocation(requestedLocation, myWorkspaceRoot.getLocation().append(projectName));
+				IProjectDescription description = myWorkspace.newProjectDescription(projectName);
+				description.setLocation(inWorkspace ? null : requestedLocation);
+				resourceProject.create(description, monitor);
+				sb.append(inWorkspace ? ": registered in the workspace folder." : ": registered at its own location.");
 				openProject(resourceProject, monitor);
 			} else {
 				if (resourceProject.isOpen() && !projectName.equals(existingProjectName)) {
 					resourceProject.delete(false, true, monitor);
 					return createProjectPluginResource(projectName, projectDir, monitor);
-				} else {
+				} else if (!reopened) {
 					sb = null;
 				}
 			}
 		} finally {
 			if (sb != null) {
-				logInfo(sb.toString());
+				logStudioDebug(sb.toString());
 			}
 		}
 		return resourceProject;
 	}
 	
+	/** Same folder despite the case on Windows, a relative segment or a link: Eclipse keeps canonical locations. */
+	private static boolean isSameLocation(IPath location, IPath other) {
+		if (location == null || other == null) {
+			return location == other;
+		}
+		if (location.equals(other)) {
+			return true;
+		}
+		File file = location.toFile();
+		File otherFile = other.toFile();
+		try {
+			return file.getCanonicalFile().equals(otherFile.getCanonicalFile());
+		} catch (IOException e) {
+			return file.getAbsoluteFile().equals(otherFile.getAbsoluteFile());
+		}
+	}
+
 	private boolean restoreMissingProjectDescription(IProject project, IPath requestedLocation, IProgressMonitor monitor) throws CoreException {
 		IPath location = project.getLocation();
 		if (location == null) {
@@ -1824,7 +1852,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			}
 			description.setName(project.getName());
 			IPath defaultLocation = workspace.getRoot().getLocation().append(project.getName());
-			description.setLocation(defaultLocation.equals(projectLocation) ? null : projectLocation);
+			description.setLocation(isSameLocation(defaultLocation, projectLocation) ? null : projectLocation);
 			// Remove only the workspace registration, never the project's files or linked contents.
 			project.delete(false, true, progress);
 			project.create(description, progress);
