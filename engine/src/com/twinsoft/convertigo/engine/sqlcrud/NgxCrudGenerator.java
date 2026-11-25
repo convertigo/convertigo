@@ -347,6 +347,7 @@ public final class NgxCrudGenerator {
 		add(comp, compVariable("pagination", Boolean.toString(CrudUiDefaults.PAGINATION), "false: continuous scrolling, true: pages of pageSize rows."));
 		add(comp, compVariable("height", templateString(CrudUiDefaults.HEIGHT), "Height of the grid, 'auto' to fit the rows."));
 		add(comp, compVariable("showTitle", "true", "false: no title in the toolbar (when the page already shows one)."));
+		add(comp, compVariable("formBelow", "false", "true: the form also shows the selected row (one row) under the grid, in view mode."));
 		add(comp, compVariable("reloadKey", "0", "Change its value (for example Date.now()) to reload the rows."));
 		add(comp, compVariable("labels", NgxCrudScript.labelsLiteral(table, title), "Texts of the buttons, the messages, the form and the columns."));
 		add(comp, compEvent("SelectionChanged", "Fired when the selection changes. Data: {rows}, the selected rows."));
@@ -360,6 +361,7 @@ public final class NgxCrudGenerator {
 		add(comp, toolbarIf);
 		add(comp, buildGrid(name));
 		if (form != null) {
+			add(comp, buildFormBelow(form));
 			add(comp, buildModal(form));
 		}
 		var style = new UIStyle();
@@ -467,6 +469,23 @@ public final class NgxCrudGenerator {
 		add(selection, customAction("SelectionChanged", "\t\tpage.crudSelectionChanged();\n\t\tresolve(null);\n"));
 		add(grid, selection);
 		return grid;
+	}
+
+	/** With formBelow, the form under the grid shows the only selected row, read-only; Close clears the selection. */
+	private UIComponent buildFormBelow(UISharedRegularComponent form) throws EngineException {
+		var below = directive("FormBelowIf", "this.formBelow === true && this.crudSelectedCount == 1");
+		var use = new UIUseShared();
+		use.setName("FormBelow");
+		use.bNew = true;
+		use.setSharedComponentQName(form.getQName());
+		add(use, useVariable("row", "this.crudSelectedRows[0]"));
+		add(use, useVariable("mode", "'view'"));
+		add(use, useVariable("labels", "this.labels"));
+		var closed = controlEvent("OnFormCancelled", "FormCancelled");
+		add(closed, customAction("CloseBelow", "\t\tpage.crudClearSelection();\n\t\tresolve(null);\n"));
+		add(use, closed);
+		add(below, use);
+		return below;
 	}
 
 	/** The modal of the component: the form, created again at each opening, to create, edit or view a row. */
@@ -647,6 +666,8 @@ public final class NgxCrudGenerator {
 		use.bNew = true;
 		use.setSharedComponentQName(component.getQName());
 		add(use, useVariable("showTitle", "false"));
+		// the switch of the page: true shows the selected row under the grid
+		add(use, useVariable("formBelow", "false"));
 		add(content, use);
 		add(page, content);
 		return page;

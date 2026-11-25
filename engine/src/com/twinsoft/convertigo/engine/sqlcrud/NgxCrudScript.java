@@ -362,10 +362,17 @@ final class NgxCrudScript {
 				}
 
 				crudRefresh(): void {
+					this.crudReload(false);
+				}
+
+				/** Reloads the rows and the count; the selection is kept after an edition, the rows do not move. */
+				crudReload(keepSelection: boolean): void {
 					this.crudTotal = null;
-					this.crudClearSelection();
-					this.crudSelectedRows = [];
-					this.crudSelectedCount = 0;
+					if (!keepSelection) {
+						this.crudClearSelection();
+						this.crudSelectedRows = [];
+						this.crudSelectedCount = 0;
+					}
 					if (this.crudPaginated) {
 						this.crudGridApi?.refreshInfiniteCache();
 					} else {
@@ -414,7 +421,12 @@ final class NgxCrudScript {
 					this.crudFormOpen = false;
 					if (saved != null) {
 						this.crudToast(this.crudLabel("saved"), "success");
-						this.crudRefresh();
+						const edited = this.crudFormMode == "edit";
+						if (edited && this.crudSelectedRows.length == 1) {
+							// the form under the grid shows the saved values at once, the grid reloads them
+							this.crudSelectedRows = [{...this.crudSelectedRows[0], ...(saved.row ?? {})}];
+						}
+						this.crudReload(edited);
 						this.actionBeans.EmitEventAction(this, {event: ".RowSaved", data: {row: saved.row ?? saved, mode: this.crudFormMode}}, null);
 					}
 					this.ref.markForCheck();

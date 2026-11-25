@@ -41,7 +41,8 @@ import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
  *
  * System properties: crud.e2e.projects (projects folder), crud.e2e.connectors, a list of
  * name|driver|generationUrl|runtimeUrl|user|password|TABLE,TABLE separated by "#", crud.e2e.build (false to skip npm),
- * crud.e2e.paginated (pages whose grid gets pagination=true), crud.e2e.formDemo (an entity whose form is shown under its
+ * crud.e2e.paginated (pages whose grid gets pagination=true), crud.e2e.formBelow (pages whose grid gets
+ * formBelow=true), crud.e2e.formDemo (an entity whose form is shown under its
  * grid in an extra page), crud.e2e.node_modules (a node_modules folder to reuse).
  */
 public final class SqlCrudEndToEnd {
@@ -116,29 +117,12 @@ public final class SqlCrudEndToEnd {
 		log(report.toString());
 		Files.writeString(new File(projects.getParentFile(), "generation-report.txt").toPath(), report);
 
-		// a developer can switch a grid to pages: the products page does it with the pagination variable
-		var pageNames = System.getProperty("crud.e2e.paginated", "");
-		for (var pageName : pageNames.split(",")) {
-			if (pageName.isBlank()) {
-				continue;
-			}
-			var app = NgxCrudGenerator.ngxApplication(project);
-			for (var page : app.getPageComponentList()) {
-				if (page.getName().equals(pageName)) {
-					for (var dbo : page.getAllChildren()) {
-						for (var use : dbo.getAllChildren()) {
-							if (use instanceof com.twinsoft.convertigo.beans.ngx.components.UIUseShared shared) {
-								var variable = new com.twinsoft.convertigo.beans.ngx.components.UIUseVariable();
-								variable.setName("pagination");
-								variable.bNew = true;
-								variable.setVarSmartType(NgxCrudGenerator.script("true"));
-								shared.add(variable);
-								log("pagination=true on the page " + pageName);
-							}
-						}
-					}
-				}
-			}
+		// a developer configures the grid of a page with the variables of its component
+		for (var pageName : System.getProperty("crud.e2e.paginated", "").split(",")) {
+			setPageVariable(project, pageName, "pagination", "true");
+		}
+		for (var pageName : System.getProperty("crud.e2e.formBelow", "").split(",")) {
+			setPageVariable(project, pageName, "formBelow", "true");
 		}
 
 		// a page that shows the form under the grid, on the selected row, as a developer can do
@@ -219,6 +203,37 @@ public final class SqlCrudEndToEnd {
 				"\t\tpage.local.selectedRow = null;\n\t\tpage.ref.markForCheck();\n\t\tresolve(null);\n"));
 		NgxCrudGenerator.loadTemplateBeans(app, page);
 		log("page " + name + ": the grid of " + entity + " with its form under it");
+	}
+
+	/** Sets a variable of the component used by a generated page, as a developer does in the Studio. */
+	private static void setPageVariable(com.twinsoft.convertigo.beans.core.Project project, String pageName, String name, String value) throws Exception {
+		if (pageName.isBlank()) {
+			return;
+		}
+		for (var page : NgxCrudGenerator.ngxApplication(project).getPageComponentList()) {
+			if (!page.getName().equals(pageName)) {
+				continue;
+			}
+			for (var dbo : page.getAllChildren()) {
+				for (var child : dbo.getAllChildren()) {
+					if (child instanceof UIUseShared shared) {
+						UIUseVariable variable = null;
+						for (var v : shared.getAllChildren()) {
+							if (v instanceof UIUseVariable useVariable && useVariable.getName().equals(name)) {
+								variable = useVariable;
+							}
+						}
+						if (variable == null) {
+							variable = useVariable(name, value);
+							shared.add(variable);
+						} else {
+							variable.setVarSmartType(NgxCrudGenerator.script(value));
+						}
+						log(name + "=" + value + " on the page " + pageName);
+					}
+				}
+			}
+		}
 	}
 
 	private static UIUseVariable useVariable(String name, String script) throws Exception {

@@ -126,7 +126,11 @@ public class NgxCrudGeneratorTest {
 
 		var variables = find(comp, UICompVariable.class).stream().map(UICompVariable::getName).toList();
 		assertEquals(List.of("enableAdd", "enableEdit", "enableView", "enableDelete", "multiSelect", "showId", "hiddenColumns",
-				"pageSize", "pagination", "height", "showTitle", "reloadKey", "labels"), variables);
+				"pageSize", "pagination", "height", "showTitle", "formBelow", "reloadKey", "labels"), variables);
+		assertEquals("this.formBelow === true && this.crudSelectedCount == 1",
+				((com.twinsoft.convertigo.beans.ngx.components.UIControlDirective) named(comp, "FormBelowIf")).getSourceSmartType().getSmartValue());
+		var below = (UIUseShared) named(comp, "FormBelow");
+		assertEquals(Map.of("row", "this.crudSelectedRows[0]", "mode", "'view'", "labels", "this.labels"), useVariables(below));
 		assertEquals("50", ((UICompVariable) named(comp, "pageSize")).getVariableValue());
 		assertEquals("false", ((UICompVariable) named(comp, "pagination")).getVariableValue());
 		assertEquals("'600px'", ((UICompVariable) named(comp, "height")).getVariableValue());
@@ -328,7 +332,7 @@ public class NgxCrudGeneratorTest {
 		assertTrue(app.getPageComponentList().contains(page));
 		var use = find(page, UIUseShared.class).get(0);
 		assertEquals(result.getComponent().getQName(), use.getSharedComponentQName());
-		assertEquals(Map.of("showTitle", "false"), useVariables(use));
+		assertEquals(Map.of("showTitle", "false", "formBelow", "false"), useVariables(use));
 		assertNotNull(named(page, "MenuButton"));
 	}
 
