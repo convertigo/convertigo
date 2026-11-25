@@ -31,7 +31,7 @@
 - [#1303](https://github.com/convertigo/convertigo/issues/1303) [Engine] Fixed, the request statistics count the time of nested steps only once: ExecuteSequenceSteps no longer exceeds the request time and (others) is no longer negative.
 - [#1304](https://github.com/convertigo/convertigo/issues/1304) [Engine] Fixed, the branches of a parallel step convert their JSON source steps reliably, without mixing their rows or looping on the sequence document.
 - [#1306](https://github.com/convertigo/convertigo/issues/1306) [Studio] Fixed, reloading a project no longer registers it again nor logs that it isn't in the workspace folder, and the Console no longer shows parse errors when a palette describes a dynamic component.
-- [#1307](https://github.com/convertigo/convertigo/issues/1307) [Studio] Fixed, the JavaScript dialogs of an application in the viewer no longer block the Studio: an alert is shown in the page, a confirmation or a prompt is asked in a bar of the viewer.
+- [#1307](https://github.com/convertigo/convertigo/issues/1307) [Studio] Fixed, the JavaScript dialogs of an application in the viewer no longer block the Studio: alerts, confirmations and prompts are shown in a bar of the viewer.
 
 ## 8.4.7
 
