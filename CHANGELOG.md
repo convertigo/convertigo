@@ -6,7 +6,7 @@
 
 - [#1296](https://github.com/convertigo/convertigo/issues/1296) [Admin] Deploy and export several projects together, optionally include declared dependencies in exports, and produce the same project bundles with Gradle
 - [#1302](https://github.com/convertigo/convertigo/issues/1302) [Engine] Standard output logs can be written as JSON lines with the log.stdout.format property (LOG_STDOUT_FORMAT in Docker), with the contextual parameters, the stack trace and the request time as fields, either with Convertigo field names (json) or Elastic Common Schema ones (json-ecs), while engine.log keeps its format
-- [#1305](https://github.com/convertigo/convertigo/issues/1305) [Studio] The Design tab of the SQL connector can also generate, for each selected table, an NGX shared component with a grid and a form over its CRUD sequences, configurable with variables and events, and a page to host it; the CRUD transactions it generates now save empty values as NULL
+- [#1305](https://github.com/convertigo/convertigo/issues/1305) [Studio] The Design tab of the SQL connector can also generate, for each selected table, a COUNT transaction and an NGX shared component with a grid and a form over its CRUD sequences, configurable with variables and events, and a page to host it; the CRUD transactions it generates now save empty values as NULL
 
 #### Improvements:
 
