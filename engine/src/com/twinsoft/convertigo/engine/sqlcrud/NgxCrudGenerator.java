@@ -108,7 +108,7 @@ public final class NgxCrudGenerator {
 			throw new EngineException("The project " + project.getName() + " has no NGX application");
 		}
 		this.baseName = StringUtils.normalize(table.getTableName());
-		for (var verb : List.of("LIST", "INSERT", "UPDATE", "DELETE")) {
+		for (var verb : List.of("LIST", "COUNT", "INSERT", "UPDATE", "DELETE")) {
 			var name = baseName + "_" + verb;
 			if (hasSequence(project, name)) {
 				sequences.put(verb, project.getName() + "." + name);
@@ -224,6 +224,9 @@ public final class NgxCrudGenerator {
 			if (!sequences.containsKey(verb)) {
 				result.warnings.add("no " + verb + " in the user interface: the sequence " + baseName + "_" + verb + " is missing");
 			}
+		}
+		if (!sequences.containsKey("COUNT") && table.hasListPagination()) {
+			result.warnings.add("no row count: the sequence " + baseName + "_COUNT is missing, the grid finds the number of rows while scrolling");
 		}
 
 		if (withForm) {

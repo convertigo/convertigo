@@ -46,7 +46,7 @@ import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
  */
 public final class SqlCrudEndToEnd {
 	private static final String TEMPLATE = "https://github.com/convertigo/c8oprj-template-ngx-builder/archive/8.4.0.zip";
-	private static final List<String> CRUDS = List.of("LIST", "INSERT", "SELECT", "UPDATE", "DELETE");
+	private static final List<String> CRUDS = List.of("LIST", "COUNT", "INSERT", "SELECT", "UPDATE", "DELETE");
 
 	public static void main(String[] args) throws Exception {
 		var projects = new File(System.getProperty("crud.e2e.projects")).getCanonicalFile();

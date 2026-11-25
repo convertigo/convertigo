@@ -54,7 +54,7 @@ import com.twinsoft.convertigo.engine.Engine;
 
 /** NGX objects generated for the tables of {@link MatrixTables}, on a project built in memory. */
 public class NgxCrudGeneratorTest {
-	private static final List<String> ALL = List.of("LIST", "INSERT", "SELECT", "UPDATE", "DELETE");
+	private static final List<String> ALL = List.of("LIST", "COUNT", "INSERT", "SELECT", "UPDATE", "DELETE");
 	private static Connection connection;
 
 	@BeforeClass
@@ -168,7 +168,9 @@ public class NgxCrudGeneratorTest {
 
 		// the script: sequences, keys, sort keys and rights
 		var script = comp.getScriptContent().getString();
-		assertTrue(script.contains("list: \"crudtest.PAIRS_LIST\", insert: \"crudtest.PAIRS_INSERT\", update: \"crudtest.PAIRS_UPDATE\", delete: \"crudtest.PAIRS_DELETE\""));
+		assertTrue(script.contains("list: \"crudtest.PAIRS_LIST\", count: \"crudtest.PAIRS_COUNT\", insert: \"crudtest.PAIRS_INSERT\", update: \"crudtest.PAIRS_UPDATE\", delete: \"crudtest.PAIRS_DELETE\""));
+		assertTrue(script.contains("crudCount()"));
+		assertFalse(result.getWarnings().stream().anyMatch(w -> w.contains("no row count")));
 		assertTrue(script.contains("public crudKeys: string[] = [\"A\", \"B\"];"));
 		assertTrue(script.contains("public crudDefaultSortKey: string = \"\\\"A\\\"\";"));
 		assertTrue(script.contains("public crudCan: any = {create: true, update: true, delete: true};"));
@@ -251,6 +253,8 @@ public class NgxCrudGeneratorTest {
 		assertTrue(script.contains("insert: null, update: null, delete: \"crudtest.PAIRS_DELETE\""));
 		assertTrue(script.contains("public crudCan: any = {create: false, update: false, delete: true};"));
 		assertTrue(result.getWarnings().stream().anyMatch(w -> w.contains("PAIRS_INSERT")));
+		assertTrue(script.contains("count: null"));
+		assertTrue(result.getWarnings().stream().anyMatch(w -> w.contains("no row count: the sequence PAIRS_COUNT is missing")));
 	}
 
 	@Test

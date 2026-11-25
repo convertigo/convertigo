@@ -1189,6 +1189,9 @@ public class SqlConnector extends Connector {
 			UnaryOperator<String> valueOf = c -> CrudSqlValue.expression(sqlConnector.jdbcDriverClassName, c,
 					columnSqlTypes.getOrDefault(c, Types.VARCHAR), columnTypeNames.get(c), nullables.contains(c));
 
+			// the rows of the LIST and of the COUNT: a future filter must give both the same WHERE clause
+			var listWhere = "";
+
 			for (var verb : cruds) {
 				var sqlTransaction = sqlConnector.newTransaction();
 				sqlTransaction.setName(StringUtils.normalize(tableName) + "_" + verb);
@@ -1215,7 +1218,7 @@ public class SqlConnector extends Connector {
 					var cols = columns.stream()
 							.map(c -> formatColumnName(c, identifierQuoter))
 							.collect(Collectors.joining(", "));
-					var where = bList || primaryKeys.isEmpty() ? "" :
+					var where = bList ? listWhere : primaryKeys.isEmpty() ? "" :
 						"\nWHERE " + primaryKeys.stream()
 						.map(pk -> formatColumnName(pk, identifierQuoter) + " = {" + pk + "}")
 						.collect(Collectors.joining("\nAND "));
@@ -1231,6 +1234,9 @@ function onTransactionStarted() {
     }
 }""";
 					}
+				}
+				case "COUNT" -> {
+					sqlQuery = "SELECT COUNT(*) AS total\nFROM " + tableName + listWhere;
 				}
 				case "UPDATE" -> {
 					var setClause = columns.stream()
@@ -1255,7 +1261,11 @@ function onTransactionStarted() {
 				if (sqlQuery != null) {
 					sqlTransaction.setSqlQuery(sqlQuery);
 					sqlTransaction.initializeQueries(true);
-					prepareCrudTransaction(sqlConnector, sqlTransaction, verb, columns, columnSqlTypes);
+					if ("COUNT".equals(verb)) {
+						prepareCrudTransaction(sqlConnector, sqlTransaction, verb, List.of("total"), Map.of("total", Types.BIGINT));
+					} else {
+						prepareCrudTransaction(sqlConnector, sqlTransaction, verb, columns, columnSqlTypes);
+					}
 					sqlTransactions.add(sqlTransaction);
 				} else {
 					Engine.logBeans.warn("Skipping SQL transaction generation for verb '" + verb + "' on table '" + tableName + "' due to missing SQL query");
@@ -1339,7 +1349,7 @@ function onTransactionStarted() {
 		var doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
 		var root = doc.createElement("document");
 		doc.appendChild(root);
-		if ("SELECT".equals(verb) || "LIST".equals(verb)) {
+		if ("SELECT".equals(verb) || "LIST".equals(verb) || "COUNT".equals(verb)) {
 			var sqlOutput = doc.createElement("sql_output");
 			sqlOutput.setAttribute("type", "array");
 			root.appendChild(sqlOutput);

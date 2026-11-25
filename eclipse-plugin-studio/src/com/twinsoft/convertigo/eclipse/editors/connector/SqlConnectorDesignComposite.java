@@ -187,6 +187,10 @@ class SqlConnectorDesignComposite extends Composite {
 		checkbox.setText("LIST");
 		checkbox.setSelection(true);
 		checkbox = new Button(cruds, SWT.CHECK);
+		checkbox.setText("COUNT");
+		checkbox.setToolTipText("Number of rows of the LIST: the NGX grid shows its exact size and pages");
+		checkbox.setSelection(true);
+		checkbox = new Button(cruds, SWT.CHECK);
 		checkbox.setText("INSERT");
 		checkbox.setSelection(true);
 		checkbox = new Button(cruds, SWT.CHECK);

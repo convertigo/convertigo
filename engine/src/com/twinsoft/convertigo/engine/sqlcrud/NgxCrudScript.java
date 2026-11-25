@@ -74,7 +74,7 @@ final class NgxCrudScript {
 
 	static String componentScript(NgxCrudGenerator generator, SqlTableInfo table, Map<String, String> sequences) {
 		var seq = new StringBuilder("{");
-		for (var verb : new String[] { "list", "insert", "update", "delete" }) {
+		for (var verb : new String[] { "list", "count", "insert", "update", "delete" }) {
 			var qname = sequences.get(verb.toUpperCase());
 			seq.append(seq.length() > 1 ? ", " : "").append(verb).append(": ").append(qname == null ? "null" : jsString(qname));
 		}
@@ -171,6 +171,7 @@ final class NgxCrudScript {
 				public crudColumnDefs: any[] = [];
 				public crudGridApi: any = null;
 				public crudRows: any[] = [];
+				public crudTotal: Promise<any> = null;
 				public crudSelectedRows: any[] = [];
 				public crudSelectedCount: number = 0;
 				public crudFormOpen: boolean = false;
@@ -297,13 +298,33 @@ final class NgxCrudScript {
 					return field == null ? this.crudDefaultSortKey : field.sortKey + (sort.sort == "desc" ? " desc" : " asc");
 				}
 
+				/** The number of rows, by the count sequence, once per reload; undefined without it or when it fails. */
+				crudCount(): Promise<any> {
+					if (this.crudSequences.count == null) {
+						return Promise.resolve(undefined);
+					}
+					if (this.crudTotal == null) {
+						this.crudTotal = this.crudCall(this.crudSequences.count, {}).then((res: any) => {
+							const row = ([] as any[]).concat(res?.row ?? [])[0];
+							const total = row == null ? NaN : Number(Object.values(row)[0]);
+							return isNaN(total) ? undefined : total;
+						}).catch(() => undefined);
+					}
+					return this.crudTotal;
+				}
+
 				async crudLoadRows(params: any): Promise<any> {
 					const limit = params.limit ?? (params.endRow - params.startRow);
 					const offset = params.skip ?? params.startRow ?? 0;
 					try {
-						const res = await this.crudCall(this.crudSequences.list, {order_by: this.crudOrderBy(params.sortModel), limit: limit, offset: offset});
+						const [res, total] = await Promise.all([
+							this.crudCall(this.crudSequences.list, {order_by: this.crudOrderBy(params.sortModel), limit: limit, offset: offset}),
+							this.crudCount()
+						]);
 						const rows = ([] as any[]).concat(res?.row ?? []);
-						return {RowData: rows, lastRow: rows.length < limit ? offset + rows.length : undefined};
+						// with the count, the grid knows its size at once: pages, last page and scroll bar
+						const lastRow = total != null ? total : rows.length < limit ? offset + rows.length : undefined;
+						return {RowData: rows, lastRow: lastRow};
 					} catch (error) {
 						this.crudToast(this.crudLabel("loadFailed") + ": " + this.crudMessage(error), "danger");
 						return {RowData: [], lastRow: offset};
@@ -341,6 +362,7 @@ final class NgxCrudScript {
 				}
 
 				crudRefresh(): void {
+					this.crudTotal = null;
 					this.crudClearSelection();
 					this.crudSelectedRows = [];
 					this.crudSelectedCount = 0;
