@@ -69,6 +69,7 @@ import com.twinsoft.convertigo.engine.MaxCvsExceededException;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.servlets.EngineServlet;
+import com.twinsoft.convertigo.engine.sqlcrud.CrudSqlValue;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
@@ -1157,6 +1158,8 @@ public class SqlConnector extends Connector {
 			var catalog = sqlConnector.connection.getCatalog();
 			var columns = new LinkedList<String>();
 			var columnSqlTypes = new LinkedHashMap<String, Integer>();
+			var columnTypeNames = new HashMap<String, String>();
+			var nullables = new HashSet<String>();
 			var autoinc = new HashSet<String>();
 			var primaryKeys = new LinkedList<String>();
 
@@ -1165,6 +1168,10 @@ public class SqlConnector extends Connector {
 				var columnName = rs.getString("COLUMN_NAME");
 				columns.add(columnName);
 				columnSqlTypes.put(columnName, rs.getInt("DATA_TYPE"));
+				columnTypeNames.put(columnName, rs.getString("TYPE_NAME"));
+				if (rs.getInt("NULLABLE") != DatabaseMetaData.columnNoNulls) {
+					nullables.add(columnName);
+				}
 				if ("YES".equalsIgnoreCase(rs.getString("IS_AUTOINCREMENT"))) {
 					autoinc.add(columnName);
 				}
@@ -1177,6 +1184,10 @@ public class SqlConnector extends Connector {
 			if (primaryKeys.isEmpty() && !columns.isEmpty()) {
 				primaryKeys.add(columns.getFirst());
 			}
+
+			// the value of a column set by the INSERT and the UPDATE: NULL when it is sent empty (nullable columns)
+			UnaryOperator<String> valueOf = c -> CrudSqlValue.expression(sqlConnector.jdbcDriverClassName, c,
+					columnSqlTypes.getOrDefault(c, Types.VARCHAR), columnTypeNames.get(c), nullables.contains(c));
 
 			for (var verb : cruds) {
 				var sqlTransaction = sqlConnector.newTransaction();
@@ -1195,7 +1206,7 @@ public class SqlConnector extends Connector {
 							.map(c -> formatColumnName(c, identifierQuoter))
 							.collect(Collectors.joining(", "));
 					var vals = insertableCols.stream()
-							.map(c -> "{" + c + "}")
+							.map(valueOf)
 							.collect(Collectors.joining(", "));
 					sqlQuery = "INSERT INTO " + tableName + " (" + cols + ")\nVALUES (" + vals + ")";
 				}
@@ -1212,11 +1223,7 @@ public class SqlConnector extends Connector {
 					if (bList) {
 						var driver = sqlConnector.jdbcDriverClassName;
 						sqlQuery += "\nORDER BY {{order_by}}";
-						if (driver.contains("postgresql") || driver.contains("mysql") || driver.contains("mariadb") || driver.contains("hsqldb")) {
-							sqlQuery += "\nLIMIT {limit} OFFSET {offset}";
-						} else if (driver.contains("sqlserver") || driver.contains("oracle")) {
-							sqlQuery += "\nOFFSET {offset} ROWS FETCH NEXT {limit} ROWS ONLY";
-						}
+						sqlQuery += listPaginationClause(driver);
 						sqlTransaction.handlers = """
 function onTransactionStarted() {
     if (!order_by || !order_by.length || -1 == context.transaction.sqlQuery.indexOf(order_by.replace(/\\s+(asc|desc)/i,""))) {
@@ -1228,7 +1235,7 @@ function onTransactionStarted() {
 				case "UPDATE" -> {
 					var setClause = columns.stream()
 							.filter(c -> !primaryKeys.contains(c))
-							.map(c -> formatColumnName(c, identifierQuoter) + " = {" + c + "}")
+							.map(c -> formatColumnName(c, identifierQuoter) + " = " + valueOf.apply(c))
 							.collect(Collectors.joining(", "));
 					var where = primaryKeys.isEmpty() ? "" :
 						"\nWHERE " + primaryKeys.stream()
@@ -1258,6 +1265,26 @@ function onTransactionStarted() {
 			sqlConnector.close();
 		}
 		return sqlTransactions;
+	}
+
+	private static String listPaginationClause(String driver) {
+		if (driver.contains("postgresql") || driver.contains("mysql") || driver.contains("mariadb") || driver.contains("hsqldb")) {
+			return "\nLIMIT {limit} OFFSET {offset}";
+		}
+		if (driver.contains("sqlserver") || driver.contains("oracle")) {
+			return "\nOFFSET {offset} ROWS FETCH NEXT {limit} ROWS ONLY";
+		}
+		return "";
+	}
+
+	/** True when the generated _LIST transaction of this driver pages with its limit and offset variables. */
+	public static boolean hasListPagination(String driverClassName) {
+		return driverClassName != null && !listPaginationClause(driverClassName).isEmpty();
+	}
+
+	/** The column name as the generated CRUD transactions of this driver write it (quoted or not). */
+	public static String quoteColumnName(String driverClassName, String columnName) {
+		return formatColumnName(columnName, getIdentifierQuoter(driverClassName));
 	}
 
 	private static UnaryOperator<String> getIdentifierQuoter(String driverClassName) {

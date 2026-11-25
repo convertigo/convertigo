@@ -606,6 +606,48 @@ tasks.register('sqlAbortedTransactionTest', JavaExec) {
 }
 tasks.named('check') { dependsOn 'sqlAbortedTransactionTest' }
 
+tasks.register('sqlCrudUiTest', JavaExec) {
+	group = 'verification'
+	description = 'SQL CRUD user interface generator: table metadata, type mapping and generated NGX objects.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.sqlcrud.SqlTableInfoTest', 'com.twinsoft.convertigo.engine.sqlcrud.NgxCrudGeneratorTest', 'com.twinsoft.convertigo.engine.sqlcrud.NgxCrudLibraryTest'
+	['convertigo.test.ngx.template', 'convertigo.test.crud.out'].each { name ->
+		def value = System.getProperty(name)
+		if (value) {
+			systemProperty name, value
+		}
+	}
+}
+tasks.named('check') { dependsOn 'sqlCrudUiTest' }
+
+tasks.register('sqlCrudContractTest', JavaExec) {
+	group = 'verification'
+	description = 'Values of the generated SQL CRUD user interface run through the generated CRUD transactions (HSQLDB, or PostgreSQL).'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.sqlcrud.SqlCrudContractTest'
+	['convertigo.test.crud.postgresql.url', 'convertigo.test.crud.postgresql.user', 'convertigo.test.crud.postgresql.password'].each { name ->
+		def value = System.getProperty(name)
+		if (value) {
+			systemProperty name, value
+		}
+	}
+}
+
+tasks.register('sqlCrudEndToEnd', JavaExec) {
+	group = 'verification'
+	description = 'Manual run: NGX project with SQL connectors, CRUD user interface generated as the Design tab does, application built with npm (see SqlCrudEndToEnd).'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'com.twinsoft.convertigo.engine.sqlcrud.SqlCrudEndToEnd'
+	System.properties.findAll { it.key.startsWith('crud.e2e.') || it.key == 'convertigo.cems.user_workspace_path' }.each { k, v ->
+		systemProperty k, v
+	}
+}
+
 tasks.register('sequenceCleanupTest', JavaExec) {
 	group = 'verification'
 	description = 'Regression test: an idle sequence no longer retains the last executed step.'
