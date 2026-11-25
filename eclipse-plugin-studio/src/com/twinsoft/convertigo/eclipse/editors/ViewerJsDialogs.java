@@ -21,13 +21,19 @@ package com.twinsoft.convertigo.eclipse.editors;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import org.codehaus.jettison.json.JSONObject;
-import org.eclipse.jface.dialogs.InputDialog;
-import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
 
 import com.teamdev.jxbrowser.browser.Browser;
 import com.teamdev.jxbrowser.browser.callback.AlertCallback;
@@ -36,20 +42,23 @@ import com.teamdev.jxbrowser.browser.callback.ConfirmCallback;
 import com.teamdev.jxbrowser.browser.callback.PromptCallback;
 import com.teamdev.jxbrowser.browser.event.ConsoleMessageReceived;
 import com.teamdev.jxbrowser.frame.Frame;
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.teamdev.jxbrowser.navigation.event.NavigationStarted;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.engine.Engine;
 
 /**
  * JavaScript dialogs of the application viewers (NGX and mobile application editors).
  * <p>
- * The JxBrowser defaults open a native box modal for the whole Studio: on Windows it can stay behind the Studio
- * window while every Studio window is disabled, and an agent driving the page waits until someone answers it.
+ * The JxBrowser defaults open native boxes modal for the whole Studio: on Windows they can stay behind the Studio
+ * window while every Studio window is disabled, and an agent driving the page waits until someone answers. No window
+ * is opened here:
  * <ul>
  * <li>alert() only informs: the page shows its message in a small overlay (viewer-alert.js, installed when each
- * frame is created) and the Studio logs it. Nothing is modal.</li>
- * <li>confirm() and prompt() return the answer to the page, which waits for it: the Studio asks with a dialog of
- * its own window, kept above every window so it cannot hide behind the Studio.</li>
+ * frame is created) and the Studio logs it.</li>
+ * <li>confirm() and prompt() must return the answer to the page, whose script waits for it: a page cannot ask
+ * itself, its script is paused. The viewer asks in a bar above the browser, like an information bar. Only the page
+ * waits; the answer is Cancel when the page changes, the editor closes or the bar cannot be shown.</li>
  * <li>beforeunload: the viewer leaves the page, it reloads the application on each build.</li>
  * </ul>
  * Only the viewers use it: the deployed application keeps the dialogs of its browser.
@@ -58,7 +67,66 @@ public final class ViewerJsDialogs {
 	static final String ALERT_LOG_PREFIX = "[Convertigo viewer] alert: ";
 	private static final String ALERT_SCRIPT = loadAlertScript();
 
-	private ViewerJsDialogs() {
+	private final String viewer;
+	private final Display display;
+	private final Composite bar;
+	/** The question shown in the bar, read and written on the UI thread only. */
+	private Question pending;
+
+	/** The answer of one confirm() or prompt(), given once: null means Cancel. */
+	static final class Question {
+		final String message;
+		final String defaultValue;
+		private final Consumer<String> reply;
+		private final AtomicBoolean answered = new AtomicBoolean();
+
+		Question(String message, String defaultValue, Consumer<String> reply) {
+			this.message = message == null ? "" : message;
+			this.defaultValue = defaultValue;
+			this.reply = reply;
+		}
+
+		boolean isPrompt() {
+			return defaultValue != null;
+		}
+
+		boolean answer(String value) {
+			if (!answered.compareAndSet(false, true)) {
+				return false;
+			}
+			try {
+				reply.accept(value);
+			} catch (Exception e) {
+				// the page went away meanwhile
+				Engine.logStudio.debug("(ViewerJsDialogs) Unable to answer the page", e);
+			}
+			return true;
+		}
+
+		boolean isAnswered() {
+			return answered.get();
+		}
+	}
+
+	ViewerJsDialogs(Control below, String viewer) {
+		this.viewer = viewer;
+		this.display = below.getDisplay();
+		bar = new Composite(below.getParent(), SWT.NONE);
+		bar.moveAbove(below);
+		GridData gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
+		gd.exclude = true;
+		bar.setLayoutData(gd);
+		bar.setVisible(false);
+		if (SwtUtils.isDark()) {
+			bar.setData("style", "background-color: #4c525d");
+		}
+		bar.addDisposeListener(e -> {
+			Question question = pending;
+			pending = null;
+			if (question != null) {
+				cancel(question, "the viewer is closed");
+			}
+		});
 	}
 
 	/** The script replacing window.alert, to run in each frame of a viewer when its script context is created. */
@@ -66,12 +134,26 @@ public final class ViewerJsDialogs {
 		return ALERT_SCRIPT;
 	}
 
-	/** Installs the dialog handlers on the browser of a viewer, again after each recreation of the browser. */
-	public static void install(C8oBrowser c8oBrowser, String viewer) {
-		c8oBrowser.onBrowserReady(() -> install(c8oBrowser.getBrowser(), viewer));
+	/**
+	 * Installs the dialog handlers on the browser of a viewer, again after each recreation of the browser. The
+	 * question bar is placed above the control below, in their parent with a GridLayout.
+	 */
+	public static ViewerJsDialogs install(C8oBrowser c8oBrowser, Control below, String viewer) {
+		ViewerJsDialogs dialogs = new ViewerJsDialogs(below, viewer);
+		c8oBrowser.onBrowserReady(() -> dialogs.install(c8oBrowser.getBrowser()));
+		return dialogs;
 	}
 
-	private static void install(Browser browser, String viewer) {
+	void install(Browser browser) {
+		// a recreated browser no longer waits for the previous question
+		display.asyncExec(() -> {
+			if (pending != null) {
+				Question question = pending;
+				hide(question);
+				cancel(question, "the browser was recreated");
+			}
+		});
+
 		browser.on(ConsoleMessageReceived.class, event -> {
 			String message = event.consoleMessage().message();
 			if (message != null && message.startsWith(ALERT_LOG_PREFIX)) {
@@ -98,73 +180,168 @@ public final class ViewerJsDialogs {
 		});
 
 		browser.set(ConfirmCallback.class, (params, tell) -> {
-			Engine.logStudio.info("(" + viewer + ") JavaScript confirm from " + params.url() + ": " + params.message());
-			ask(() -> {
-				boolean ok = false;
-				try {
-					// SYSTEM_MODAL: on Windows, SWT forces a system modal box to the front (MB_TOPMOST).
-					MessageBox box = new MessageBox(mainShell(), SWT.OK | SWT.CANCEL | SWT.ICON_QUESTION | SWT.SYSTEM_MODAL);
-					box.setText(dialogTitle(params.title()));
-					box.setMessage(params.message());
-					ok = box.open() == SWT.OK;
-				} finally {
-					if (ok) {
-						tell.ok();
-					} else {
-						tell.cancel();
-					}
+			Engine.logStudio.info("(" + viewer + ") JavaScript confirm from " + params.url() + ", answer it in the viewer: " + params.message());
+			ask(new Question(params.message(), null, value -> {
+				if (value != null) {
+					tell.ok();
+				} else {
+					tell.cancel();
 				}
-			}, tell::cancel);
+			}));
 		});
 
 		browser.set(PromptCallback.class, (params, tell) -> {
-			Engine.logStudio.info("(" + viewer + ") JavaScript prompt from " + params.url() + ": " + params.message());
-			ask(() -> {
-				String value = null;
-				try {
-					InputDialog dialog = new InputDialog(mainShell(), dialogTitle(params.title()), params.message(), params.text(), null) {
-						{
-							// above every window, as the confirm box
-							setShellStyle(getShellStyle() | SWT.ON_TOP);
-						}
-					};
-					if (dialog.open() == Window.OK) {
-						value = dialog.getValue();
-					}
-				} finally {
-					if (value != null) {
-						tell.ok(value);
-					} else {
-						tell.cancel();
-					}
+			Engine.logStudio.info("(" + viewer + ") JavaScript prompt from " + params.url() + ", answer it in the viewer: " + params.message());
+			String text = params.text();
+			ask(new Question(params.message(), text == null ? "" : text, value -> {
+				if (value != null) {
+					tell.ok(value);
+				} else {
+					tell.cancel();
 				}
-			}, tell::cancel);
+			}));
 		});
 
 		browser.set(BeforeUnloadCallback.class, (params, tell) -> tell.leave());
+
+		// a new page does not wait for the question of the previous one
+		browser.navigation().on(NavigationStarted.class, event -> {
+			if (event.isInMainFrame() && !event.isSameDocument()) {
+				display.asyncExec(() -> {
+					Question question = pending;
+					if (question != null) {
+						hide(question);
+						cancel(question, "the page changes");
+					}
+				});
+			}
+		});
 	}
 
-	/** Asks on the UI thread, without holding the browser thread; the page gets a cancel if the Studio cannot ask. */
-	private static void ask(Runnable question, Runnable cancel) {
+	/** Called by the browser: shows the question in the bar, or answers Cancel at once if it cannot. */
+	void ask(Question question) {
 		try {
-			ConvertigoPlugin.asyncExec(question);
+			display.asyncExec(() -> show(question));
 		} catch (Exception | LinkageError e) {
-			// a page waiting for an answer must always get one
-			cancel.run();
+			cancel(question, "the viewer cannot show the question: " + e);
 		}
 	}
 
-	private static Shell mainShell() {
-		Shell shell = ConvertigoPlugin.getMainShell();
-		if (shell.getMinimized()) {
-			shell.setMinimized(false);
+	private void show(Question question) {
+		if (question.isAnswered()) {
+			return;
 		}
-		shell.forceActive();
-		return shell;
+		try {
+			if (bar.isDisposed()) {
+				cancel(question, "the viewer is closed");
+				return;
+			}
+			Question previous = pending;
+			if (previous != null) {
+				cancel(previous, "a new question replaces it");
+			}
+			pending = question;
+			for (Control child : bar.getChildren()) {
+				child.dispose();
+			}
+			GridLayout layout = new GridLayout(question.isPrompt() ? 5 : 4, false);
+			layout.marginWidth = 8;
+			layout.marginHeight = 4;
+			bar.setLayout(layout);
+
+			Label icon = new Label(bar, SWT.NONE);
+			icon.setImage(display.getSystemImage(SWT.ICON_QUESTION));
+			icon.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
+
+			Label message = new Label(bar, SWT.WRAP);
+			message.setText(question.message.replace("&", "&&"));
+			GridData messageData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+			messageData.widthHint = 200;
+			message.setLayoutData(messageData);
+
+			Text input = null;
+			if (question.isPrompt()) {
+				Text field = new Text(bar, SWT.BORDER | SWT.SINGLE);
+				field.setText(question.defaultValue);
+				GridData fieldData = new GridData(SWT.FILL, SWT.CENTER, false, false);
+				fieldData.widthHint = 200;
+				field.setLayoutData(fieldData);
+				field.addListener(SWT.DefaultSelection, e -> reply(question, field.getText()));
+				field.addListener(SWT.Traverse, e -> {
+					if (e.detail == SWT.TRAVERSE_ESCAPE) {
+						e.doit = false;
+						reply(question, null);
+					}
+				});
+				input = field;
+			}
+			Text field = input;
+
+			Button ok = new Button(bar, SWT.PUSH);
+			ok.setText("OK");
+			ok.addListener(SWT.Selection, e -> reply(question, field != null ? field.getText() : ""));
+			Button cancel = new Button(bar, SWT.PUSH);
+			cancel.setText("Cancel");
+			cancel.addListener(SWT.Selection, e -> reply(question, null));
+
+			// the keyboard goes to the bar only if it was in the viewer: an agent driving the page must not take it
+			// from another editor
+			boolean focusInViewer = isInViewer(display.getFocusControl());
+			((GridData) bar.getLayoutData()).exclude = false;
+			bar.setVisible(true);
+			bar.getParent().layout(true, true);
+			if (focusInViewer) {
+				if (field != null) {
+					field.selectAll();
+					field.setFocus();
+				} else {
+					ok.setFocus();
+				}
+			}
+		} catch (Exception e) {
+			hide(question);
+			cancel(question, "the viewer cannot show the question: " + e);
+		}
 	}
 
-	private static String dialogTitle(String title) {
-		return title == null || title.isBlank() ? "Convertigo application viewer" : title;
+	private boolean isInViewer(Control control) {
+		for (Control c = control; c != null; c = c.getParent()) {
+			if (c == bar.getParent()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private void reply(Question question, String value) {
+		hide(question);
+		if (question.answer(value)) {
+			Engine.logStudio.info("(" + viewer + ") JavaScript " + (question.isPrompt() ? "prompt" : "confirm")
+					+ " answered " + (value == null ? "Cancel" : "OK"));
+		}
+	}
+
+	/** Hides the bar if it still shows this question. */
+	private void hide(Question question) {
+		if (pending != question) {
+			return;
+		}
+		pending = null;
+		if (!bar.isDisposed()) {
+			for (Control child : bar.getChildren()) {
+				child.dispose();
+			}
+			((GridData) bar.getLayoutData()).exclude = true;
+			bar.setVisible(false);
+			bar.getParent().layout(true, true);
+		}
+	}
+
+	private void cancel(Question question, String reason) {
+		if (question.answer(null)) {
+			Engine.logStudio.info("(" + viewer + ") JavaScript " + (question.isPrompt() ? "prompt" : "confirm")
+					+ " answered Cancel: " + reason);
+		}
 	}
 
 	private static String loadAlertScript() {

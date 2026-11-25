@@ -386,7 +386,16 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	}
 
 	private void createBrowser(Composite parent) {
-		browserScroll = new ScrolledComposite(parent, SWT.H_SCROLL | SWT.V_SCROLL);
+		// the browser and, above it, the bar where the viewer asks the confirm() and prompt() of the page
+		Composite browserArea = new Composite(parent, SWT.NONE);
+		browserArea.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, true));
+		GridLayout areaLayout = new GridLayout(1, false);
+		areaLayout.marginBottom = areaLayout.marginTop = areaLayout.marginLeft = areaLayout.marginRight
+				= areaLayout.marginHeight = areaLayout.marginWidth
+				= areaLayout.horizontalSpacing = areaLayout.verticalSpacing = 0;
+		browserArea.setLayout(areaLayout);
+
+		browserScroll = new ScrolledComposite(browserArea, SWT.H_SCROLL | SWT.V_SCROLL);
 		browserScroll.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, true));
 		browserScroll.setExpandHorizontal(true);
 		browserScroll.setExpandVertical(true);
@@ -407,7 +416,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		browser = c8oBrowser.getBrowser();
 		debugUrl = c8oBrowser.getDebugUrl();
-		ViewerJsDialogs.install(c8oBrowser, "Mobile viewer");
+		ViewerJsDialogs.install(c8oBrowser, browserScroll, "Mobile viewer");
 
 		browserInterface = new ApplicationComponentBrowserImpl();
 
