@@ -19,8 +19,7 @@
 
 package com.twinsoft.convertigo.eclipse.editors.connector;
 
-import java.io.File;
-import java.util.ArrayList;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -28,7 +27,8 @@ import java.util.regex.Pattern;
 
 import javax.swing.event.EventListenerList;
 
-import org.apache.ws.commons.schema.constants.Constants;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.layout.RowLayoutFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
@@ -53,18 +53,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import com.twinsoft.convertigo.beans.common.XMLVector;
-import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
-import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.Transaction;
-import com.twinsoft.convertigo.beans.sequences.GenericSequence;
-import com.twinsoft.convertigo.beans.steps.TransactionStep;
-import com.twinsoft.convertigo.beans.steps.XMLCopyStep;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
-import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.editors.CompositeListener;
@@ -72,6 +64,10 @@ import com.twinsoft.convertigo.eclipse.swt.SwtUtils.SelectionListener;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
+import com.twinsoft.convertigo.engine.sqlcrud.CrudUiDefaults;
+import com.twinsoft.convertigo.engine.sqlcrud.NgxCrudGenerator;
+import com.twinsoft.convertigo.engine.sqlcrud.NgxCrudLibrary;
+import com.twinsoft.convertigo.engine.sqlcrud.SqlCrudGeneration;
 
 class SqlConnectorDesignComposite extends Composite {
 
@@ -237,7 +233,27 @@ class SqlConnectorDesignComposite extends Composite {
 		var auth = new Button(wrapHiddenPart, SWT.CHECK);
 		auth.setText("Authenticated session MANDATORY");
 		auth.setSelection(true);
-		
+
+		lblNewLabel = new Label(footer, SWT.NONE);
+		lblNewLabel.setText("For NGX…");
+
+		right = new Composite(footer, SWT.NONE);
+		right.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		right.setLayout(RowLayoutFactory.fillDefaults().center(true).create());
+		var ngx = new Button(right, SWT.CHECK);
+		ngx.setText("Generate NGX shared component (AG Grid + form)");
+		var ngxPage = new Button(right, SWT.CHECK);
+		ngxPage.setText("and its page");
+		ngxPage.setSelection(true);
+		ngxPage.setEnabled(false);
+		var hasNgx = NgxCrudGenerator.ngxApplication(sqlConnector.getProject()) != null;
+		ngx.setEnabled(hasNgx);
+		ngx.setToolTipText(hasNgx
+				? "For each table, creates in the NGX application a shared component with a grid over the LIST, INSERT, UPDATE and DELETE sequences (missing sequences are generated with the settings above), adds the "
+					+ CrudUiDefaults.LIB_PROJECT_NAME + " reference if needed. Existing components and pages are never overwritten."
+				: "Available when the project has an NGX application");
+		ngx.addSelectionListener((SelectionListener)(e) -> ngxPage.setEnabled(ngx.getSelection()));
+
 		btnImport.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseDown(MouseEvent e) {
@@ -251,7 +267,9 @@ class SqlConnectorDesignComposite extends Composite {
 				if (wrap.getSelection()) {
 					accessibility = Accessibility.valueOf(combo.getSelectionIndex());
 				}
-				createSqlTransactions(table.getSelection(), override.getSelection(), enabled, accessibility, auth.getSelection());
+				var ngxAccessibility = ngx.getSelection() ? Accessibility.valueOf(combo.getSelectionIndex()) : null;
+				createSqlTransactions(table.getSelection(), override.getSelection(), enabled, accessibility, auth.getSelection(),
+						ngxAccessibility, ngxPage.getSelection());
 			}
 		});
 
@@ -328,7 +346,9 @@ class SqlConnectorDesignComposite extends Composite {
 		}
 	}
 
-	private void createSqlTransactions(final TableItem[] items, boolean override, List<String> cruds, Accessibility accessibility, boolean authenticated) {
+	private void createSqlTransactions(final TableItem[] items, boolean override, List<String> cruds, Accessibility accessibility, boolean authenticated,
+			Accessibility ngxAccessibility, boolean ngxPage) {
+		var ngxTables = new LinkedList<String>();
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
 		Shell shell = display.getActiveShell();
@@ -342,6 +362,9 @@ class SqlConnectorDesignComposite extends Composite {
 					List<SqlTransaction> sqlTransactions = null;
 					if ("TABLE".equals(type)) {
 						sqlTransactions = SqlConnector.createSqlTransaction(sqlConnector, callableName, cruds);
+						if (ngxAccessibility != null) {
+							ngxTables.add(callableName);
+						}
 					} else {
 						String specific_name = (String) item.getData("specific_name");
 						ConvertigoPlugin.logDebug("Creating transaction for CALL '"+callableName+"' ...");
@@ -353,50 +376,23 @@ class SqlConnectorDesignComposite extends Composite {
 					}
 					for (var sqlTransaction: sqlTransactions) {
 						if (sqlTransaction != null) {
-							Transaction transaction = sqlConnector.getTransactionByName(sqlTransaction.getName());
-							if (override || transaction == null) {
-								if (transaction != null) {
-									try {
-										File xsdFile = new File(transaction.getSchemaFilePath());
-										if (xsdFile.exists()) {
-											xsdFile.delete();
-										}
-									}
-									catch (Exception e) {}
-									sqlConnector.remove(transaction);
-								}
-								sqlConnector.add(sqlTransaction);
+							var added = SqlCrudGeneration.addTransaction(sqlConnector, sqlTransaction, override);
+							if (added == sqlTransaction) {
 								fireObjectChanged(new CompositeEvent(sqlConnector));
 								var pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
 								if (pev != null) {
-									var dbot = pev.findTreeObjectByUserObject(sqlTransaction);
-									var query = sqlTransaction.getSqlQuery();
-									var order = "id";
-									var mOrder = Pattern.compile("SELECT (.*?),").matcher(query); 
-									if (mOrder.find()) {
-										order = mOrder.group(1);
-									}
-									pev.setSelectedTreeObject(dbot);
-									if (sqlTransaction.getName().endsWith("_LIST")) {
-										if (sqlTransaction.getVariable("order_by") instanceof RequestableVariable v && v != null) {
-											v.setValueOrNull(order);
-										}
-										if (sqlTransaction.getVariable("limit") instanceof RequestableVariable v && v != null) {
-											v.setXmlTypeAffectation(new XmlQName(Constants.XSD_LONG));
-											v.setValueOrNull("100");
-										}
-										if (sqlTransaction.getVariable("offset") instanceof RequestableVariable v && v != null) {
-											v.setXmlTypeAffectation(new XmlQName(Constants.XSD_LONG));
-											v.setValueOrNull("0");
-										}
-									}
+									pev.setSelectedTreeObject(pev.findTreeObjectByUserObject(sqlTransaction));
 								}
 								ConvertigoPlugin.logDebug("Transaction added.");
-							} else if (transaction instanceof SqlTransaction sqlTr) {
-								sqlTransaction = sqlTr;
+							}
+							if (added == null) {
+								continue;
 							}
 							if (accessibility != null) {
-								createSequenceWrapper(sqlTransaction, accessibility, authenticated);
+								createSequenceWrapper(added, accessibility, authenticated);
+							} else if (ngxAccessibility != null && "TABLE".equals(type) && !SqlCrudGeneration.hasSequence(added)) {
+								// the user interface needs the sequences: the missing ones only, existing ones are kept as they are
+								createSequenceWrapper(added, ngxAccessibility, authenticated);
 							}
 						}
 					}
@@ -407,44 +403,52 @@ class SqlConnectorDesignComposite extends Composite {
 				shell.setCursor(null);
 				waitCursor.dispose();
 			}
+			if (!ngxTables.isEmpty()) {
+				createNgxComponents(shell, ngxTables, ngxPage);
+			}
+		}
+	}
+
+	private void createNgxComponents(Shell shell, List<String> tables, boolean withPage) {
+		Project project = sqlConnector.getProject();
+		try {
+			// the library comes first: nothing is generated without its grid
+			var error = new String[1];
+			new ProgressMonitorDialog(shell).run(true, false, (IProgressMonitor monitor) -> {
+				monitor.beginTask("Importing " + CrudUiDefaults.LIB_PROJECT_NAME, IProgressMonitor.UNKNOWN);
+				try {
+					NgxCrudLibrary.importIfMissing(project);
+					error[0] = NgxCrudLibrary.check();
+				} catch (Exception e) {
+					throw new InvocationTargetException(e);
+				} finally {
+					monitor.done();
+				}
+			});
+			if (error[0] != null) {
+				ConvertigoPlugin.errorMessageBox("No NGX shared component generated: " + error[0] + ".");
+				return;
+			}
+			var report = SqlCrudGeneration.generateUserInterface(project, sqlConnector, tables, withPage);
+			fireObjectChanged(new CompositeEvent(project));
+			var pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
+			if (pev != null) {
+				pev.reloadDatabaseObject(project);
+			}
+			ConvertigoPlugin.logInfo("NGX CRUD generation:\n" + report);
+			ConvertigoPlugin.infoMessageBox(report.toString());
+		} catch (InvocationTargetException e) {
+			var cause = e.getCause() != null ? e.getCause() : e;
+			ConvertigoPlugin.logException(cause, "Unable to import " + CrudUiDefaults.LIB_PROJECT_NAME);
+			ConvertigoPlugin.errorMessageBox("No NGX shared component generated: " + cause.getMessage());
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Error while generating the NGX shared components");
 		}
 	}
 	
 	private void createSequenceWrapper(SqlTransaction transaction, Accessibility accessibility, boolean authenticatedContextRequired) throws EngineException {
-		GenericSequence sequence;
-		var project = transaction.getProject();
-		var sequenceName = transaction.getName();
-		try {
-			sequence = (GenericSequence) project.getSequenceByName(sequenceName);
-			List<Step> steps = sequence.getAllSteps();
-			List<RequestableVariable> vars = sequence.getAllVariables();
-			List<DatabaseObject> children = new ArrayList<>(steps.size() + vars.size());
-			children.addAll(steps);
-			children.addAll(vars);
-			for (DatabaseObject dbo: children) {
-				sequence.remove(dbo);
-			}
-		} catch (Exception e) {
-			sequence = new GenericSequence();
-			sequence.setName(sequenceName);
-			sequence.setAccessibility(accessibility);
-			sequence.setAuthenticatedContextRequired(authenticatedContextRequired);
-			project.add(sequence);
-		}
-		var transactionStep = new TransactionStep();
-		transactionStep.setSourceTransaction(transaction.getQName());
-		sequence.add(transactionStep);
-		transactionStep.importVariableDefinition();
-		transactionStep.exportVariableDefinition();
-
-		var xmlCopyStep = new XMLCopyStep();
-		var source = new XMLVector<String>();
-		source.add(Long.toString(transactionStep.priority));
-		source.add("./document/sql_output[row]/*|./document/sql_output[not(row)]|./document/error");
-		xmlCopyStep.setSourceDefinition(source);
-		sequence.add(xmlCopyStep);
-
-		fireObjectChanged(new CompositeEvent(project));
+		var sequence = SqlCrudGeneration.createSequence(transaction, accessibility, authenticatedContextRequired);
+		fireObjectChanged(new CompositeEvent(transaction.getProject()));
 		var pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
 		if (pev != null) {
 			var dbot = pev.findTreeObjectByUserObject(sequence);
