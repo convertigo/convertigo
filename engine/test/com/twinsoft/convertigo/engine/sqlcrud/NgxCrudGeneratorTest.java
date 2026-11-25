@@ -125,20 +125,26 @@ public class NgxCrudGeneratorTest {
 		assertNull(result.getPage());
 
 		var variables = find(comp, UICompVariable.class).stream().map(UICompVariable::getName).toList();
-		assertEquals(List.of("pageSize", "pagination", "readOnly", "height", "showTitle", "labels"), variables);
+		assertEquals(List.of("enableAdd", "enableEdit", "enableView", "enableDelete", "multiSelect", "showId", "hiddenColumns",
+				"pageSize", "pagination", "height", "showTitle", "reloadKey", "labels"), variables);
 		assertEquals("50", ((UICompVariable) named(comp, "pageSize")).getVariableValue());
 		assertEquals("false", ((UICompVariable) named(comp, "pagination")).getVariableValue());
+		assertEquals("'600px'", ((UICompVariable) named(comp, "height")).getVariableValue());
 		var labels = new JSONObject(((UICompVariable) named(comp, "labels")).getVariableValue());
 		assertEquals("Pairs", labels.getString("title"));
-		assertEquals("Delete selection", labels.getString("deleteSelection"));
+		assertEquals("Clear selection", labels.getString("clearSelection"));
 		assertEquals("V", labels.getJSONObject("fields").getString("V"));
-		assertEquals(List.of("Saved", "Deleted"), find(comp, UICompEvent.class).stream().map(UICompEvent::getName).toList());
+		assertEquals(List.of("SelectionChanged", "RowSaved", "RowsDeleted", "FormCancelled"),
+				find(comp, UICompEvent.class).stream().map(UICompEvent::getName).toList());
 
-		// toolbar: delete the selection, create
-		assertNotNull(named(comp, "DeleteSelection"));
-		assertNotNull(named(comp, "New"));
-		var openCreation = (UICustomAction) named(comp, "OpenCreation");
-		assertTrue(openCreation.getActionValue().getString().contains("page.crudOpenForm('create', null)"));
+		// toolbar: actions shown by the selection
+		for (var button : List.of("ClearSelection", "Add", "View", "Edit", "Delete")) {
+			assertNotNull(button, named(comp, button + "If"));
+		}
+		assertEquals("this.crudCanUpdate() && this.crudSelectedCount == 1",
+				((com.twinsoft.convertigo.beans.ngx.components.UIControlDirective) named(comp, "EditIf")).getSourceSmartType().getSmartValue());
+		var add = find(comp, UICustomAction.class).stream().filter(a -> a.getName().equals("Add")).findFirst().get();
+		assertTrue(add.getActionValue().getString().contains("page.crudOpenForm('create', null)"));
 
 		// the grid of the library, in continuous scrolling over the paginated list
 		var grid = (UIUseShared) named(comp, "Grid");
@@ -149,7 +155,8 @@ public class NgxCrudGeneratorTest {
 		assertEquals("this.pagination", grids.get("pagination"));
 		assertEquals("this.pageSize", grids.get("paginationPageSize"));
 		assertEquals("this.crudColumnDefs", grids.get("columnDefs"));
-		assertEquals("this.crudCanDelete() ? 'multiple' : 'single'", grids.get("rowSelection"));
+		assertEquals("this.crudMultiSelect() ? 'multiple' : 'single'", grids.get("rowSelection"));
+		assertEquals("false", grids.get("suppressRowClickSelection"));
 		assertEquals("'ag-theme-quartz'", grids.get("class"));
 		var events = find(grid, UIControlEvent.class).stream().map(UIControlEvent::getEventName).toList();
 		assertEquals(List.of("GridReady", "GetRows", "SelectionChanged"), events);
@@ -173,8 +180,8 @@ public class NgxCrudGeneratorTest {
 		var form = result.getForm();
 		assertEquals("pairForm", form.getName());
 		assertTrue(app.getSharedComponentList().contains(form));
-		assertEquals(List.of("row", "mode", "labels"), find(form, UICompVariable.class).stream().map(UICompVariable::getName).toList());
-		assertEquals(List.of("Saved", "Cancelled"), find(form, UICompEvent.class).stream().map(UICompEvent::getName).toList());
+		assertEquals(List.of("row", "mode", "showTitle", "labels"), find(form, UICompVariable.class).stream().map(UICompVariable::getName).toList());
+		assertEquals(List.of("RowSaved", "FormCancelled"), find(form, UICompEvent.class).stream().map(UICompEvent::getName).toList());
 		var modal = (UIDynamicElement) named(comp, "FormModal");
 		var modalData = new JSONObject(modal.getBeanData());
 		assertEquals("InlineModal", modalData.getString("name"));
@@ -182,14 +189,16 @@ public class NgxCrudGeneratorTest {
 		var use = (UIUseShared) named(comp, "Form");
 		assertEquals(form.getQName(), use.getSharedComponentQName());
 		assertEquals(Map.of("row", "this.crudFormRow", "mode", "this.crudFormMode", "labels", "this.labels"), useVariables(use));
-		assertEquals(List.of("Saved", "Cancelled"), find(use, UIControlEvent.class).stream().map(UIControlEvent::getEventName).toList());
+		assertEquals(List.of("RowSaved", "FormCancelled"), find(use, UIControlEvent.class).stream().map(UIControlEvent::getEventName).toList());
 		var formScript = form.getScriptContent().getString();
 		assertTrue(formScript.contains("public crudSequences: any = {insert: \"crudtest.PAIRS_INSERT\", update: \"crudtest.PAIRS_UPDATE\"};"));
 		assertTrue(formScript.contains("crudNormalize()"));
 		assertScriptIsBalanced(formScript);
 		var input = new JSONObject(((UIDynamicElement) named(form, "Field_A").getAllChildren().get(0)).getBeanData()).getJSONObject("properties");
 		assertEquals("crudDraft['A']", input.getJSONObject("DoubleBinding").getString("value"));
-		assertEquals("this.mode == 'edit'", input.getJSONObject("Readonly").getString("value"));
+		assertEquals("this.mode != 'create'", input.getJSONObject("Readonly").getString("value"));
+		var v = new JSONObject(((UIDynamicElement) named(form, "Field_V").getAllChildren().get(0)).getBeanData()).getJSONObject("properties");
+		assertEquals("this.mode == 'view'", v.getJSONObject("Readonly").getString("value"));
 		assertEquals("number", input.getJSONObject("Type").getString("value"));
 		assertEquals("true", input.getJSONObject("Required").getString("value"));
 		assertEquals("10", new JSONObject(((UIDynamicElement) named(form, "Field_B").getAllChildren().get(0)).getBeanData())
@@ -210,7 +219,9 @@ public class NgxCrudGeneratorTest {
 		assertTrue(script.contains("{name: \"ID\", kind: \"INTEGER\", input: \"number\", key: true, required: false, hiddenOnCreate: true, readOnlyOnEdit: true"));
 		assertTrue(script.contains("help: \"Free notes\""));
 		assertTrue(result.getWarnings().stream().anyMatch(w -> w.contains("PHOTO")));
-		assertNotNull(named(comp, "New"));
+		assertNotNull(named(comp, "Add"));
+		assertNull("no edition with a binary column", named(comp, "Edit"));
+		assertNotNull(named(comp, "View"));
 		assertScriptIsBalanced(script);
 		var form = result.getForm();
 		assertTrue(form.getScriptContent().getString().contains("{insert: \"crudtest.MATRIX_INSERT\", update: null}"));
@@ -233,8 +244,9 @@ public class NgxCrudGeneratorTest {
 		var app = project("PAIRS", List.of("LIST", "DELETE"));
 		var result = new NgxCrudGenerator(app.getProject(), table("PAIRS")).generate(false);
 		var comp = result.getComponent();
-		assertNull(named(comp, "New"));
-		assertNotNull(named(comp, "DeleteSelection"));
+		assertNull(named(comp, "Add"));
+		assertNull(named(comp, "Edit"));
+		assertNotNull(named(comp, "Delete"));
 		var script = comp.getScriptContent().getString();
 		assertTrue(script.contains("insert: null, update: null, delete: \"crudtest.PAIRS_DELETE\""));
 		assertTrue(script.contains("public crudCan: any = {create: false, update: false, delete: true};"));
@@ -247,12 +259,14 @@ public class NgxCrudGeneratorTest {
 		var result = new NgxCrudGenerator(app.getProject(), table("LOGS")).generate(false);
 		var comp = result.getComponent();
 		assertEquals("log", comp.getName());
-		assertNull(named(comp, "New"));
-		assertNull(named(comp, "DeleteSelection"));
+		assertNull(named(comp, "Add"));
+		assertNull(named(comp, "Edit"));
+		assertNull(named(comp, "Delete"));
+		assertNotNull("a read-only table can still be viewed", named(comp, "View"));
 		assertTrue(comp.getScriptContent().getString().contains("public crudCan: any = {create: false, update: false, delete: false};"));
 		assertTrue(result.getWarnings().get(0).startsWith("read-only list"));
-		assertNull(result.getForm());
-		assertNull(named(comp, "FormModal"));
+		assertNotNull("the form shows a row", result.getForm());
+		assertNotNull(named(comp, "FormModal"));
 	}
 
 	@Test
@@ -341,7 +355,10 @@ public class NgxCrudGeneratorTest {
 			}
 			for (var dbo : objects) {
 				var expressions = new ArrayList<String>();
-				if (dbo instanceof UIUseVariable v) {
+				if (dbo instanceof UICompVariable c) {
+					// the default values of shared component variables: no double quote either
+					expressions.add(c.getVariableValue());
+				} else if (dbo instanceof UIUseVariable v) {
 					expressions.add(v.getVarSmartType().getSmartValue());
 				} else if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UIText t) {
 					expressions.add(t.getTextSmartType().getSmartValue());

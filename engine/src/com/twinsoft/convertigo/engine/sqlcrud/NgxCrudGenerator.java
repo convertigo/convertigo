@@ -214,7 +214,8 @@ public final class NgxCrudGenerator {
 			return result;
 		}
 		var formName = getFormName();
-		var withForm = canCreate() || canUpdate();
+		// the form also shows a row (view mode), even when the table cannot be changed
+		var withForm = !table.getDisplayedColumns().isEmpty();
 		if (withForm && findSharedComponent(formName) != null) {
 			result.skipReason = "the shared component " + formName + " already exists";
 			return result;
@@ -262,6 +263,11 @@ public final class NgxCrudGenerator {
 	 * Mobile Builder writes their files (the grid of the library) in the application.
 	 */
 	private void loadTemplateBeans(DatabaseObject root) throws EngineException {
+		loadTemplateBeans(app, root);
+	}
+
+	/** Same as {@link #loadTemplateBeans(DatabaseObject)}, for objects that a developer adds next to the generated ones. */
+	static void loadTemplateBeans(ApplicationComponent app, DatabaseObject root) throws EngineException {
 		var cm = ComponentManager.of(app);
 		var objects = new ArrayList<DatabaseObject>();
 		objects.add(root);
@@ -323,21 +329,30 @@ public final class NgxCrudGenerator {
 		comp.hasChanged = true;
 		comp.setComment("Generated on " + LocalDate.now() + " from the table " + table.getTableName()
 				+ " and the sequences " + String.join(", ", sequences.values())
-				+ ". Nothing is regenerated: change it freely.");
+				+ ". Configure it with its variables, connect its events. Nothing is regenerated: change it freely.");
 		comp.setScriptContent(new FormatedContent(NgxCrudScript.componentScript(this, table, sequences)));
 
 		var title = SqlColumnInfo.prettify(table.getTableName());
+		add(comp, compVariable("enableAdd", "true", "false: no Add button."));
+		add(comp, compVariable("enableEdit", "true", "false: no Edit button."));
+		add(comp, compVariable("enableView", "true", "false: no View button (the form in read-only mode)."));
+		add(comp, compVariable("enableDelete", "true", "false: no Delete button, and a single selection."));
+		add(comp, compVariable("multiSelect", "true", "false: a single row can be selected, without check boxes."));
+		add(comp, compVariable("showId", "true", "false: the columns of the primary key are not shown in the grid."));
+		add(comp, compVariable("hiddenColumns", "[]", "Names of the columns not shown in the grid, for example ['notes', 'created_at']."));
 		add(comp, compVariable("pageSize", Integer.toString(CrudUiDefaults.PAGE_SIZE), "Number of rows loaded by each call of the list sequence, and rows of a page."));
 		add(comp, compVariable("pagination", Boolean.toString(CrudUiDefaults.PAGINATION), "false: continuous scrolling, true: pages of pageSize rows."));
-		add(comp, compVariable("readOnly", "false", "true: no creation, edition nor deletion."));
-		add(comp, compVariable("height", jsString(CrudUiDefaults.HEIGHT), "Height of the grid, 'auto' to fit the rows."));
+		add(comp, compVariable("height", templateString(CrudUiDefaults.HEIGHT), "Height of the grid, 'auto' to fit the rows."));
 		add(comp, compVariable("showTitle", "true", "false: no title in the toolbar (when the page already shows one)."));
-		add(comp, compVariable("labels", NgxCrudScript.labelsLiteral(table, title), "Texts of the user interface and labels of the columns."));
-		add(comp, compEvent("Saved", "Fired when a row is created or updated. Data: {row, mode}."));
-		add(comp, compEvent("Deleted", "Fired after a deletion. Data: {rows}, the deleted rows."));
+		add(comp, compVariable("reloadKey", "0", "Change its value (for example Date.now()) to reload the rows."));
+		add(comp, compVariable("labels", NgxCrudScript.labelsLiteral(table, title), "Texts of the buttons, the messages, the form and the columns."));
+		add(comp, compEvent("SelectionChanged", "Fired when the selection changes. Data: {rows}, the selected rows."));
+		add(comp, compEvent("RowSaved", "Fired when a row is created or updated with the form. Data: {row, mode}."));
+		add(comp, compEvent("RowsDeleted", "Fired after a deletion. Data: {rows}, the deleted rows."));
+		add(comp, compEvent("FormCancelled", "Fired when the form is closed without saving. Data: {mode}."));
 
-		// no empty bar for a read-only list hosted by a page that shows the title
-		var toolbarIf = directive("ToolbarIf", "this.showTitle !== false || this.crudCanCreate() || this.crudCanDelete()");
+		// no empty bar when the page shows the title and nothing can be done
+		var toolbarIf = directive("ToolbarIf", "this.showTitle !== false || this.crudCanCreate() || this.crudCanView() || this.crudCanUpdate() || this.crudCanDelete()");
 		add(toolbarIf, buildToolbar());
 		add(comp, toolbarIf);
 		add(comp, buildGrid(name));
@@ -352,6 +367,7 @@ public final class NgxCrudGenerator {
 		return comp;
 	}
 
+	/** The toolbar: the title, then the actions that the selection allows. */
 	private UIComponent buildToolbar() throws EngineException {
 		var toolbar = element("Toolbar", "ToolBar", "ion-toolbar", Map.of());
 		var titleIf = directive("TitleIf", "this.showTitle !== false");
@@ -361,27 +377,37 @@ public final class NgxCrudGenerator {
 		add(toolbar, titleIf);
 
 		var buttons = element("Buttons", "ButtonSet", "ion-buttons", Map.of("SetPosition", "plain:end"));
-		if (canDelete()) {
-			var deleteIf = directive("DeleteIf", "this.crudCanDelete()");
-			var button = element("DeleteSelection", "Button", "ion-button", ordered(
-					"IonColor", "plain:danger", "IonFill", "plain:clear", "Disabled", "script:this.crudSelectedCount == 0"));
-			add(button, icon("trash-outline"));
-			add(button, text("Text", "this.crudLabel('deleteSelection') + (this.crudSelectedCount > 0 ? ' (' + this.crudSelectedCount + ')' : '')"));
-			add(button, clickAction("DeleteSelection", "\t\tpage.crudDeleteSelection().then(resolve, reject);\n"));
-			add(deleteIf, button);
-			add(buttons, deleteIf);
-		}
+		add(buttons, actionButton("ClearSelection", "this.crudSelectedCount > 1", "close-circle-outline", "medium", "clear",
+				"this.crudLabel('clearSelection')", "\t\tpage.crudClearSelection();\n\t\tresolve(null);\n"));
 		if (canCreate()) {
-			var newIf = directive("NewIf", "this.crudCanCreate()");
-			var button = element("New", "Button", "ion-button", ordered("IonColor", "plain:primary", "IonFill", "plain:solid"));
-			add(button, icon("add"));
-			add(button, text("Text", "this.crudLabel('new')"));
-			add(button, clickAction("OpenCreation", "\t\tpage.crudOpenForm('create', null);\n\t\tresolve(null);\n"));
-			add(newIf, button);
-			add(buttons, newIf);
+			add(buttons, actionButton("Add", "this.crudCanCreate()", "add", "primary", "solid",
+					"this.crudLabel('add')", "\t\tpage.crudOpenForm('create', null);\n\t\tresolve(null);\n"));
+		}
+		add(buttons, actionButton("View", "this.crudCanView() && this.crudSelectedCount == 1", "eye-outline", "primary", "clear",
+				"this.crudLabel('view')", "\t\tpage.crudOpenSelected('view');\n\t\tresolve(null);\n"));
+		if (canUpdate()) {
+			add(buttons, actionButton("Edit", "this.crudCanUpdate() && this.crudSelectedCount == 1", "create-outline", "primary", "clear",
+					"this.crudLabel('edit')", "\t\tpage.crudOpenSelected('edit');\n\t\tresolve(null);\n"));
+		}
+		if (canDelete()) {
+			add(buttons, actionButton("Delete", "this.crudCanDelete() && this.crudSelectedCount > 0", "trash-outline", "danger", "clear",
+					"this.crudLabel('delete') + (this.crudSelectedCount > 1 ? ' (' + this.crudSelectedCount + ')' : '')",
+					"\t\tpage.crudDeleteSelection().then(resolve, reject);\n"));
 		}
 		add(toolbar, buttons);
 		return toolbar;
+	}
+
+	/** A button of the toolbar, shown when its condition is true. */
+	private static UIComponent actionButton(String name, String condition, String iconName, String color, String fill,
+			String label, String code) throws EngineException {
+		var shown = directive(name + "If", condition);
+		var button = element(name, "Button", "ion-button", ordered("IonColor", "plain:" + color, "IonFill", "plain:" + fill));
+		add(button, icon(iconName));
+		add(button, text("Text", label));
+		add(button, clickAction(name, code));
+		add(shown, button);
+		return shown;
 	}
 
 	private UIComponent buildGrid(String componentName) throws EngineException {
@@ -402,8 +428,9 @@ public final class NgxCrudGenerator {
 		add(grid, useVariable("paginationPageSizeSelector", "false"));
 		add(grid, useVariable("columnDefs", "this.crudColumnDefs"));
 		add(grid, useVariable("defaultColDef", "this.crudDefaultColDef"));
-		add(grid, useVariable("rowSelection", "this.crudCanDelete() ? 'multiple' : 'single'"));
-		add(grid, useVariable("suppressRowClickSelection", "true"));
+		// a click selects one row, the check boxes add rows to the selection
+		add(grid, useVariable("rowSelection", "this.crudMultiSelect() ? 'multiple' : 'single'"));
+		add(grid, useVariable("suppressRowClickSelection", "false"));
 		add(grid, useVariable("suppressFieldDotNotation", "true"));
 		add(grid, useVariable("autoSizeColumns", "false"));
 		add(grid, useVariable("class", templateString(CrudUiDefaults.GRID_THEME)));
@@ -439,7 +466,7 @@ public final class NgxCrudGenerator {
 		return grid;
 	}
 
-	/** The modal of the component: the form, created again at each opening, for a creation or an edition. */
+	/** The modal of the component: the form, created again at each opening, to create, edit or view a row. */
 	private UIComponent buildModal(UISharedRegularComponent form) throws EngineException {
 		var modal = element("FormModal", "InlineModal", "ion-modal", ordered("IsOpen", "script:this.crudFormOpen", "BackdropDismiss", "plain:false"));
 		add(modal, attribute("Class", "class", "crud-modal"));
@@ -456,11 +483,11 @@ public final class NgxCrudGenerator {
 		add(use, useVariable("row", "this.crudFormRow"));
 		add(use, useVariable("mode", "this.crudFormMode"));
 		add(use, useVariable("labels", "this.labels"));
-		var saved = controlEvent("OnSaved", "Saved");
-		add(saved, customAction("Saved", "\t\tpage.crudCloseForm(event);\n\t\tresolve(null);\n"));
+		var saved = controlEvent("OnRowSaved", "RowSaved");
+		add(saved, customAction("RowSaved", "\t\tpage.crudCloseForm(event);\n\t\tresolve(null);\n"));
 		add(use, saved);
-		var cancelled = controlEvent("OnCancelled", "Cancelled");
-		add(cancelled, customAction("Cancelled", "\t\tpage.crudCloseForm(null);\n\t\tresolve(null);\n"));
+		var cancelled = controlEvent("OnFormCancelled", "FormCancelled");
+		add(cancelled, customAction("FormCancelled", "\t\tpage.crudFormCancelled();\n\t\tresolve(null);\n"));
 		add(use, cancelled);
 		add(formIf, use);
 		add(page, formIf);
@@ -476,22 +503,26 @@ public final class NgxCrudGenerator {
 		form.bNew = true;
 		form.hasChanged = true;
 		form.setComment("Generated on " + LocalDate.now() + " from the table " + table.getTableName()
-				+ ": creates a row with " + sequences.getOrDefault("INSERT", "(no INSERT)") + " or updates it with "
-				+ sequences.getOrDefault("UPDATE", "(no UPDATE)") + ". Nothing is regenerated: change it freely.");
+				+ ": shows a row (mode 'view'), creates it with " + sequences.getOrDefault("INSERT", "(no INSERT)")
+				+ " (mode 'create') or updates it with " + sequences.getOrDefault("UPDATE", "(no UPDATE)")
+				+ " (mode 'edit'). It can be used in a modal or directly in a page. Nothing is regenerated: change it freely.");
 		form.setScriptContent(new FormatedContent(NgxCrudScript.formScript(this, table, sequences)));
-		add(form, compVariable("row", "{}", "The row to edit, or the initial values of a new row."));
-		add(form, compVariable("mode", jsString("create"), "'create' or 'edit'."));
+		add(form, compVariable("row", "{}", "The row to show or edit, or the initial values of a new row."));
+		add(form, compVariable("mode", templateString("create"), "'create', 'edit' or 'view' (read-only)."));
+		add(form, compVariable("showTitle", "true", "false: no title above the fields."));
 		add(form, compVariable("labels", NgxCrudScript.labelsLiteral(table, SqlColumnInfo.prettify(table.getTableName())), "Texts of the form and labels of the fields."));
-		add(form, compEvent("Saved", "Fired when the row is saved. Data: {row, mode}."));
-		add(form, compEvent("Cancelled", "Fired when the user cancels."));
+		add(form, compEvent("RowSaved", "Fired when the row is saved. Data: {row, mode}."));
+		add(form, compEvent("FormCancelled", "Fired when the user cancels or closes the form. Data: {mode}."));
 
+		var headerIf = directive("HeaderIf", "this.showTitle !== false");
 		var header = element("Header", "Header", "ion-header", Map.of());
 		var toolbar = element("ToolBar", "ToolBar", "ion-toolbar", Map.of());
 		var title = element("Title", "BarTitle", "ion-title", Map.of());
-		add(title, text("Text", "this.crudLabel(this.mode == 'edit' ? 'editTitle' : 'createTitle')"));
+		add(title, text("Text", "this.crudLabel(this.mode == 'edit' ? 'editTitle' : this.mode == 'view' ? 'viewTitle' : 'createTitle')"));
 		add(toolbar, title);
 		add(header, toolbar);
-		add(form, header);
+		add(headerIf, header);
+		add(form, headerIf);
 
 		var body = element("Body", "DivTag", "div", Map.of());
 		add(body, attribute("Class", "class", "crud-form-body ion-padding"));
@@ -506,14 +537,16 @@ public final class NgxCrudGenerator {
 		var footerBar = element("ToolBar", "ToolBar", "ion-toolbar", Map.of());
 		var buttons = element("Buttons", "ButtonSet", "ion-buttons", Map.of("SetPosition", "plain:end"));
 		var cancel = element("Cancel", "Button", "ion-button", ordered("IonFill", "plain:clear"));
-		add(cancel, text("Text", "this.crudLabel('cancel')"));
+		add(cancel, text("Text", "this.crudLabel(this.mode == 'view' ? 'close' : 'cancel')"));
 		add(cancel, clickAction("Cancel", "\t\tpage.crudCancel();\n\t\tresolve(null);\n"));
 		add(buttons, cancel);
+		var saveIf = directive("SaveIf", "this.mode != 'view'");
 		var save = element("Save", "Button", "ion-button", ordered("IonColor", "plain:primary", "IonFill", "plain:solid",
 				"Disabled", "script:!this.crudIsValid() || this.crudSaving"));
 		add(save, text("Text", "this.crudLabel('save')"));
 		add(save, clickAction("Save", "\t\tpage.crudSave().then(resolve, reject);\n"));
-		add(buttons, save);
+		add(saveIf, save);
+		add(buttons, saveIf);
 		add(footerBar, buttons);
 		add(footer, footerBar);
 		add(form, footer);
@@ -532,12 +565,12 @@ public final class NgxCrudGenerator {
 		var label = "script:this.crudFieldLabel(" + templateString(name) + ")";
 		var binding = "script:crudDraft[" + templateString(name) + "]";
 		var readOnly = column.isReadOnlyType() ? "script:true"
-				: column.isReadOnlyOnEdit() ? "script:this.mode == 'edit'" : "script:false";
+				: column.isReadOnlyOnEdit() ? "script:this.mode != 'create'" : "script:this.mode == 'view'";
 		var kind = column.getKind();
 		UIDynamicElement widget;
 		if (kind == SqlFieldKind.BOOLEAN) {
 			widget = element("Toggle", "Toggle", "ion-toggle", ordered("ControlName", "plain:" + name, "DoubleBinding", binding,
-					"Disabled", readOnly.replace("script:false", "script:this.crudSaving"), "LabelPlacement", "plain:start", "Justify", "plain:space-between"));
+					"Disabled", readOnly.equals("script:true") ? readOnly : readOnly + " || this.crudSaving", "LabelPlacement", "plain:start", "Justify", "plain:space-between"));
 			add(widget, text("Text", "this.crudFieldLabel(" + templateString(name) + ")"));
 		} else {
 			var properties = ordered("ControlName", "plain:" + name, "DoubleBinding", binding, "Label", label,
@@ -565,7 +598,7 @@ public final class NgxCrudGenerator {
 		if (!column.isHiddenOnCreate()) {
 			return item;
 		}
-		var onlyInEdition = directive("If_" + StringUtils.normalize(name), "this.mode == 'edit'");
+		var onlyInEdition = directive("If_" + StringUtils.normalize(name), "this.mode != 'create'");
 		add(onlyInEdition, item);
 		return onlyInEdition;
 	}

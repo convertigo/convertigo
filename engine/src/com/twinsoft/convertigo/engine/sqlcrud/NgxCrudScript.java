@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.engine.sqlcrud;
 
 import static com.twinsoft.convertigo.engine.sqlcrud.NgxCrudGenerator.jsString;
+import static com.twinsoft.convertigo.engine.sqlcrud.NgxCrudGenerator.templateString;
 
 import java.util.Map;
 
@@ -31,14 +32,15 @@ final class NgxCrudScript {
 
 	/** The labels variable: the texts of the user interface, the title and the label of each column. */
 	static String labelsLiteral(SqlTableInfo table, String title) {
-		var sb = new StringBuilder("{\"title\": ").append(jsString(title));
+		// single quotes only: a default value with double quotes breaks the template of a UIUseShared
+		var sb = new StringBuilder("{'title': ").append(templateString(title));
 		for (var entry : CrudUiDefaults.labels().entrySet()) {
-			sb.append(", ").append(jsString(entry.getKey())).append(": ").append(jsString(entry.getValue()));
+			sb.append(", ").append(templateString(entry.getKey())).append(": ").append(templateString(entry.getValue()));
 		}
-		sb.append(", \"fields\": {");
+		sb.append(", 'fields': {");
 		var first = true;
 		for (var column : table.getDisplayedColumns()) {
-			sb.append(first ? "" : ", ").append(jsString(column.getName())).append(": ").append(jsString(column.getLabel()));
+			sb.append(first ? "" : ", ").append(templateString(column.getName())).append(": ").append(templateString(column.getLabel()));
 			first = false;
 		}
 		return sb.append("}}").toString();
@@ -169,6 +171,7 @@ final class NgxCrudScript {
 				public crudColumnDefs: any[] = [];
 				public crudGridApi: any = null;
 				public crudRows: any[] = [];
+				public crudSelectedRows: any[] = [];
 				public crudSelectedCount: number = 0;
 				public crudFormOpen: boolean = false;
 				public crudFormMode: string = "create";
@@ -182,8 +185,11 @@ final class NgxCrudScript {
 			/*Begin_c8o_CompFinalization*/
 					/*End_c8o_CompFinalization*/
 			/*Begin_c8o_CompChanges*/
-					if (changes?.labels != null || changes?.readOnly != null) {
+					if (["labels", "hiddenColumns", "showId", "multiSelect", "enableDelete"].some((name: string) => changes?.[name] != null)) {
 						this.crudColumnDefs = this.crudBuildColumnDefs();
+					}
+					if (changes?.reloadKey != null && !changes.reloadKey.firstChange) {
+						this.crudRefresh();
 					}
 					/*End_c8o_CompChanges*/
 			/*Begin_c8o_CompDoCheck*/
@@ -199,30 +205,37 @@ final class NgxCrudScript {
 			/*Begin_c8o_CompFunction*/
 			@@COMMON@@
 				crudCanCreate(): boolean {
-					return this.crudCan.create && this.readOnly !== true;
+					return this.crudCan.create && this.enableAdd !== false;
 				}
 
 				crudCanUpdate(): boolean {
-					return this.crudCan.update && this.readOnly !== true;
+					return this.crudCan.update && this.enableEdit !== false;
+				}
+
+				crudCanView(): boolean {
+					return this.enableView !== false;
 				}
 
 				crudCanDelete(): boolean {
-					return this.crudCan.delete && this.readOnly !== true;
+					return this.crudCan.delete && this.enableDelete !== false;
+				}
+
+				/** Check boxes and a multiple selection, only useful to delete several rows. */
+				crudMultiSelect(): boolean {
+					return this.multiSelect !== false && this.crudCanDelete();
 				}
 
 				crudBuildColumnDefs(): any[] {
 					const defs: any[] = [];
-					if (this.crudCanDelete()) {
-						defs.push({colId: "_crudSelect", headerName: "", checkboxSelection: true, width: 50, minWidth: 50, maxWidth: 50,
+					if (this.crudMultiSelect()) {
+						defs.push({colId: "_crudSelect", headerName: "", checkboxSelection: true, width: 44, minWidth: 44, maxWidth: 44,
 							suppressSizeToFit: true, pinned: "left", lockPosition: "left", sortable: false, resizable: false, suppressMovable: true});
 					}
-					if (this.crudCanUpdate()) {
-						defs.push({colId: "_crudEdit", headerName: "", width: 56, minWidth: 56, maxWidth: 56, suppressSizeToFit: true,
-							pinned: "left", lockPosition: "left", sortable: false, resizable: false, suppressMovable: true,
-							cellStyle: {padding: "0", display: "flex", alignItems: "center", justifyContent: "center"},
-							cellRenderer: (params: any) => this.crudEditButton(params)});
-					}
+					const hidden: string[] = this.hiddenColumns ?? [];
 					for (const field of this.crudFields) {
+						if (hidden.includes(field.name) || (field.key && this.showId === false)) {
+							continue;
+						}
 						const def: any = {field: field.name, colId: field.name, headerName: this.labels?.fields?.[field.name] ?? field.name};
 						if (field.help) {
 							def.headerTooltip = field.help;
@@ -252,28 +265,6 @@ final class NgxCrudScript {
 						defs.push(def);
 					}
 					return defs;
-				}
-
-				crudEditButton(params: any): any {
-					if (params.data == null) {
-						return "";
-					}
-					const button = document.createElement("ion-button");
-					button.setAttribute("fill", "clear");
-					button.setAttribute("size", "small");
-					button.setAttribute("title", this.crudLabel("edit"));
-					button.setAttribute("aria-label", this.crudLabel("edit"));
-					button.style.cssText = "margin: 0; height: 28px; --padding-start: 6px; --padding-end: 6px;";
-					const icon = document.createElement("ion-icon");
-					icon.setAttribute("name", "create-outline");
-					icon.setAttribute("slot", "icon-only");
-					icon.style.fontSize = "18px";
-					button.appendChild(icon);
-					button.addEventListener("click", (event: any) => {
-						event.stopPropagation();
-						this.crudOpenForm("edit", params.data);
-					});
-					return button;
 				}
 
 				crudFormatDecimal(value: any, scale: number): string {
@@ -338,12 +329,20 @@ final class NgxCrudScript {
 				}
 
 				crudSelectionChanged(): void {
-					this.crudSelectedCount = this.crudGridApi?.getSelectedNodes()?.length ?? 0;
+					const rows = (this.crudGridApi?.getSelectedNodes() ?? []).map((node: any) => node.data).filter((row: any) => row != null);
+					this.crudSelectedRows = rows;
+					this.crudSelectedCount = rows.length;
 					this.ref.markForCheck();
+					this.actionBeans.EmitEventAction(this, {event: ".SelectionChanged", data: {rows: rows}}, null);
+				}
+
+				crudClearSelection(): void {
+					this.crudGridApi?.deselectAll();
 				}
 
 				crudRefresh(): void {
-					this.crudGridApi?.deselectAll();
+					this.crudClearSelection();
+					this.crudSelectedRows = [];
 					this.crudSelectedCount = 0;
 					if (this.crudPaginated) {
 						this.crudGridApi?.refreshInfiniteCache();
@@ -363,14 +362,23 @@ final class NgxCrudScript {
 					return row;
 				}
 
+				/** Opens the form in a modal: 'create' a row, 'edit' or 'view' the given one. */
 				crudOpenForm(mode: string, row: any): void {
-					if (mode == "edit" ? !this.crudCanUpdate() : !this.crudCanCreate()) {
+					const allowed = mode == "create" ? this.crudCanCreate() : mode == "edit" ? this.crudCanUpdate() : this.crudCanView();
+					if (!allowed) {
 						return;
 					}
 					this.crudFormMode = mode;
-					this.crudFormRow = mode == "edit" ? {...row} : this.crudNewRow();
+					this.crudFormRow = mode == "create" ? this.crudNewRow() : {...row};
 					this.crudFormOpen = true;
 					this.ref.markForCheck();
+				}
+
+				/** Opens the form on the only selected row. */
+				crudOpenSelected(mode: string): void {
+					if (this.crudSelectedRows.length == 1) {
+						this.crudOpenForm(mode, this.crudSelectedRows[0]);
+					}
 				}
 
 				crudFormDismissed(): void {
@@ -385,9 +393,14 @@ final class NgxCrudScript {
 					if (saved != null) {
 						this.crudToast(this.crudLabel("saved"), "success");
 						this.crudRefresh();
-						this.actionBeans.EmitEventAction(this, {event: ".Saved", data: {row: saved.row ?? saved, mode: this.crudFormMode}}, null);
+						this.actionBeans.EmitEventAction(this, {event: ".RowSaved", data: {row: saved.row ?? saved, mode: this.crudFormMode}}, null);
 					}
 					this.ref.markForCheck();
+				}
+
+				crudFormCancelled(): void {
+					this.crudCloseForm(null);
+					this.actionBeans.EmitEventAction(this, {event: ".FormCancelled", data: {mode: this.crudFormMode}}, null);
 				}
 
 				crudKey(row: any): any {
@@ -399,7 +412,7 @@ final class NgxCrudScript {
 				}
 
 				async crudDeleteSelection(): Promise<void> {
-					const rows = (this.crudGridApi?.getSelectedNodes() ?? []).map((node: any) => node.data).filter((row: any) => row != null);
+					const rows = [...this.crudSelectedRows];
 					if (rows.length == 0 || !this.crudCanDelete()) {
 						return;
 					}
@@ -433,10 +446,9 @@ final class NgxCrudScript {
 					this.crudToast(message, failures.length > 0 ? "warning" : "success");
 					this.crudRefresh();
 					if (deleted.length > 0) {
-						this.actionBeans.EmitEventAction(this, {event: ".Deleted", data: {rows: deleted}}, null);
+						this.actionBeans.EmitEventAction(this, {event: ".RowsDeleted", data: {rows: deleted}}, null);
 					}
 				}
-
 				/*End_c8o_CompFunction*/
 			""";
 
@@ -504,11 +516,11 @@ final class NgxCrudScript {
 				crudFieldLabel(name: string): string {
 					const field = this.crudFields.find((f: any) => f.name == name);
 					const label = this.labels?.fields?.[name] ?? name;
-					return field?.required ? label + " *" : label;
+					return field?.required && this.mode != "view" ? label + " *" : label;
 				}
 
 				crudVisible(field: any): boolean {
-					return !(field.hiddenOnCreate && this.mode != "edit");
+					return !(field.hiddenOnCreate && this.mode == "create");
 				}
 
 				crudIsEmpty(value: any): boolean {
@@ -545,6 +557,9 @@ final class NgxCrudScript {
 				}
 
 				crudIsValid(): boolean {
+					if (this.mode == "view") {
+						return true;
+					}
 					for (const field of this.crudFields) {
 						if (field.required && field.kind != "BOOLEAN" && this.crudVisible(field) && this.crudIsEmpty(this.crudDraft[field.name])) {
 							return false;
@@ -598,7 +613,7 @@ final class NgxCrudScript {
 				}
 
 				async crudSave(): Promise<void> {
-					const sequence = this.mode == "edit" ? this.crudSequences.update : this.crudSequences.insert;
+					const sequence = this.mode == "edit" ? this.crudSequences.update : this.mode == "create" ? this.crudSequences.insert : null;
 					if (this.crudSaving || sequence == null || !this.crudIsValid()) {
 						return;
 					}
@@ -606,7 +621,7 @@ final class NgxCrudScript {
 					this.ref.markForCheck();
 					try {
 						await this.crudCall(sequence, this.crudNormalize());
-						this.actionBeans.EmitEventAction(this, {event: ".Saved", data: {row: {...this.crudDraft}, mode: this.mode}}, null);
+						this.actionBeans.EmitEventAction(this, {event: ".RowSaved", data: {row: {...this.crudDraft}, mode: this.mode}}, null);
 					} catch (error) {
 						this.crudToast(this.crudMessage(error), "danger");
 					} finally {
@@ -616,7 +631,7 @@ final class NgxCrudScript {
 				}
 
 				crudCancel(): void {
-					this.actionBeans.EmitEventAction(this, {event: ".Cancelled", data: {}}, null);
+					this.actionBeans.EmitEventAction(this, {event: ".FormCancelled", data: {mode: this.mode}}, null);
 				}
 				/*End_c8o_CompFunction*/
 			""";

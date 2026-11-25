@@ -93,21 +93,23 @@ public final class CrudUiDefaults {
 	/** Texts of the generated user interface, in the labels variable of the component. */
 	public static Map<String, String> labels() {
 		var labels = new LinkedHashMap<String, String>();
-		labels.put("new", "New");
+		labels.put("add", "Add");
+		labels.put("view", "View");
 		labels.put("edit", "Edit");
+		labels.put("delete", "Delete");
+		labels.put("clearSelection", "Clear selection");
 		labels.put("save", "Save");
 		labels.put("cancel", "Cancel");
-		labels.put("delete", "Delete");
-		labels.put("deleteSelection", "Delete selection");
+		labels.put("close", "Close");
 		labels.put("confirmTitle", "Confirm");
 		labels.put("confirmDelete", "Delete {n} row(s)?");
 		labels.put("deleted", "{n} row(s) deleted");
 		labels.put("deleteFailed", "{m} row(s) not deleted");
 		labels.put("saved", "Row saved");
 		labels.put("loadFailed", "Unable to load the rows");
-		labels.put("required", "Required");
 		labels.put("createTitle", "New row");
 		labels.put("editTitle", "Edit row");
+		labels.put("viewTitle", "Row");
 		return labels;
 	}
 }
