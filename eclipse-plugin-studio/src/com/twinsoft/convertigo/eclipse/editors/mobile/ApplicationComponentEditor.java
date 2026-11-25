@@ -112,6 +112,7 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSourceTransfer;
 import com.twinsoft.convertigo.eclipse.dnd.TreeDropAdapter;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
+import com.twinsoft.convertigo.eclipse.editors.ViewerJsDialogs;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView;
@@ -406,6 +407,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 		browser = c8oBrowser.getBrowser();
 		debugUrl = c8oBrowser.getDebugUrl();
+		ViewerJsDialogs.install(c8oBrowser, "Mobile viewer");
 
 		browserInterface = new ApplicationComponentBrowserImpl();
 
@@ -418,6 +420,12 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		}
 
 		browser.set(InjectJsCallback.class, params -> {
+			try {
+				// every page of the viewer: alert() shows an overlay in the page instead of a dialog that blocks the Studio
+				params.frame().executeJavaScript(ViewerJsDialogs.alertScript());
+			} catch (Exception e) {
+				Engine.logStudio.debug("(ApplicationComponentEditor) Unable to install the viewer alert: " + e.getMessage());
+			}
 			String url = params.frame().browser().url();
 			if (baseUrl != null && url.startsWith(baseUrl)) {
 				try {
