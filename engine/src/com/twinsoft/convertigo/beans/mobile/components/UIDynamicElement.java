@@ -100,7 +100,8 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 	transient protected IonBean ionBean = null;
 	
 	protected void loadBean() throws Exception {
-		if (ionBean == null && beanData != null) {
+		// a new element (a palette sample for instance) has no bean data yet: nothing to parse
+		if (ionBean == null && beanData != null && !beanData.isBlank()) {
 			ionBean = ComponentManager.loadBean(beanData);
 		}
 	}

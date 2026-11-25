@@ -102,9 +102,10 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 	transient protected IonBean ionBean = null;
 	
 	protected void loadBean() throws Exception {
-		if (ionBean == null && beanData != null) {
-			if (this.parent == null) {
-				System.out.println("WARN - loading beanData without cm");
+		// a new element (a palette sample for instance) has no bean data yet: nothing to parse
+		if (ionBean == null && beanData != null && !beanData.isBlank()) {
+			if (this.parent == null && Engine.isStarted) {
+				Engine.logBeans.debug("(UIDynamicElement) loading the bean data of '" + getName() + "' without its component manager");
 			}
 			ionBean = ComponentManager.of(this).loadBean(beanData);
 		}
@@ -117,7 +118,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 	}
 	
 	public void loadBean(ComponentManager cm) throws Exception {
-		if (cm != null /*&& ionBean == null*/ && beanData != null) {
+		if (cm != null /*&& ionBean == null*/ && beanData != null && !beanData.isBlank()) {
 			ionBean = cm.loadBean(beanData);
 		}
 	}

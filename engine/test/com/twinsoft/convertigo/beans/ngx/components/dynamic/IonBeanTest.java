@@ -64,10 +64,33 @@ public final class IonBeanTest {
 			instancesKeepTheirOwnValues(cm);
 			modelIsNeverModified(cm);
 			beanDataRoundTrip(cm);
+			blankSampleIsQuiet();
 			System.out.println("IonBean: " + checks + " checks passed");
 		} finally {
 			FileUtils.deleteQuietly(tpl.toFile());
 		}
+	}
+
+	/** A palette describes a new element, without bean data: no parse error may reach the console. */
+	private static void blankSampleIsQuiet() throws Exception {
+		java.io.PrintStream out = System.out;
+		java.io.PrintStream err = System.err;
+		java.io.ByteArrayOutputStream printed = new java.io.ByteArrayOutputStream();
+		java.io.PrintStream capture = new java.io.PrintStream(printed, true, "UTF-8");
+		com.twinsoft.convertigo.beans.ngx.components.UIDynamicTag ngx = new com.twinsoft.convertigo.beans.ngx.components.UIDynamicTag();
+		com.twinsoft.convertigo.beans.mobile.components.UIDynamicTag mobile = new com.twinsoft.convertigo.beans.mobile.components.UIDynamicTag();
+		try {
+			System.setOut(capture);
+			System.setErr(capture);
+			ngx.getTagsForProperty("tagName");
+			mobile.getTagsForProperty("tagName");
+			check(ngx.getIonBean() == null, "a blank NGX sample has no ion bean");
+			check(mobile.getIonBean() == null, "a blank mobile sample has no ion bean");
+		} finally {
+			System.setOut(out);
+			System.setErr(err);
+		}
+		check(printed.size() == 0, "a blank palette sample prints nothing: " + printed.toString("UTF-8"));
 	}
 
 	private static void instancesKeepTheirOwnValues(ComponentManager cm) throws Exception {

@@ -4243,9 +4243,6 @@ public class NgxBuilder extends MobileBuilder {
 						imports = imports.trim().startsWith(",") ? imports.substring(1) : imports;
 						
 						if (!name.equals(oname)) {
-							if (Engine.isStudioMode()) {
-								System.out.println(oname + ": " + name + " found in " + entry + " -> " + imports);
-							}
 							Engine.logEngine.trace("["+project.getName()+"] For "+ oname +" removed " + name + " from " + entry);
 						}
 					} else {
