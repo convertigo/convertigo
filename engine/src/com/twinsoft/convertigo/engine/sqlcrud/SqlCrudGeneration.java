@@ -102,7 +102,7 @@ public final class SqlCrudGeneration {
 
 	/**
 	 * Creates the sequence of the same name that calls the transaction and copies its rows. An existing sequence is
-	 * emptied and filled again, it keeps its accessibility and authentication.
+	 * emptied and filled again, and takes the chosen accessibility and authentication too.
 	 */
 	public static GenericSequence createSequence(SqlTransaction transaction, Accessibility accessibility, boolean authenticatedContextRequired) throws EngineException {
 		GenericSequence sequence;
@@ -121,10 +121,11 @@ public final class SqlCrudGeneration {
 		} catch (Exception e) {
 			sequence = new GenericSequence();
 			sequence.setName(sequenceName);
-			sequence.setAccessibility(accessibility);
-			sequence.setAuthenticatedContextRequired(authenticatedContextRequired);
 			project.add(sequence);
 		}
+		sequence.setAccessibility(accessibility);
+		sequence.setAuthenticatedContextRequired(authenticatedContextRequired);
+		sequence.hasChanged = true;
 		var transactionStep = new TransactionStep();
 		transactionStep.setSourceTransaction(transaction.getQName());
 		sequence.add(transactionStep);

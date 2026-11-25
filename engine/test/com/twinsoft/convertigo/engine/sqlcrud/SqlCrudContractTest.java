@@ -15,6 +15,7 @@
 package com.twinsoft.convertigo.engine.sqlcrud;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -34,9 +35,11 @@ import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.engine.Context;
+import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.JdbcConnectionManager;
+import com.twinsoft.convertigo.engine.enums.Accessibility;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 /**
@@ -156,6 +159,29 @@ public class SqlCrudContractTest {
 			}
 			return sb.toString();
 		}
+	}
+
+	@Test
+	public void regeneratedSequenceTakesTheChosenSettings() throws Exception {
+		var transaction = transactions.get("LIST");
+		// the transaction step finds its project through the objects manager of the engine
+		var project = transaction.getProject();
+		Engine.theApp.databaseObjectsManager = new DatabaseObjectsManager() {
+			@Override
+			public Project getOriginalProjectByName(String projectName, boolean checkOpenable) {
+				return project;
+			}
+		};
+		var hidden = SqlCrudGeneration.createSequence(transaction, Accessibility.Hidden, true);
+		assertEquals(Accessibility.Hidden, hidden.getAccessibility());
+		assertTrue(hidden.getAuthenticatedContextRequired());
+
+		var regenerated = SqlCrudGeneration.createSequence(transaction, Accessibility.Public, false);
+		assertTrue("the existing sequence is regenerated, not replaced", regenerated == hidden);
+		assertEquals(Accessibility.Public, regenerated.getAccessibility());
+		assertFalse(regenerated.getAuthenticatedContextRequired());
+		assertEquals("the steps are rebuilt, not added", 2, regenerated.getAllSteps().size());
+		assertEquals(1, transaction.getProject().getSequencesList().size());
 	}
 
 	@Test
