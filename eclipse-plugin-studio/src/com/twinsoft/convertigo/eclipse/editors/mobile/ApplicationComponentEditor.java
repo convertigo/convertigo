@@ -386,7 +386,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	}
 
 	private void createBrowser(Composite parent) {
-		// the browser and, above it, the bar where the viewer asks the confirm() and prompt() of the page
+		// the browser and, above it, the bar where the viewer shows the JavaScript dialogs of the page
 		Composite browserArea = new Composite(parent, SWT.NONE);
 		browserArea.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, true));
 		GridLayout areaLayout = new GridLayout(1, false);
@@ -429,12 +429,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		}
 
 		browser.set(InjectJsCallback.class, params -> {
-			try {
-				// every page of the viewer: alert() shows an overlay in the page instead of a dialog that blocks the Studio
-				params.frame().executeJavaScript(ViewerJsDialogs.alertScript());
-			} catch (Exception e) {
-				Engine.logStudio.debug("(ApplicationComponentEditor) Unable to install the viewer alert: " + e.getMessage());
-			}
 			String url = params.frame().browser().url();
 			if (baseUrl != null && url.startsWith(baseUrl)) {
 				try {
