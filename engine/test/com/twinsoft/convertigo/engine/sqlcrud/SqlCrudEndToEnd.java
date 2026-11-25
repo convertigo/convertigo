@@ -19,12 +19,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.connectors.SqlConnector;
-import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
-import com.twinsoft.convertigo.beans.ngx.components.UIControlDirective;
-import com.twinsoft.convertigo.beans.ngx.components.UIControlEvent;
-import com.twinsoft.convertigo.beans.ngx.components.UICustomAction;
 import com.twinsoft.convertigo.beans.ngx.components.UIUseShared;
 import com.twinsoft.convertigo.beans.ngx.components.UIUseVariable;
 import com.twinsoft.convertigo.engine.CLI;
@@ -41,9 +36,7 @@ import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
  *
  * System properties: crud.e2e.projects (projects folder), crud.e2e.connectors, a list of
  * name|driver|generationUrl|runtimeUrl|user|password|TABLE,TABLE separated by "#", crud.e2e.build (false to skip npm),
- * crud.e2e.paginated (pages whose grid gets pagination=true), crud.e2e.formBelow (pages whose grid gets
- * formBelow=true), crud.e2e.formDemo (an entity whose form is shown under its
- * grid in an extra page), crud.e2e.node_modules (a node_modules folder to reuse).
+ * crud.e2e.paginated (pages whose grid gets pagination=true), crud.e2e.node_modules (a node_modules folder to reuse).
  */
 public final class SqlCrudEndToEnd {
 	private static final String TEMPLATE = "https://github.com/convertigo/c8oprj-template-ngx-builder/archive/8.4.0.zip";
@@ -121,15 +114,6 @@ public final class SqlCrudEndToEnd {
 		for (var pageName : System.getProperty("crud.e2e.paginated", "").split(",")) {
 			setPageVariable(project, pageName, "pagination", "true");
 		}
-		for (var pageName : System.getProperty("crud.e2e.formBelow", "").split(",")) {
-			setPageVariable(project, pageName, "formBelow", "true");
-		}
-
-		// a page that shows the form under the grid, on the selected row, as a developer can do
-		var formDemo = System.getProperty("crud.e2e.formDemo");
-		if (formDemo != null) {
-			addFormDemoPage(project, formDemo);
-		}
 
 		// the engine that serves the application reaches the databases at other addresses
 		for (var url : runtimeUrls) {
@@ -151,58 +135,6 @@ public final class SqlCrudEndToEnd {
 			log("NGX application built in " + new File(project.getDirPath(), "DisplayObjects/mobile"));
 		}
 		System.exit(0);
-	}
-
-	/**
-	 * Adds the page "<Entity>Details": the grid of the entity without its modal actions and, under it, its form in
-	 * edit mode on the selected row. Saving reloads the grid through its reloadKey variable.
-	 */
-	private static void addFormDemoPage(com.twinsoft.convertigo.beans.core.Project project, String entity) throws Exception {
-		var app = NgxCrudGenerator.ngxApplication(project);
-		var prefix = app.getQName() + ".";
-		var page = new PageComponent();
-		var name = Character.toUpperCase(entity.charAt(0)) + entity.substring(1) + "Details";
-		page.setName(name);
-		page.bNew = true;
-		page.hasChanged = true;
-		app.add(page);
-		page.setSegment(name.toLowerCase());
-		page.setTitle(name);
-		var content = NgxCrudGenerator.element("Content", "Content", "ion-content", java.util.Map.of());
-		page.add(content);
-
-		var grid = new UIUseShared();
-		grid.setName("Grid");
-		grid.bNew = true;
-		grid.setSharedComponentQName(prefix + entity);
-		content.add(grid);
-		grid.add(useVariable("height", "'360px'"));
-		grid.add(useVariable("multiSelect", "false"));
-		grid.add(useVariable("enableEdit", "false"));
-		grid.add(useVariable("enableView", "false"));
-		grid.add(useVariable("reloadKey", "this.local.reloadKey"));
-		grid.add(event("OnSelectionChanged", "SelectionChanged", "Select",
-				"\t\tpage.local.selectedRow = event.rows?.length == 1 ? event.rows[0] : null;\n\t\tpage.ref.markForCheck();\n\t\tresolve(null);\n"));
-
-		var formIf = new UIControlDirective();
-		formIf.setName("FormIf");
-		formIf.bNew = true;
-		formIf.setDirectiveName(UIControlDirective.AttrDirective.If.name());
-		formIf.setSourceSmartType(NgxCrudGenerator.script("this.local.selectedRow"));
-		content.add(formIf);
-		var form = new UIUseShared();
-		form.setName("Form");
-		form.bNew = true;
-		form.setSharedComponentQName(prefix + entity + "Form");
-		formIf.add(form);
-		form.add(useVariable("row", "this.local.selectedRow"));
-		form.add(useVariable("mode", "'edit'"));
-		form.add(event("OnRowSaved", "RowSaved", "Reload",
-				"\t\tpage.local.reloadKey = Date.now();\n\t\tpage.local.selectedRow = null;\n\t\tpage.ref.markForCheck();\n\t\tresolve(null);\n"));
-		form.add(event("OnFormCancelled", "FormCancelled", "Unselect",
-				"\t\tpage.local.selectedRow = null;\n\t\tpage.ref.markForCheck();\n\t\tresolve(null);\n"));
-		NgxCrudGenerator.loadTemplateBeans(app, page);
-		log("page " + name + ": the grid of " + entity + " with its form under it");
 	}
 
 	/** Sets a variable of the component used by a generated page, as a developer does in the Studio. */
@@ -242,19 +174,6 @@ public final class SqlCrudEndToEnd {
 		variable.bNew = true;
 		variable.setVarSmartType(NgxCrudGenerator.script(script));
 		return variable;
-	}
-
-	private static UIControlEvent event(String name, String eventName, String actionName, String code) throws Exception {
-		var event = new UIControlEvent();
-		event.setName(name);
-		event.bNew = true;
-		event.setEventName(eventName);
-		var action = new UICustomAction();
-		action.setName(actionName);
-		action.bNew = true;
-		action.setActionValue(new FormatedContent(code));
-		event.add(action);
-		return event;
 	}
 
 	private static void log(String message) {

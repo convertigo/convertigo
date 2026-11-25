@@ -120,17 +120,13 @@ public class NgxCrudGeneratorTest {
 		var result = new NgxCrudGenerator(app.getProject(), table("PAIRS")).generate(false);
 		assertFalse(result.isSkipped());
 		var comp = result.getComponent();
-		assertEquals("pair", comp.getName());
+		assertEquals("pairTable", comp.getName());
 		assertTrue(app.getSharedComponentList().contains(comp));
 		assertNull(result.getPage());
 
 		var variables = find(comp, UICompVariable.class).stream().map(UICompVariable::getName).toList();
 		assertEquals(List.of("enableAdd", "enableEdit", "enableView", "enableDelete", "multiSelect", "showId", "hiddenColumns",
-				"pageSize", "pagination", "height", "showTitle", "formBelow", "reloadKey", "labels"), variables);
-		assertEquals("this.formBelow === true && this.crudSelectedCount == 1",
-				((com.twinsoft.convertigo.beans.ngx.components.UIControlDirective) named(comp, "FormBelowIf")).getSourceSmartType().getSmartValue());
-		var below = (UIUseShared) named(comp, "FormBelow");
-		assertEquals(Map.of("row", "this.crudSelectedRows[0]", "mode", "'view'", "labels", "this.labels"), useVariables(below));
+				"pageSize", "pagination", "height", "showTitle", "reloadKey", "labels"), variables);
 		assertEquals("50", ((UICompVariable) named(comp, "pageSize")).getVariableValue());
 		assertEquals("false", ((UICompVariable) named(comp, "pagination")).getVariableValue());
 		assertEquals("'600px'", ((UICompVariable) named(comp, "height")).getVariableValue());
@@ -216,7 +212,7 @@ public class NgxCrudGeneratorTest {
 		var app = project("MATRIX", ALL);
 		var result = new NgxCrudGenerator(app.getProject(), table("MATRIX")).generate(false);
 		var comp = result.getComponent();
-		assertEquals("matrix", comp.getName());
+		assertEquals("matrixTable", comp.getName());
 		var script = comp.getScriptContent().getString();
 		assertFalse(script.contains("PHOTO"));
 		assertTrue(script.contains("public crudCan: any = {create: true, update: false, delete: true};"));
@@ -266,7 +262,7 @@ public class NgxCrudGeneratorTest {
 		var app = project("LOGS", ALL);
 		var result = new NgxCrudGenerator(app.getProject(), table("LOGS")).generate(false);
 		var comp = result.getComponent();
-		assertEquals("log", comp.getName());
+		assertEquals("logTable", comp.getName());
 		assertNull(named(comp, "Add"));
 		assertNull(named(comp, "Edit"));
 		assertNull(named(comp, "Delete"));
@@ -291,7 +287,7 @@ public class NgxCrudGeneratorTest {
 	public void existingObjectsAreNeverOverwritten() throws Exception {
 		var app = project("PAIRS", ALL);
 		var existing = new UISharedRegularComponent();
-		existing.setName("pair");
+		existing.setName("pairTable");
 		app.add(existing);
 		var result = new NgxCrudGenerator(app.getProject(), table("PAIRS")).generate(true);
 		assertTrue(result.isSkipped());
@@ -320,7 +316,7 @@ public class NgxCrudGeneratorTest {
 	}
 
 	@Test
-	public void hostPage() throws Exception {
+	public void samplePage() throws Exception {
 		var app = project("MATRIX", ALL);
 		var result = new NgxCrudGenerator(app.getProject(), table("MATRIX")).generate(true);
 		var page = result.getPage();
@@ -332,7 +328,18 @@ public class NgxCrudGeneratorTest {
 		assertTrue(app.getPageComponentList().contains(page));
 		var use = find(page, UIUseShared.class).get(0);
 		assertEquals(result.getComponent().getQName(), use.getSharedComponentQName());
-		assertEquals(Map.of("showTitle", "false", "formBelow", "false"), useVariables(use));
+		assertEquals(Map.of("showTitle", "false"), useVariables(use));
+		assertEquals(List.of("SelectionChanged", "RowSaved", "RowsDeleted"),
+				find(use, UIControlEvent.class).stream().filter(e -> e.getParent() == use).map(UIControlEvent::getEventName).toList());
+		// the sample: the form under the grid shows the selected row kept by the page
+		assertEquals("this.local.selectedRow",
+				((com.twinsoft.convertigo.beans.ngx.components.UIControlDirective) named(page, "SelectedRowIf")).getSourceSmartType().getSmartValue());
+		var below = (UIUseShared) named(page, "matrixForm");
+		assertEquals(result.getForm().getQName(), below.getSharedComponentQName());
+		assertEquals(Map.of("row", "this.local.selectedRow", "mode", "'view'"), useVariables(below));
+		assertEquals(List.of("FormCancelled"), find(below, UIControlEvent.class).stream().map(UIControlEvent::getEventName).toList());
+		var keep = find(use, UICustomAction.class).stream().filter(a -> a.getName().equals("KeepSelectedRow")).findFirst().get();
+		assertTrue(keep.getActionValue().getString().contains("page.local.selectedRow = event.rows?.length == 1 ? event.rows[0] : null;"));
 		assertNotNull(named(page, "MenuButton"));
 	}
 
@@ -389,19 +396,20 @@ public class NgxCrudGeneratorTest {
 
 	@Test
 	public void names() {
-		assertEquals("client", NgxCrudGenerator.componentName("CLIENTS"));
-		assertEquals("client", NgxCrudGenerator.componentName("clients"));
-		assertEquals("orderLine", NgxCrudGenerator.componentName("OrderLines"));
-		assertEquals("address", NgxCrudGenerator.componentName("address"));
-		assertEquals("bus", NgxCrudGenerator.componentName("bus"));
+		assertEquals("clientTable", NgxCrudGenerator.componentName("CLIENTS"));
+		assertEquals("clientForm", NgxCrudGenerator.formName("clients"));
+		assertEquals("client", NgxCrudGenerator.entityName("clients"));
+		assertEquals("orderLine", NgxCrudGenerator.entityName("OrderLines"));
+		assertEquals("address", NgxCrudGenerator.entityName("address"));
+		assertEquals("bus", NgxCrudGenerator.entityName("bus"));
 		assertEquals("Clients", NgxCrudGenerator.pageName("CLIENTS"));
 		assertEquals("OrderLines", NgxCrudGenerator.pageName("OrderLines"));
-		assertEquals("country", NgxCrudGenerator.componentName("countries"));
-		assertEquals("auditLog", NgxCrudGenerator.componentName("audit_log"));
+		assertEquals("country", NgxCrudGenerator.entityName("countries"));
+		assertEquals("auditLogTable", NgxCrudGenerator.componentName("audit_log"));
 		assertEquals("AuditLog", NgxCrudGenerator.pageName("audit_log"));
-		assertEquals("box", NgxCrudGenerator.componentName("BOXES"));
-		assertEquals("status", NgxCrudGenerator.componentName("status"));
-		assertEquals("address", NgxCrudGenerator.componentName("addresses"));
+		assertEquals("box", NgxCrudGenerator.entityName("BOXES"));
+		assertEquals("status", NgxCrudGenerator.entityName("status"));
+		assertEquals("address", NgxCrudGenerator.entityName("addresses"));
 	}
 
 	/**

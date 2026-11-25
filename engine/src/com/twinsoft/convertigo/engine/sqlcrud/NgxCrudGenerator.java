@@ -55,7 +55,7 @@ import com.twinsoft.convertigo.engine.util.StringUtils;
 
 /**
  * Generates the NGX user interface of a SQL table on top of its existing CRUD sequences: a shared component with a
- * toolbar and the grid of {@value CrudUiDefaults#LIB_PROJECT_NAME}, and optionally a host page. Existing objects are
+ * toolbar and the grid of {@value CrudUiDefaults#LIB_PROJECT_NAME}, and optionally a sample page. Existing objects are
  * never overwritten, the generated ones contain no business rule and can be changed freely.
  */
 public final class NgxCrudGenerator {
@@ -133,15 +133,25 @@ public final class NgxCrudGenerator {
 		}
 	}
 
-	/** Name of the shared component of a table: the singular of its normalized name, first letter lower case. */
+	/** Name of the grid shared component of a table: the entity followed by Table ("clients" gives "clientTable"). */
 	public static String componentName(String tableName) {
+		return entityName(tableName) + "Table";
+	}
+
+	/** Name of the form shared component of a table: the entity followed by Form ("clients" gives "clientForm"). */
+	public static String formName(String tableName) {
+		return entityName(tableName) + "Form";
+	}
+
+	/** The entity of a table: the singular of its normalized name, first letter lower case ("clients" gives "client"). */
+	static String entityName(String tableName) {
 		var name = singular(baseIdentifier(tableName));
 		name = name.substring(0, 1).toLowerCase(Locale.ROOT) + name.substring(1);
 		// a shared component name must begin with a letter
 		return Character.isLetter(name.charAt(0)) ? name : "t" + name;
 	}
 
-	/** Name of the host page of a table: its normalized name, first letter upper case ("clients" gives "Clients"). */
+	/** Name of the sample page of a table: its normalized name, first letter upper case ("clients" gives "Clients"). */
 	public static String pageName(String tableName) {
 		var name = baseIdentifier(tableName);
 		name = name.substring(0, 1).toUpperCase(Locale.ROOT) + name.substring(1);
@@ -185,9 +195,9 @@ public final class NgxCrudGenerator {
 		return componentName(table.getTableName());
 	}
 
-	/** Name of the form shared component: the component name followed by Form ("clientForm"). */
+	/** Name of the form shared component: the entity followed by Form ("clientForm"). */
 	public String getFormName() {
-		return getComponentName() + "Form";
+		return formName(table.getTableName());
 	}
 
 	public String getPageName() {
@@ -199,7 +209,7 @@ public final class NgxCrudGenerator {
 		return sequences;
 	}
 
-	/** Creates the shared component of the table in the NGX application, and its host page when asked. */
+	/** Creates the shared component of the table in the NGX application, and its sample page when asked. */
 	public Result generate(boolean withPage) throws EngineException {
 		var result = new Result();
 		result.warnings.addAll(table.getWarnings());
@@ -245,9 +255,9 @@ public final class NgxCrudGenerator {
 			var pageName = getPageName();
 			var segment = pageName.toLowerCase(Locale.ROOT);
 			if (findPage(pageName, segment) != null) {
-				result.warnings.add("the page " + pageName + " already exists: no host page generated");
+				result.warnings.add("the page " + pageName + " already exists: no sample page generated");
 			} else {
-				var page = buildPage(pageName, component);
+				var page = buildPage(pageName, component, result.form);
 				app.add(page);
 				loadTemplateBeans(page);
 				// a new page gets the default title and segment when added
@@ -347,7 +357,6 @@ public final class NgxCrudGenerator {
 		add(comp, compVariable("pagination", Boolean.toString(CrudUiDefaults.PAGINATION), "false: continuous scrolling, true: pages of pageSize rows."));
 		add(comp, compVariable("height", templateString(CrudUiDefaults.HEIGHT), "Height of the grid, 'auto' to fit the rows."));
 		add(comp, compVariable("showTitle", "true", "false: no title in the toolbar (when the page already shows one)."));
-		add(comp, compVariable("formBelow", "false", "true: the form also shows the selected row (one row) under the grid, in view mode."));
 		add(comp, compVariable("reloadKey", "0", "Change its value (for example Date.now()) to reload the rows."));
 		add(comp, compVariable("labels", NgxCrudScript.labelsLiteral(table, title), "Texts of the buttons, the messages, the form and the columns."));
 		add(comp, compEvent("SelectionChanged", "Fired when the selection changes. Data: {rows}, the selected rows."));
@@ -361,7 +370,6 @@ public final class NgxCrudGenerator {
 		add(comp, toolbarIf);
 		add(comp, buildGrid(name));
 		if (form != null) {
-			add(comp, buildFormBelow(form));
 			add(comp, buildModal(form));
 		}
 		var style = new UIStyle();
@@ -421,7 +429,7 @@ public final class NgxCrudGenerator {
 		grid.bNew = true;
 		grid.setSharedComponentQName(CrudUiDefaults.LIB_GRID);
 		var paginated = table.hasListPagination();
-		add(grid, useVariable("id", templateString(componentName + "Grid")));
+		add(grid, useVariable("id", templateString(entityName(table.getTableName()) + "Grid")));
 		add(grid, useVariable("rowModelType", paginated ? "'infinite'" : "'clientSide'"));
 		if (paginated) {
 			add(grid, useVariable("cacheBlockSize", "this.pageSize"));
@@ -469,23 +477,6 @@ public final class NgxCrudGenerator {
 		add(selection, customAction("SelectionChanged", "\t\tpage.crudSelectionChanged();\n\t\tresolve(null);\n"));
 		add(grid, selection);
 		return grid;
-	}
-
-	/** With formBelow, the form under the grid shows the only selected row, read-only; Close clears the selection. */
-	private UIComponent buildFormBelow(UISharedRegularComponent form) throws EngineException {
-		var below = directive("FormBelowIf", "this.formBelow === true && this.crudSelectedCount == 1");
-		var use = new UIUseShared();
-		use.setName("FormBelow");
-		use.bNew = true;
-		use.setSharedComponentQName(form.getQName());
-		add(use, useVariable("row", "this.crudSelectedRows[0]"));
-		add(use, useVariable("mode", "'view'"));
-		add(use, useVariable("labels", "this.labels"));
-		var closed = controlEvent("OnFormCancelled", "FormCancelled");
-		add(closed, customAction("CloseBelow", "\t\tpage.crudClearSelection();\n\t\tresolve(null);\n"));
-		add(use, closed);
-		add(below, use);
-		return below;
 	}
 
 	/** The modal of the component: the form, created again at each opening, to create, edit or view a row. */
@@ -634,16 +625,22 @@ public final class NgxCrudGenerator {
 		return attribute;
 	}
 
-	/* ------------------------------------------------------------------ host page */
+	/* ---------------------------------------------------------------- sample page */
 
-	private PageComponent buildPage(String name, UISharedRegularComponent component) throws EngineException {
+	/**
+	 * The sample page: the grid and, under it, the form showing the selected row. The page keeps the row in
+	 * local.selectedRow; the form can be moved or removed without breaking anything.
+	 */
+	private PageComponent buildPage(String name, UISharedRegularComponent component, UISharedRegularComponent form) throws EngineException {
 		var page = new PageComponent();
 		page.setName(name);
 		page.bNew = true;
 		page.hasChanged = true;
 		var title = SqlColumnInfo.prettify(table.getTableName());
 		page.setInAutoMenu(true);
-		page.setComment("Generated on " + LocalDate.now() + " to host the shared component " + component.getName() + ".");
+		page.setComment("Generated on " + LocalDate.now() + " as an example of use of the shared components "
+				+ component.getName() + (form != null ? " and " + form.getName() : "")
+				+ ": the form under the grid shows the selected row, kept in local.selectedRow. Move it or remove it freely.");
 
 		var header = element("Header", "Header", "ion-header", Map.of());
 		var toolbar = element("ToolBar", "ToolBar", "ion-toolbar", Map.of());
@@ -666,11 +663,35 @@ public final class NgxCrudGenerator {
 		use.bNew = true;
 		use.setSharedComponentQName(component.getQName());
 		add(use, useVariable("showTitle", "false"));
-		// the switch of the page: true shows the selected row under the grid
-		add(use, useVariable("formBelow", "false"));
+		add(use, pageAction("OnSelectionChanged", "SelectionChanged", "KeepSelectedRow",
+				"\t\tpage.local.selectedRow = event.rows?.length == 1 ? event.rows[0] : null;\n\t\tpage.ref.markForCheck();\n\t\tresolve(null);\n"));
+		add(use, pageAction("OnRowSaved", "RowSaved", "RefreshSelectedRow",
+				"\t\tif (event.mode == 'edit' && page.local.selectedRow != null) {\n\t\t\tpage.local.selectedRow = {...page.local.selectedRow, ...event.row};\n\t\t}\n\t\tpage.ref.markForCheck();\n\t\tresolve(null);\n"));
+		add(use, pageAction("OnRowsDeleted", "RowsDeleted", "ForgetSelectedRow",
+				"\t\tpage.local.selectedRow = null;\n\t\tpage.ref.markForCheck();\n\t\tresolve(null);\n"));
 		add(content, use);
+
+		if (form != null) {
+			var formIf = directive("SelectedRowIf", "this.local.selectedRow");
+			var below = new UIUseShared();
+			below.setName(form.getName());
+			below.bNew = true;
+			below.setSharedComponentQName(form.getQName());
+			add(below, useVariable("row", "this.local.selectedRow"));
+			add(below, useVariable("mode", "'view'"));
+			add(below, pageAction("OnFormCancelled", "FormCancelled", "CloseSelectedRow",
+					"\t\tpage.local.selectedRow = null;\n\t\tpage.ref.markForCheck();\n\t\tresolve(null);\n"));
+			add(formIf, below);
+			add(content, formIf);
+		}
 		add(page, content);
 		return page;
+	}
+
+	private static UIControlEvent pageAction(String name, String eventName, String actionName, String code) throws EngineException {
+		var event = controlEvent(name, eventName);
+		add(event, customAction(actionName, code));
+		return event;
 	}
 
 	/* ------------------------------------------------------------------ bean helpers */

@@ -423,7 +423,7 @@ final class NgxCrudScript {
 						this.crudToast(this.crudLabel("saved"), "success");
 						const edited = this.crudFormMode == "edit";
 						if (edited && this.crudSelectedRows.length == 1) {
-							// the form under the grid shows the saved values at once, the grid reloads them
+							// the selection stays on the edited row, with its saved values, while the grid reloads
 							this.crudSelectedRows = [{...this.crudSelectedRows[0], ...(saved.row ?? {})}];
 						}
 						this.crudReload(edited);
