@@ -523,6 +523,7 @@ public final class NgxCrudGenerator {
 		add(form, compVariable("row", "{}", "The row to show or edit, or the initial values of a new row."));
 		add(form, compVariable("mode", templateString("create"), "'create', 'edit' or 'view' (read-only)."));
 		add(form, compVariable("showTitle", "true", "false: no title above the fields."));
+		add(form, compVariable("showClose", "true", "false: no Close or Cancel button, when the page shows and hides the form itself."));
 		add(form, compVariable("labels", NgxCrudScript.labelsLiteral(table, SqlColumnInfo.prettify(table.getTableName())), "Texts of the form and labels of the fields."));
 		add(form, compEvent("RowSaved", "Fired when the row is saved. Data: {row, mode}."));
 		add(form, compEvent("FormCancelled", "Fired when the user cancels or closes the form. Data: {mode}."));
@@ -546,13 +547,17 @@ public final class NgxCrudGenerator {
 		add(body, list);
 		add(form, body);
 
+		// without Close and in view mode, the form has no button: no footer
+		var footerIf = directive("FooterIf", "this.showClose !== false || this.mode != 'view'");
 		var footer = element("Footer", "Footer", "ion-footer", Map.of());
 		var footerBar = element("ToolBar", "ToolBar", "ion-toolbar", Map.of());
 		var buttons = element("Buttons", "ButtonSet", "ion-buttons", Map.of("SetPosition", "plain:end"));
+		var cancelIf = directive("CancelIf", "this.showClose !== false");
 		var cancel = element("Cancel", "Button", "ion-button", ordered("IonFill", "plain:clear"));
 		add(cancel, text("Text", "this.crudLabel(this.mode == 'view' ? 'close' : 'cancel')"));
 		add(cancel, clickAction("Cancel", "\t\tpage.crudCancel();\n\t\tresolve(null);\n"));
-		add(buttons, cancel);
+		add(cancelIf, cancel);
+		add(buttons, cancelIf);
 		var saveIf = directive("SaveIf", "this.mode != 'view'");
 		var save = element("Save", "Button", "ion-button", ordered("IonColor", "plain:primary", "IonFill", "plain:solid",
 				"Disabled", "script:!this.crudIsValid() || this.crudSaving"));
@@ -562,7 +567,8 @@ public final class NgxCrudGenerator {
 		add(buttons, saveIf);
 		add(footerBar, buttons);
 		add(footer, footerBar);
-		add(form, footer);
+		add(footerIf, footer);
+		add(form, footerIf);
 
 		var style = new UIStyle();
 		style.setName("Style");
@@ -679,8 +685,8 @@ public final class NgxCrudGenerator {
 			below.setSharedComponentQName(form.getQName());
 			add(below, useVariable("row", "this.local.selectedRow"));
 			add(below, useVariable("mode", "'view'"));
-			add(below, pageAction("OnFormCancelled", "FormCancelled", "CloseSelectedRow",
-					"\t\tpage.local.selectedRow = null;\n\t\tpage.ref.markForCheck();\n\t\tresolve(null);\n"));
+			// the form only reflects the selection: unchecking the row in the grid hides it
+			add(below, useVariable("showClose", "false"));
 			add(formIf, below);
 			add(content, formIf);
 		}

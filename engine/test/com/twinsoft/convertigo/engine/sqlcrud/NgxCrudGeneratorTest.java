@@ -182,7 +182,7 @@ public class NgxCrudGeneratorTest {
 		var form = result.getForm();
 		assertEquals("pairForm", form.getName());
 		assertTrue(app.getSharedComponentList().contains(form));
-		assertEquals(List.of("row", "mode", "showTitle", "labels"), find(form, UICompVariable.class).stream().map(UICompVariable::getName).toList());
+		assertEquals(List.of("row", "mode", "showTitle", "showClose", "labels"), find(form, UICompVariable.class).stream().map(UICompVariable::getName).toList());
 		assertEquals(List.of("RowSaved", "FormCancelled"), find(form, UICompEvent.class).stream().map(UICompEvent::getName).toList());
 		var modal = (UIDynamicElement) named(comp, "FormModal");
 		var modalData = new JSONObject(modal.getBeanData());
@@ -336,8 +336,12 @@ public class NgxCrudGeneratorTest {
 				((com.twinsoft.convertigo.beans.ngx.components.UIControlDirective) named(page, "SelectedRowIf")).getSourceSmartType().getSmartValue());
 		var below = (UIUseShared) named(page, "matrixForm");
 		assertEquals(result.getForm().getQName(), below.getSharedComponentQName());
-		assertEquals(Map.of("row", "this.local.selectedRow", "mode", "'view'"), useVariables(below));
-		assertEquals(List.of("FormCancelled"), find(below, UIControlEvent.class).stream().map(UIControlEvent::getEventName).toList());
+		assertEquals(Map.of("row", "this.local.selectedRow", "mode", "'view'", "showClose", "false"), useVariables(below));
+		// no Close under the grid: the form only reflects the selection
+		assertTrue(find(below, UIControlEvent.class).isEmpty());
+		var form = result.getForm();
+		assertEquals("this.showClose !== false", ((com.twinsoft.convertigo.beans.ngx.components.UIControlDirective) named(form, "CancelIf")).getSourceSmartType().getSmartValue());
+		assertEquals("this.showClose !== false || this.mode != 'view'", ((com.twinsoft.convertigo.beans.ngx.components.UIControlDirective) named(form, "FooterIf")).getSourceSmartType().getSmartValue());
 		var keep = find(use, UICustomAction.class).stream().filter(a -> a.getName().equals("KeepSelectedRow")).findFirst().get();
 		assertTrue(keep.getActionValue().getString().contains("page.local.selectedRow = event.rows?.length == 1 ? event.rows[0] : null;"));
 		assertNotNull(named(page, "MenuButton"));
