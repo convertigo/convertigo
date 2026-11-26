@@ -14,7 +14,12 @@ function section(start, end) {
 }
 const repo = process.env.MAVEN_REPO || path.join(os.homedir(), '.m2/repository');
 const bundles = path.join(repo, 'p2/osgi/bundle');
-// Pin the branch's Eclipse 2026-12 target instead of mixing other installed Eclipse releases.
+const targetDefinition = fs.readFileSync(path.join(__dirname, '../../eclipse-base/base.target'), 'utf8');
+const repositories = Array.from(targetDefinition.matchAll(/<repository location="([^"]+)"/g), ([, url]) => url);
+assert.equal(repositories.length, 2);
+assert.match(repositories[0], /\/releases\/2026-12\/\d{12}\/$/);
+assert.match(repositories[1], /\/rt\/ecf\/latest\/site\.p2\/\d+\.\d+\.\d+\.v\d{8}-\d{4}\/$/);
+// These versions are available in the pinned Eclipse 2026-12 repository.
 const target = {
   "org.eclipse.osgi": "3.25.0.v20261008-2211",
   "org.eclipse.equinox.common": "3.21.100.v20260829-1451",
