@@ -221,7 +221,8 @@ tasks.register('prepareWarRuntimeClasspath', Sync) {
 }
 
 // The pouchdb-server bundle, the same for every platform, in the webapp of the Studio: the dev Studio,
-// the Eclipse Studios and the WAR (hence Docker, Electron and Windows Server) use it read-only.
+// the Eclipse Studios and, unless pouchDbInWar is false, the WAR (hence Docker, Electron and Windows
+// Server) use it read-only.
 tasks.register('installPouchDbBundle', Sync) {
 	group = 'convertigo'
 	description = 'Installs the pouchdb-server bundle of the CouchDB provider in WEB-INF/pouchdb.'
@@ -281,6 +282,10 @@ war {
 	exclude 'WEB-INF/flow-migration/**'
 	// Platform-specific runtimes belong to the installers, never to the portable WAR.
 	exclude 'WEB-INF/node/**'
+	// the PouchDB server, the same for every platform, unless pouchDbInWar is false (see docs/pouchdb-runtime.md)
+	if (!pouchDbInWar) {
+		exclude 'WEB-INF/pouchdb/**'
+	}
 	
 	exclude '**/keys.txt'
 	exclude '**/*.car'
@@ -296,7 +301,10 @@ war {
 		}
 	}
 	
-	dependsOn 'unzipSwaggerUI', 'prepareWarRuntimeClasspath', 'installPouchDbBundle'
+	dependsOn 'unzipSwaggerUI', 'prepareWarRuntimeClasspath'
+	if (pouchDbInWar) {
+		dependsOn 'installPouchDbBundle'
+	}
 }
 
 sourceSets {

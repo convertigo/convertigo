@@ -43,6 +43,8 @@ ext.eclipseVersion = '2026-12'
 ext.eclipseBase = '4.42'
 ext.studioWebNodeVersion = '26'
 ext.nodeRuntimeVersion = 'v26.13.1'
+// false keeps the PouchDB server (WEB-INF/pouchdb) out of the WAR, hence out of the Docker images; the Studios always have it
+ext.pouchDbInWar = true
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2026.09.17'
 ext.soapuiVersion = '5.9.1'
 ext.groovyVersion = '3.0.25'

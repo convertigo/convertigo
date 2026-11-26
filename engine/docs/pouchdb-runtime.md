@@ -24,4 +24,8 @@ is left in place.
 `eclipse-plugin-studio/tomcat/webapps/convertigo/WEB-INF/pouchdb`: the dev Studio started from
 Eclipse uses it after `./gradlew setupStudioDev` (or `writeManifest`), and the Eclipse Studios
 always get it from this directory. `:engine:war` includes it too, so the portable WAR, Docker
-images, Electron Studios and Windows Server have it.
+images, Electron Studios and Windows Server have it, unless `pouchDbInWar` is false.
+
+`ext.pouchDbInWar = true` in the root `build.gradle` is the only switch: with false, the WAR, hence
+the Docker images, does not include the PouchDB server, and FullSync with PouchDB installs it with
+npm on first use.
