@@ -30,13 +30,16 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import com.twinsoft.convertigo.beans.connectors.SqlConnector;
+import com.twinsoft.convertigo.engine.EngineException;
 
 /**
  * The metadata of a table read like the CRUD transaction generator reads it ({@link SqlConnector#createSqlTransaction}),
  * with everything the generated user interface needs: column families, keys, defaults and what cannot be edited.
  */
 public final class SqlTableInfo {
-	private final String tableName;
+	private final SqlTableIdentity identity;
+	private final String qualifiedName;
+	private final String identifierQuote;
 	private final String driverClassName;
 	private final List<SqlColumnInfo> columns;
 	private final List<SqlColumnInfo> primaryKeys;
@@ -46,7 +49,14 @@ public final class SqlTableInfo {
 	private final List<String> createBlockedReasons = new ArrayList<>();
 
 	SqlTableInfo(String tableName, String driverClassName, List<SqlColumnInfo> columns, List<String> keyNames) {
-		this.tableName = tableName;
+		this(new SqlTableIdentity(null, null, tableName), tableName, "\"", driverClassName, columns, keyNames);
+	}
+
+	private SqlTableInfo(SqlTableIdentity identity, String qualifiedName, String identifierQuote, String driverClassName,
+			List<SqlColumnInfo> columns, List<String> keyNames) {
+		this.identity = identity;
+		this.qualifiedName = qualifiedName;
+		this.identifierQuote = identifierQuote;
 		this.driverClassName = driverClassName == null ? "" : driverClassName;
 		this.columns = Collections.unmodifiableList(columns);
 		var keys = new ArrayList<SqlColumnInfo>();
@@ -63,22 +73,40 @@ public final class SqlTableInfo {
 	}
 
 	/** Reads the metadata of a table through the connection of a SQL connector, opened then closed. */
-	public static SqlTableInfo read(SqlConnector connector, String tableName) throws Exception {
-		connector.open();
-		try {
-			return read(connector.connection, connector.getJdbcDriverClassName(), tableName);
-		} finally {
-			connector.close();
+	public static SqlTableInfo read(SqlConnector connector, String tableName) throws SQLException, EngineException, ClassNotFoundException {
+		return read(connector, new SqlTableIdentity(null, null, tableName), true);
+	}
+
+	public static SqlTableInfo read(SqlConnector connector, SqlTableIdentity table) throws SQLException, EngineException, ClassNotFoundException {
+		return read(connector, table, false);
+	}
+
+	private static SqlTableInfo read(SqlConnector connector, SqlTableIdentity table, boolean resolve)
+			throws SQLException, EngineException, ClassNotFoundException {
+		synchronized (connector) {
+			try {
+				connector.open();
+				var connection = connector.connection;
+				return read(connection, connector.getJdbcDriverClassName(), resolve ? SqlTableIdentity.find(connection, table.name()) : table);
+			} finally {
+				connector.close();
+			}
 		}
 	}
 
-	/** Reads the metadata of a table, with the same calls as the CRUD transaction generator. */
-	public static SqlTableInfo read(Connection connection, String driverClassName, String tableName) throws SQLException {
+	static SqlTableInfo read(Connection connection, String driverClassName, String tableName) throws SQLException {
+		return read(connection, driverClassName, SqlTableIdentity.find(connection, tableName));
+	}
+
+	private static SqlTableInfo read(Connection connection, String driverClassName, SqlTableIdentity table) throws SQLException {
 		DatabaseMetaData dmd = connection.getMetaData();
-		var catalog = connection.getCatalog();
 		var columns = new ArrayList<SqlColumnInfo>();
-		try (var rs = dmd.getColumns(catalog, null, tableName, "%")) {
+		try (var rs = dmd.getColumns(table.catalog(), SqlTableIdentity.literalPattern(dmd, table.schema()),
+				SqlTableIdentity.literalPattern(dmd, table.name()), "%")) {
 			while (rs.next()) {
+				if (!table.equals(SqlTableIdentity.from(rs))) {
+					continue;
+				}
 				var defaultValue = string(rs, "COLUMN_DEF");
 				columns.add(new SqlColumnInfo(
 						rs.getString("COLUMN_NAME"),
@@ -93,13 +121,26 @@ public final class SqlTableInfo {
 						string(rs, "REMARKS")));
 			}
 		}
+		if (columns.isEmpty()) {
+			throw new SQLException("No columns found for table " + table.displayName());
+		}
 		var keys = new TreeMap<Integer, String>();
-		try (var rs = dmd.getPrimaryKeys(catalog, null, tableName)) {
+		try (var rs = dmd.getPrimaryKeys(table.catalog(), table.schema(), table.name())) {
 			while (rs.next()) {
-				keys.put(rs.getInt("KEY_SEQ"), rs.getString("COLUMN_NAME"));
+				if (table.equals(SqlTableIdentity.from(rs))) {
+					keys.put(rs.getInt("KEY_SEQ"), rs.getString("COLUMN_NAME"));
+				}
 			}
 		}
-		return new SqlTableInfo(tableName, driverClassName, columns, new ArrayList<>(keys.values()));
+		var columnNames = columns.stream().map(SqlColumnInfo::getName).toList();
+		if (!columnNames.containsAll(keys.values())) {
+			throw new SQLException("Incomplete primary key metadata for table " + table.displayName());
+		}
+		var quote = dmd.getIdentifierQuoteString();
+		if (quote == null || quote.isBlank()) {
+			throw new SQLException("The JDBC driver does not support quoted identifiers for " + table.displayName());
+		}
+		return new SqlTableInfo(table, table.qualifiedName(dmd, quote), quote, driverClassName, columns, new ArrayList<>(keys.values()));
 	}
 
 	private static String string(ResultSet rs, String column) {
@@ -113,10 +154,10 @@ public final class SqlTableInfo {
 
 	private void analyse() {
 		if (columns.isEmpty()) {
-			readOnlyReasons.add("no column found for the table " + tableName);
+			readOnlyReasons.add("no column found for the table " + getTableName());
 			return;
 		}
-		if (primaryKeys.isEmpty() && CrudUiDefaults.KEYLESS_TABLE_READ_ONLY) {
+		if (primaryKeys.isEmpty()) {
 			readOnlyReasons.add("the table has no primary key: an update or a delete could change several rows");
 		}
 		for (var column : columns) {
@@ -138,18 +179,36 @@ public final class SqlTableInfo {
 			}
 		}
 		for (var column : columns) {
-			if (column.isComputed() && !column.isAutoIncrement() && column.isDisplayed()) {
+			if (column.isComputed() && !column.isAutoIncrement() && !column.isGenerated() && column.isDisplayed()) {
 				warnings.add("the generated INSERT sends the column '" + column.getName() + "', its database default does not apply");
 			}
 		}
-		if (!hasListPagination()) {
+		if (primaryKeys.isEmpty()) {
+			warnings.add("the grid loads all rows because the table has no primary key for stable pagination");
+		} else if (!hasListPagination()) {
 			warnings.add("the list of this database is not paginated: the grid loads every row at once");
 		}
 		// PostgreSQL needs no warning for the values sent as strings: the connector adds stringtype=unspecified
 	}
 
 	public String getTableName() {
-		return tableName;
+		return identity.name();
+	}
+
+	public SqlTableIdentity getIdentity() {
+		return identity;
+	}
+
+	public String getQualifiedName() {
+		return qualifiedName;
+	}
+
+	public String quoteColumn(String name) {
+		return SqlTableIdentity.quote(identifierQuote, name);
+	}
+
+	public String getUpdateParameter() {
+		return SqlCrudQuery.updateParameter(columns.stream().map(SqlColumnInfo::getName).toList());
 	}
 
 	public String getDriverClassName() {
@@ -170,17 +229,6 @@ public final class SqlTableInfo {
 		return primaryKeys;
 	}
 
-	/**
-	 * The columns that the generated _UPDATE, _DELETE and _SELECT use in their WHERE clause: the primary key, or the
-	 * first column when there is none (as {@link SqlConnector#createSqlTransaction} does).
-	 */
-	public List<SqlColumnInfo> getKeyColumns() {
-		if (!primaryKeys.isEmpty() || columns.isEmpty()) {
-			return primaryKeys;
-		}
-		return List.of(columns.get(0));
-	}
-
 	/** Reasons for a list without creation, edition nor deletion (empty when the table can be edited). */
 	public List<String> getReadOnlyReasons() {
 		return Collections.unmodifiableList(readOnlyReasons);
@@ -195,11 +243,24 @@ public final class SqlTableInfo {
 	}
 
 	public boolean canUpdate() {
-		return !isReadOnly() && updateBlockedReasons.isEmpty();
+		return !isReadOnly() && updateBlockedReasons.isEmpty() && !getUpdateColumns().isEmpty();
+	}
+
+	public List<SqlColumnInfo> getUpdateColumns() {
+		return columns.stream().filter(c -> !c.isReadOnlyOnEdit()).toList();
 	}
 
 	public boolean canDelete() {
 		return !isReadOnly();
+	}
+
+	public boolean allows(String verb) {
+		return switch (verb) {
+			case "INSERT" -> canCreate();
+			case "UPDATE" -> canUpdate();
+			case "DELETE" -> canDelete();
+			default -> true;
+		};
 	}
 
 	/** Everything the developer should know about the generated user interface of this table. */
@@ -214,18 +275,7 @@ public final class SqlTableInfo {
 
 	/** True when the generated _LIST sequence pages with limit and offset. */
 	public boolean hasListPagination() {
-		return SqlConnector.hasListPagination(driverClassName);
-	}
-
-	/** The ORDER BY expression of a column for the _LIST sequence: quoted like the generated SELECT quotes it. */
-	public String getSortKey(SqlColumnInfo column) {
-		return SqlConnector.quoteColumnName(driverClassName, column.getName());
-	}
-
-	/** The default ORDER BY of the grid: the first key column, which keeps the pages stable. */
-	public String getDefaultSortKey() {
-		var keys = getKeyColumns();
-		return keys.isEmpty() ? "" : getSortKey(keys.get(0));
+		return !primaryKeys.isEmpty() && SqlConnector.hasListPagination(driverClassName);
 	}
 
 	/** Columns by name, for tests and lookups. */

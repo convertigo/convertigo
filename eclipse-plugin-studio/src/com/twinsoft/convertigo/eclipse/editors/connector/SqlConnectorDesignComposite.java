@@ -20,7 +20,6 @@
 package com.twinsoft.convertigo.eclipse.editors.connector;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -62,12 +61,13 @@ import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.editors.CompositeListener;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils.SelectionListener;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
 import com.twinsoft.convertigo.engine.sqlcrud.CrudUiDefaults;
 import com.twinsoft.convertigo.engine.sqlcrud.NgxCrudGenerator;
 import com.twinsoft.convertigo.engine.sqlcrud.NgxCrudLibrary;
 import com.twinsoft.convertigo.engine.sqlcrud.SqlCrudGeneration;
+import com.twinsoft.convertigo.engine.sqlcrud.SqlTableIdentity;
+import com.twinsoft.convertigo.engine.sqlcrud.SqlTableInfo;
 
 class SqlConnectorDesignComposite extends Composite {
 
@@ -338,6 +338,13 @@ class SqlConnectorDesignComposite extends Composite {
 						TableItem tableItem = new TableItem(this.table, SWT.NONE);
 						tableItem.setText(new String[] {funcName,sText,groupName});
 						tableItem.setData("specific_name", specific_name);
+						if ("TABLE".equals(groupName)) {
+							var identity = new SqlTableIdentity(
+									func.hasAttribute("catalog") ? func.getAttribute("catalog") : null,
+									func.hasAttribute("schema") ? func.getAttribute("schema") : null, funcName);
+							tableItem.setData("sql_table", identity);
+							tableItem.setText(0, identity.displayName());
+						}
 					}
 				}
 
@@ -352,68 +359,62 @@ class SqlConnectorDesignComposite extends Composite {
 
 	private void createSqlTransactions(final TableItem[] items, boolean override, List<String> cruds, Accessibility accessibility, boolean authenticated,
 			Accessibility ngxAccessibility, boolean ngxPage) {
-		var ngxTables = new LinkedList<String>();
+		var ngxTables = new LinkedList<SqlTableInfo>();
+		var messages = new StringBuilder();
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
 		Shell shell = display.getActiveShell();
-		if (shell != null) {
-			try {
-				shell.setCursor(waitCursor);
-				for (int i = 0; i < items.length; i++) {
-					TableItem item = items[i];
-					String callableName = item.getText(0);
-					String type = item.getText(2);
-					List<SqlTransaction> sqlTransactions = null;
-					if ("TABLE".equals(type)) {
-						sqlTransactions = SqlConnector.createSqlTransaction(sqlConnector, callableName, cruds);
+		if (shell == null) {
+			return;
+		}
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
+		boolean changed = false;
+		try {
+			shell.setCursor(waitCursor);
+			for (var item : items) {
+				var name = item.getText(0);
+				try {
+					if (item.getData("sql_table") instanceof SqlTableIdentity identity) {
+						var metadata = SqlTableInfo.read(sqlConnector, identity);
+						var transactions = SqlConnector.createSqlTransactions(sqlConnector, metadata, cruds);
+						changed |= SqlCrudGeneration.installTransactions(sqlConnector, transactions, override,
+								accessibility == null ? ngxAccessibility : accessibility, authenticated, accessibility != null);
 						if (ngxAccessibility != null) {
-							ngxTables.add(callableName);
+							ngxTables.add(metadata);
+						} else {
+							var omitted = cruds.stream().filter(verb -> !metadata.allows(verb)).toList();
+							if (!omitted.isEmpty()) {
+								messages.append(name).append(": skipped ").append(String.join(", ", omitted)).append(".\n");
+								metadata.getWarnings().forEach(warning -> messages.append("  - ").append(warning).append('\n'));
+							}
 						}
 					} else {
-						String specific_name = (String) item.getData("specific_name");
-						ConvertigoPlugin.logDebug("Creating transaction for CALL '"+callableName+"' ...");
-
-						if (specific_name.isEmpty()) {
-							specific_name = callableName;
-						}
-						sqlTransactions = Arrays.asList(SqlConnector.createSqlTransaction(sqlConnector, callableName, specific_name));
-					}
-					for (var sqlTransaction: sqlTransactions) {
-						if (sqlTransaction != null) {
-							var added = SqlCrudGeneration.addTransaction(sqlConnector, sqlTransaction, override);
-							if (added == sqlTransaction) {
-								fireObjectChanged(new CompositeEvent(sqlConnector));
-								var pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
-								if (pev != null) {
-									pev.setSelectedTreeObject(pev.findTreeObjectByUserObject(sqlTransaction));
-								}
-								ConvertigoPlugin.logDebug("Transaction added.");
-							}
-							if (added == null) {
-								continue;
-							}
-							if (accessibility != null) {
-								createSequenceWrapper(added, accessibility, authenticated);
-							} else if (ngxAccessibility != null && "TABLE".equals(type) && !SqlCrudGeneration.hasSequence(added)) {
-								// the user interface needs the sequences: the missing ones only, existing ones are kept as they are
-								createSequenceWrapper(added, ngxAccessibility, authenticated);
-							}
+						var specificName = (String) item.getData("specific_name");
+						SqlTransaction transaction = SqlConnector.createSqlTransaction(sqlConnector, name, specificName.isEmpty() ? name : specificName);
+						if (transaction != null) {
+							changed |= SqlCrudGeneration.installTransactions(sqlConnector, List.of(transaction), override,
+									accessibility, authenticated, accessibility != null);
 						}
 					}
+				} catch (Exception e) {
+					ConvertigoPlugin.logException(e, "Error while generating SQL objects for " + name);
+					messages.append(name).append(": ").append(e.getMessage()).append('\n');
 				}
-			} catch (Exception ee) {
-				ConvertigoPlugin.logException(ee, "Error while creating transaction(s)");
-			} finally {
-				shell.setCursor(null);
-				waitCursor.dispose();
 			}
-			if (!ngxTables.isEmpty()) {
-				createNgxComponents(shell, ngxTables, ngxPage);
+			if (changed) {
+				fireObjectChanged(new CompositeEvent(sqlConnector.getProject()));
 			}
+		} finally {
+			shell.setCursor(null);
+			waitCursor.dispose();
+		}
+		if (!ngxTables.isEmpty()) {
+			createNgxComponents(shell, ngxTables, ngxPage, messages);
+		} else if (messages.length() > 0) {
+			ConvertigoPlugin.infoMessageBox(messages.toString());
 		}
 	}
 
-	private void createNgxComponents(Shell shell, List<String> tables, boolean withPage) {
+	private void createNgxComponents(Shell shell, List<SqlTableInfo> tables, boolean withPage, StringBuilder messages) {
 		Project project = sqlConnector.getProject();
 		try {
 			// the library comes first: nothing is generated without its grid
@@ -440,23 +441,13 @@ class SqlConnectorDesignComposite extends Composite {
 				pev.reloadDatabaseObject(project);
 			}
 			ConvertigoPlugin.logInfo("NGX CRUD generation:\n" + report);
-			ConvertigoPlugin.infoMessageBox(report.toString());
+			ConvertigoPlugin.infoMessageBox(messages.append(report).toString());
 		} catch (InvocationTargetException e) {
 			var cause = e.getCause() != null ? e.getCause() : e;
 			ConvertigoPlugin.logException(cause, "Unable to import " + CrudUiDefaults.LIB_PROJECT_NAME);
 			ConvertigoPlugin.errorMessageBox("No NGX shared component generated: " + cause.getMessage());
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Error while generating the NGX shared components");
-		}
-	}
-	
-	private void createSequenceWrapper(SqlTransaction transaction, Accessibility accessibility, boolean authenticatedContextRequired) throws EngineException {
-		var sequence = SqlCrudGeneration.createSequence(transaction, accessibility, authenticatedContextRequired);
-		fireObjectChanged(new CompositeEvent(transaction.getProject()));
-		var pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
-		if (pev != null) {
-			var dbot = pev.findTreeObjectByUserObject(sequence);
-			pev.setSelectedTreeObject(dbot);
 		}
 	}
 }

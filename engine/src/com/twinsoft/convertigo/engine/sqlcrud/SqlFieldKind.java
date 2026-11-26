@@ -40,10 +40,10 @@ public enum SqlFieldKind {
 	LONG_TEXT("textarea"),
 	/** DATE: sent as YYYY-MM-DD. */
 	DATE("date"),
-	/** TIMESTAMP: sent as YYYY-MM-DD HH:mm:ss. */
-	TIMESTAMP("datetime-local"),
-	/** TIME: sent as HH:mm:ss. */
-	TIME("time"),
+	/** TIMESTAMP: text input to support JDBC fractions and offsets. */
+	TIMESTAMP("text"),
+	/** TIME: text input to support JDBC fractions and offsets. */
+	TIME("text"),
 	/** Binary columns: neither displayed nor sent. */
 	BINARY(""),
 	/** Any other type (uuid, json, enums...): a text input. */
@@ -69,6 +69,9 @@ public enum SqlFieldKind {
 	/** The family of a column from its JDBC metadata (DATA_TYPE, TYPE_NAME and COLUMN_SIZE). */
 	public static SqlFieldKind of(int jdbcType, String typeName, int size) {
 		var type = typeName == null ? "" : typeName.toLowerCase(Locale.ROOT);
+		if ("uuid".equals(type)) {
+			return OTHER; // HSQLDB exposes UUID as JDBC BINARY.
+		}
 		return switch (jdbcType) {
 		case Types.INTEGER, Types.SMALLINT, Types.TINYINT -> INTEGER;
 		case Types.BIGINT -> BIGINT;

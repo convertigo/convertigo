@@ -27,6 +27,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import com.twinsoft.convertigo.beans.common.FormatedContent;
+import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
@@ -49,6 +50,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIText;
 import com.twinsoft.convertigo.beans.ngx.components.UIUseShared;
 import com.twinsoft.convertigo.beans.ngx.components.UIUseVariable;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager;
+import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.ComponentRefManager;
 import com.twinsoft.convertigo.engine.util.StringUtils;
@@ -100,7 +102,7 @@ public final class NgxCrudGenerator {
 	private final String baseName;
 	private final Map<String, String> sequences = new LinkedHashMap<>();
 
-	public NgxCrudGenerator(Project project, SqlTableInfo table) throws EngineException {
+	public NgxCrudGenerator(Project project, SqlConnector connector, SqlTableInfo table) throws EngineException {
 		this.project = project;
 		this.table = table;
 		this.app = ngxApplication(project);
@@ -110,8 +112,13 @@ public final class NgxCrudGenerator {
 		this.baseName = StringUtils.normalize(table.getTableName());
 		for (var verb : List.of("LIST", "COUNT", "INSERT", "UPDATE", "DELETE")) {
 			var name = baseName + "_" + verb;
-			if (hasSequence(project, name)) {
-				sequences.put(verb, project.getName() + "." + name);
+			var sequence = SqlCrudGeneration.findSequence(project, name);
+			if (sequence != null && table.allows(verb)
+					&& connector.getTransactionByName(name) instanceof SqlTransaction transaction
+					&& !transaction.getCrudQuery().isEmpty()
+					&& table.getIdentity().equals(SqlCrudQuery.parse(transaction.getCrudQuery()).table())
+					&& SqlCrudGeneration.isManagedSequence(sequence, transaction.getQName())) {
+				sequences.put(verb, sequence.getQName());
 			}
 		}
 	}
@@ -123,14 +130,6 @@ public final class NgxCrudGenerator {
 			return app;
 		}
 		return null;
-	}
-
-	private static boolean hasSequence(Project project, String name) {
-		try {
-			return project.getSequenceByName(name) != null;
-		} catch (Exception e) {
-			return false;
-		}
 	}
 
 	/** Name of the grid shared component of a table: the entity followed by Table ("clients" gives "clientTable"). */
@@ -219,7 +218,7 @@ public final class NgxCrudGenerator {
 		}
 		var componentName = getComponentName();
 		if (findSharedComponent(componentName) != null) {
-			// never overwritten, even with "Override", which only applies to the transactions
+			// never overwritten by the Design tab
 			result.skipReason = "the shared component " + componentName + " already exists";
 			return result;
 		}
@@ -231,7 +230,7 @@ public final class NgxCrudGenerator {
 			return result;
 		}
 		for (var verb : List.of("INSERT", "UPDATE", "DELETE")) {
-			if (!sequences.containsKey(verb)) {
+			if (table.allows(verb) && !sequences.containsKey(verb)) {
 				result.warnings.add("no " + verb + " in the user interface: the sequence " + baseName + "_" + verb + " is missing");
 			}
 		}
@@ -340,7 +339,7 @@ public final class NgxCrudGenerator {
 		comp.setName(name);
 		comp.bNew = true;
 		comp.hasChanged = true;
-		comp.setComment("Generated on " + LocalDate.now() + " from the table " + table.getTableName()
+		comp.setComment("Generated on " + LocalDate.now() + " from the table " + table.getIdentity().displayName()
 				+ " and the sequences " + String.join(", ", sequences.values())
 				+ ". Configure it with its variables, connect its events. Nothing is regenerated: change it freely.");
 		comp.setScriptContent(new FormatedContent(NgxCrudScript.componentScript(this, table, sequences)));
@@ -432,12 +431,12 @@ public final class NgxCrudGenerator {
 		add(grid, useVariable("id", templateString(entityName(table.getTableName()) + "Grid")));
 		add(grid, useVariable("rowModelType", paginated ? "'infinite'" : "'clientSide'"));
 		if (paginated) {
-			add(grid, useVariable("cacheBlockSize", "this.pageSize"));
+			add(grid, useVariable("cacheBlockSize", "this.crudPageSize()"));
 		} else {
 			add(grid, useVariable("rowData", "this.crudRows"));
 		}
 		add(grid, useVariable("pagination", "this.pagination"));
-		add(grid, useVariable("paginationPageSize", "this.pageSize"));
+		add(grid, useVariable("paginationPageSize", "this.crudPageSize()"));
 		add(grid, useVariable("paginationPageSizeSelector", "false"));
 		add(grid, useVariable("columnDefs", "this.crudColumnDefs"));
 		add(grid, useVariable("defaultColDef", "this.crudDefaultColDef"));
@@ -459,7 +458,7 @@ public final class NgxCrudGenerator {
 			var load = new UICustomAsyncAction();
 			load.setName("LoadRows");
 			load.bNew = true;
-			load.setComment("Calls the list sequence for the block asked by the grid: order_by, limit and offset.");
+			load.setComment("Calls the list sequence with the selected column, direction, limit and offset.");
 			load.setActionValue(new FormatedContent("\t\treturn await page.crudLoadRows(event);\n"));
 			var update = new UIDynamicInvoke();
 			update.setName("UpdateRows");
@@ -515,7 +514,7 @@ public final class NgxCrudGenerator {
 		form.setName(name);
 		form.bNew = true;
 		form.hasChanged = true;
-		form.setComment("Generated on " + LocalDate.now() + " from the table " + table.getTableName()
+		form.setComment("Generated on " + LocalDate.now() + " from the table " + table.getIdentity().displayName()
 				+ ": shows a row (mode 'view'), creates it with " + sequences.getOrDefault("INSERT", "(no INSERT)")
 				+ " (mode 'create') or updates it with " + sequences.getOrDefault("UPDATE", "(no UPDATE)")
 				+ " (mode 'edit'). It can be used in a modal or directly in a page. Nothing is regenerated: change it freely.");
@@ -587,7 +586,15 @@ public final class NgxCrudGenerator {
 				: column.isReadOnlyOnEdit() ? "script:this.mode != 'create'" : "script:this.mode == 'view'";
 		var kind = column.getKind();
 		UIDynamicElement widget;
-		if (kind == SqlFieldKind.BOOLEAN) {
+		if (kind == SqlFieldKind.BOOLEAN && !column.isNotNull()) {
+			widget = element("Select", "Select", "ion-select", ordered("ControlName", "plain:" + name,
+					"DoubleBinding", binding, "Label", label, "Disabled", readOnly + " || this.crudSaving"));
+			for (var value : List.of("unset", "true", "false")) {
+				var option = element("Option_" + value, "SelectOption", "ion-select-option", ordered("Value", "plain:" + value));
+				add(option, text("Text", "this.crudLabel('boolean_" + value + "')"));
+				add(widget, option);
+			}
+		} else if (kind == SqlFieldKind.BOOLEAN) {
 			widget = element("Toggle", "Toggle", "ion-toggle", ordered("ControlName", "plain:" + name, "DoubleBinding", binding,
 					"Disabled", readOnly.equals("script:true") ? readOnly : readOnly + " || this.crudSaving", "LabelPlacement", "plain:start", "Justify", "plain:space-between"));
 			add(widget, text("Text", "this.crudFieldLabel(" + templateString(name) + ")"));
@@ -602,7 +609,7 @@ public final class NgxCrudGenerator {
 				properties.put("AutoGrow", "script:true");
 				widget = element("TextArea", "TextArea", "ion-textarea", properties);
 			} else {
-				properties.put("Type", "plain:" + (kind.isNumber() ? "number" : kind == SqlFieldKind.OTHER ? "text" : kind.inputType()));
+				properties.put("Type", "plain:" + kind.inputType());
 				if (!column.getStep().isEmpty()) {
 					properties.put("Step", "plain:" + column.getStep());
 				}

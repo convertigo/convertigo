@@ -599,7 +599,10 @@ public abstract class RequestableStep extends Step implements IVariableContainer
     abstract protected IVariableContainer getTargetVariableContainer() throws EngineException;
     
     public void exportVariableDefinition() throws EngineException {
-    	IVariableContainer variableContainer = getTargetVariableContainer();
+        exportVariableDefinition(getTargetVariableContainer());
+    }
+
+    public void exportVariableDefinition(IVariableContainer variableContainer) throws EngineException {
     	for (StepVariable stepVariable: getVariables()) {
     		String variableName = stepVariable.getName();
     		if (sequence.getVariable(variableName) == null) {
@@ -885,7 +888,13 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	            	}
 	            	else {
 		            	Engine.logBeans.debug("(RequestableStep) requesting : "+ method.getURI());
-		            	byte[] result = executeMethod();
+						byte[] result;
+						sequence.startSequenceCall();
+						try {
+							result = executeMethod();
+						} finally {
+							sequence.stopSequenceCall();
+						}
 		            	Engine.logBeans.debug("(RequestableStep) Total read bytes: " + ((result != null) ? result.length:0));
 		            	if (result != null) {
 			            	makeDocument(result);

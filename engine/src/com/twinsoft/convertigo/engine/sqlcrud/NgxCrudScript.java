@@ -64,7 +64,7 @@ final class NgxCrudScript {
 			sb.append(", maxLength: ").append(column.getMaxLength());
 			sb.append(", step: ").append(jsString(column.getStep()));
 			sb.append(", scale: ").append(Math.max(0, column.getScale()));
-			sb.append(", sortKey: ").append(jsString(table.getSortKey(column)));
+			sb.append(", nullable: ").append(!column.isNotNull());
 			sb.append(", createDefault: ").append(column.getCreateDefault() == null ? "null" : jsString(column.getCreateDefault()));
 			sb.append(", help: ").append(jsString(column.getRemarks()));
 			sb.append('}');
@@ -80,7 +80,7 @@ final class NgxCrudScript {
 		}
 		seq.append('}');
 		var keys = new StringBuilder("[");
-		for (var key : table.getKeyColumns()) {
+		for (var key : table.getPrimaryKeys()) {
 			keys.append(keys.length() > 1 ? ", " : "").append(jsString(key.getName()));
 		}
 		keys.append(']');
@@ -91,7 +91,7 @@ final class NgxCrudScript {
 				.replace("@@SEQUENCES@@", seq)
 				.replace("@@FIELDS@@", fieldsLiteral(table))
 				.replace("@@KEYS@@", keys)
-				.replace("@@SORT@@", jsString(table.getDefaultSortKey()))
+				.replace("@@MAX_LIMIT@@", Integer.toString(SqlCrudQuery.MAX_LIMIT))
 				.replace("@@PAGINATED@@", Boolean.toString(table.hasListPagination()))
 				.replace("@@CAN@@", can)
 				.replace("@@EMPTY_NULL@@", Boolean.toString(CrudUiDefaults.EMPTY_FIELD_IS_NULL))
@@ -105,6 +105,7 @@ final class NgxCrudScript {
 				.replace("@@TABLE@@", table.getTableName().replace("*/", "* /"))
 				.replace("@@SEQUENCES@@", seq)
 				.replace("@@FIELDS@@", fieldsLiteral(table))
+				.replace("@@UPDATE_PARAMETER@@", jsString(table.getUpdateParameter()))
 				.replace("@@EMPTY_NULL@@", Boolean.toString(CrudUiDefaults.EMPTY_FIELD_IS_NULL))
 				.replace("@@COMMON@@\n", COMMON);
 	}
@@ -163,7 +164,6 @@ final class NgxCrudScript {
 				public crudSequences: any = @@SEQUENCES@@;
 				public crudFields: any[] = @@FIELDS@@;
 				public crudKeys: string[] = @@KEYS@@;
-				public crudDefaultSortKey: string = @@SORT@@;
 				public crudPaginated: boolean = @@PAGINATED@@;
 				public crudCan: any = @@CAN@@;
 				public crudEmptyIsNull: boolean = @@EMPTY_NULL@@;
@@ -292,10 +292,14 @@ final class NgxCrudScript {
 					return dot > 0 ? text.substring(0, dot) : text;
 				}
 
-				crudOrderBy(sortModel: any[]): string {
+				crudPageSize(): number {
+					return Math.max(1, Math.min(@@MAX_LIMIT@@, Math.floor(Number(this.pageSize)) || 50));
+				}
+
+				crudSort(sortModel: any[]): any {
 					const sort = (sortModel ?? [])[0];
 					const field = sort == null ? null : this.crudFields.find((f: any) => f.name == sort.colId);
-					return field == null ? this.crudDefaultSortKey : field.sortKey + (sort.sort == "desc" ? " desc" : " asc");
+					return field == null ? {} : {sort_key: field.name, sort_direction: sort.sort == "desc" ? "desc" : "asc"};
 				}
 
 				/** The number of rows, by the count sequence, once per reload; undefined without it or when it fails. */
@@ -318,7 +322,7 @@ final class NgxCrudScript {
 					const offset = params.skip ?? params.startRow ?? 0;
 					try {
 						const [res, total] = await Promise.all([
-							this.crudCall(this.crudSequences.list, {order_by: this.crudOrderBy(params.sortModel), limit: limit, offset: offset}),
+							this.crudCall(this.crudSequences.list, {...this.crudSort(params.sortModel), limit: limit, offset: offset}),
 							this.crudCount()
 						]);
 						const rows = ([] as any[]).concat(res?.row ?? []);
@@ -333,7 +337,7 @@ final class NgxCrudScript {
 
 				async crudLoadAll(): Promise<void> {
 					try {
-						const res = await this.crudCall(this.crudSequences.list, {order_by: this.crudDefaultSortKey});
+						const res = await this.crudCall(this.crudSequences.list, {});
 						this.crudRows = ([] as any[]).concat(res?.row ?? []);
 					} catch (error) {
 						this.crudRows = [];
@@ -521,6 +525,8 @@ final class NgxCrudScript {
 				public crudFields: any[] = @@FIELDS@@;
 				public crudEmptyIsNull: boolean = @@EMPTY_NULL@@;
 				public crudDraft: any = {};
+				public crudOriginalDraft: any = {};
+				public crudUpdateParameter: string = @@UPDATE_PARAMETER@@;
 				public crudSaving: boolean = false;
 				/*End_c8o_CompDeclaration*/
 			/*Begin_c8o_CompConstructor*/
@@ -565,29 +571,23 @@ final class NgxCrudScript {
 					return value === true || value === 1 || value === "1" || String(value).toLowerCase() === "true";
 				}
 
-				/** The draft edited by the fields: the row, with its values in the formats of the inputs. */
+				/** Store the initial input representation separately from the original database row. */
 				crudPrepare(): void {
 					const row = this.row ?? {};
-					const draft: any = {};
+					const draft: any = Object.create(null);
 					for (const field of this.crudFields) {
 						const value = row[field.name];
 						if (field.kind == "BOOLEAN") {
-							draft[field.name] = value == null ? false : this.crudBoolean(value);
-						} else if (value == null) {
-							continue;
-						} else if (field.kind == "DATE") {
-							draft[field.name] = String(value).substring(0, 10);
-						} else if (field.kind == "TIMESTAMP") {
-							const text = String(value).replace(" ", "T");
-							const dot = text.indexOf(".");
-							draft[field.name] = (dot > 0 ? text.substring(0, dot) : text).substring(0, 19);
-						} else if (field.kind == "TIME") {
-							draft[field.name] = String(value).substring(0, 8);
-						} else {
-							draft[field.name] = value;
+							const bool = this.crudBoolean(value);
+							draft[field.name] = !field.nullable ? bool
+								: this.crudIsEmpty(value) ? "unset" : String(bool);
+						} else if (value != null) {
+							draft[field.name] = field.kind == "TIMESTAMP" ? String(value).replace(" ", "T")
+								: field.kind == "DATE" ? String(value).substring(0, 10) : value;
 						}
 					}
 					this.crudDraft = draft;
+					this.crudOriginalDraft = {...draft};
 				}
 
 				crudIsValid(): boolean {
@@ -602,46 +602,54 @@ final class NgxCrudScript {
 					return true;
 				}
 
-				/** The variables of the sequence: an empty field is omitted (NULL), numbers, dates and times in SQL formats. */
+				crudValue(field: any, value: any): any {
+					if (this.crudIsEmpty(value) || (field.kind == "BOOLEAN" && value === "unset")) {
+						return undefined;
+					}
+					switch (field.kind) {
+						case "INTEGER": case "BIGINT": case "DECIMAL": case "FLOAT":
+							return String(value).split(" ").join("").replace(",", ".");
+						case "BOOLEAN":
+							return String(this.crudBoolean(value));
+						case "DATE":
+							return String(value).substring(0, 10);
+						case "TIMESTAMP": {
+							const text = String(value).replace("T", " ");
+							return text.length == 16 ? text + ":00" : text;
+						}
+						case "TIME": {
+							const text = String(value);
+							return text.length == 5 ? text + ":00" : text;
+						}
+						default:
+							return value;
+					}
+				}
+
+				/** For edits, only the columns in the field list are assigned. An empty value clears one. */
 				crudNormalize(): any {
 					const data: any = {};
+					const changed: string[] = [];
 					for (const field of this.crudFields) {
-						if (!this.crudVisible(field)) {
+						if (!this.crudVisible(field) || field.readOnly) {
 							continue;
 						}
-						let value = this.crudDraft[field.name];
-						if (this.crudIsEmpty(value)) {
-							if (!this.crudEmptyIsNull && value != null) {
-								data[field.name] = "";
+						const name = field.name;
+						const value = this.crudValue(field, this.crudDraft[name]);
+						if (this.mode == "edit" && !field.key) {
+							if (field.readOnlyOnEdit || value === this.crudValue(field, this.crudOriginalDraft[name])) {
+								continue;
 							}
-							continue;
+							changed.push(name);
 						}
-						switch (field.kind) {
-							case "INTEGER": case "BIGINT": case "DECIMAL": case "FLOAT":
-								value = String(value).split(" ").join("").replace(",", ".");
-								break;
-							case "BOOLEAN":
-								value = this.crudBoolean(value) ? "true" : "false";
-								break;
-							case "DATE":
-								value = String(value).substring(0, 10);
-								break;
-							case "TIMESTAMP":
-								value = String(value).replace("T", " ");
-								if (value.length == 16) {
-									value += ":00";
-								}
-								value = value.substring(0, 19);
-								break;
-							case "TIME":
-								value = String(value);
-								if (value.length == 5) {
-									value += ":00";
-								}
-								value = value.substring(0, 8);
-								break;
+						if (value !== undefined) {
+							data[name] = value;
+						} else if (this.mode == "edit" || !this.crudEmptyIsNull) {
+							data[name] = "";
 						}
-						data[field.name] = value;
+					}
+					if (this.mode == "edit") {
+						data[this.crudUpdateParameter] = changed.join(",");
 					}
 					return data;
 				}
@@ -654,8 +662,18 @@ final class NgxCrudScript {
 					this.crudSaving = true;
 					this.ref.markForCheck();
 					try {
-						await this.crudCall(sequence, this.crudNormalize());
-						this.actionBeans.EmitEventAction(this, {event: ".RowSaved", data: {row: {...this.crudDraft}, mode: this.mode}}, null);
+						const data = this.crudNormalize();
+						const editing = this.mode == "edit";
+						const changed = editing ? data[this.crudUpdateParameter] : "";
+						if (!editing || changed !== "") {
+							await this.crudCall(sequence, data);
+						}
+						const row = editing ? {...this.row} : {};
+						for (const name of editing ? changed.split(",").filter(Boolean) : Object.keys(data)) {
+							const field = this.crudFields.find((f: any) => f.name === name);
+							row[name] = data[name] === "" ? null : field?.kind === "BOOLEAN" ? data[name] === "true" : this.crudDraft[name];
+						}
+						this.actionBeans.EmitEventAction(this, {event: ".RowSaved", data: {row: row, mode: this.mode}}, null);
 					} catch (error) {
 						this.crudToast(this.crudMessage(error), "danger");
 					} finally {

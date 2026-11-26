@@ -25,11 +25,15 @@ import java.util.Map;
 import org.apache.log4j.MDC;
 import org.apache.logging.log4j.ThreadContext;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.LogParameters;
 
 public class Log4jHelper {
-	private static final String CONTEXTUAL_PARAMETERS = "ContextualParameters";
+	static final String CONTEXTUAL_PARAMETERS = "ContextualParameters";
+	static final String STRUCTURED_PARAMETERS = "ConvertigoContextualParametersJson";
+	static final ObjectMapper CONTEXT_MAPPER = new ObjectMapper();
 	
 	public static enum mdcKeys {ClientIP, Connector, ContextID, Project, Transaction, UID, User, Sequence, ClientHostName, UUID};
 		
@@ -47,8 +51,15 @@ public class Log4jHelper {
 	static public void mdcSet(LogParameters logParameters) {
 		if (logParameters == null) {
 			MDC.remove(CONTEXTUAL_PARAMETERS);
+			ThreadContext.remove(STRUCTURED_PARAMETERS);
 		} else {
 			MDC.put(CONTEXTUAL_PARAMETERS, logParameters);
+			// The Log4j bridge exposes strings in events. Store a structured snapshot alongside the text MDC.
+			try {
+				ThreadContext.put(STRUCTURED_PARAMETERS, CONTEXT_MAPPER.writeValueAsString(logParameters.asMap()));
+			} catch (JsonProcessingException e) {
+				ThreadContext.remove(STRUCTURED_PARAMETERS);
+			}
 		}
 	}
 
