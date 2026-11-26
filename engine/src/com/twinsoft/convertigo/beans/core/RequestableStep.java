@@ -599,7 +599,10 @@ public abstract class RequestableStep extends Step implements IVariableContainer
     abstract protected IVariableContainer getTargetVariableContainer() throws EngineException;
     
     public void exportVariableDefinition() throws EngineException {
-    	IVariableContainer variableContainer = getTargetVariableContainer();
+        exportVariableDefinition(getTargetVariableContainer());
+    }
+
+    public void exportVariableDefinition(IVariableContainer variableContainer) throws EngineException {
     	for (StepVariable stepVariable: getVariables()) {
     		String variableName = stepVariable.getName();
     		if (sequence.getVariable(variableName) == null) {

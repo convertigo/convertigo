@@ -629,7 +629,7 @@ tasks.register('sqlCrudContractTest', JavaExec) {
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.sqlcrud.SqlCrudContractTest'
-	['convertigo.test.crud.postgresql.url', 'convertigo.test.crud.postgresql.user', 'convertigo.test.crud.postgresql.password'].each { name ->
+	['convertigo.test.crud.postgresql.url', 'convertigo.test.crud.postgresql.user', 'convertigo.test.crud.postgresql.password', 'convertigo.test.crud.hsqldb.url'].each { name ->
 		def value = System.getProperty(name)
 		if (value) {
 			systemProperty name, value

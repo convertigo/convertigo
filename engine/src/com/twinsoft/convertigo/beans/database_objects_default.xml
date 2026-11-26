@@ -3939,6 +3939,9 @@
         <property name="comment">
             <java.lang.String value=""/>
         </property>
+        <property name="crudQuery">
+            <java.lang.String value=""/>
+        </property>
         <property name="encodingCharSet">
             <java.lang.String value="UTF-8"/>
         </property>

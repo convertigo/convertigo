@@ -84,16 +84,15 @@ public final class SqlCrudEndToEnd {
 				connector.setSystemTablesQuery("SELECT 1 FROM INFORMATION_SCHEMA.SYSTEM_USERS");
 			}
 			runtimeUrls.add(new String[] { parts[0], parts[3] });
-			var tables = List.of(parts[6].split(","));
+			var tables = new ArrayList<SqlTableInfo>();
+			for (var tableName : List.of(parts[6].split(","))) {
+				tables.add(SqlTableInfo.read(connector, tableName));
+			}
 
 			// the Design tab, "Generate NGX shared component" checked, "Generate Sequences" unchecked, Hidden, not authenticated
 			for (var table : tables) {
-				for (var transaction : SqlConnector.createSqlTransaction(connector, table, CRUDS)) {
-					var added = SqlCrudGeneration.addTransaction(connector, transaction, false);
-					if (added != null && !SqlCrudGeneration.hasSequence(added)) {
-						SqlCrudGeneration.createSequence(added, Accessibility.Hidden, false);
-					}
-				}
+				var transactions = SqlConnector.createSqlTransactions(connector, table, CRUDS);
+				SqlCrudGeneration.installTransactions(connector, transactions, false, Accessibility.Hidden, false, false);
 			}
 			NgxCrudLibrary.importIfMissing(project);
 			var problem = NgxCrudLibrary.check();

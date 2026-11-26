@@ -37,7 +37,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -45,7 +44,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import javax.naming.NamingException;
@@ -70,6 +68,10 @@ import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.servlets.EngineServlet;
 import com.twinsoft.convertigo.engine.sqlcrud.CrudSqlValue;
+import com.twinsoft.convertigo.engine.sqlcrud.SqlColumnInfo;
+import com.twinsoft.convertigo.engine.sqlcrud.SqlCrudQuery;
+import com.twinsoft.convertigo.engine.sqlcrud.SqlTableIdentity;
+import com.twinsoft.convertigo.engine.sqlcrud.SqlTableInfo;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
@@ -328,7 +330,9 @@ public class SqlConnector extends Connector {
 			open();
 
 		// In the case when we want to escape the bracket "\{id\}"
-		sqlQuery = sqlQuery.replace("\\{", "{").replace("\\}", "}");
+		if (!sqlQueryInfos.isGeneratedCrud()) {
+			sqlQuery = sqlQuery.replace("\\{", "{").replace("\\}", "}");
+		}
 
 		boolean isCallableStmt = sqlQueryInfos.isCallable();
 
@@ -961,15 +965,24 @@ public class SqlConnector extends Connector {
 					if (rs != null) {
 						while (rs.next()) {
 							item = (Element) root.appendChild(doc.createElement("item"));
-							String tableName = rs.getString(3);
+							var table = SqlTableIdentity.from(rs);
 							child = (Element) item.appendChild(doc.createElement("NAME"));
-							child.appendChild(doc.createTextNode(tableName));
-							var rsc = dmd.getColumns(catalog, null, tableName, "%");
-							var columns = new LinkedList<String>();
-							while (rsc.next()) {
-								columns.add(rsc.getString("COLUMN_NAME"));
+							child.appendChild(doc.createTextNode(table.name()));
+							if (table.catalog() != null) {
+								child.setAttribute("catalog", table.catalog());
 							}
-							rsc.close();
+							if (table.schema() != null) {
+								child.setAttribute("schema", table.schema());
+							}
+							var columns = new LinkedList<String>();
+							try (var rsc = dmd.getColumns(table.catalog(), SqlTableIdentity.literalPattern(dmd, table.schema()),
+									SqlTableIdentity.literalPattern(dmd, table.name()), "%")) {
+								while (rsc.next()) {
+									if (table.equals(SqlTableIdentity.from(rsc))) {
+										columns.add(rsc.getString("COLUMN_NAME"));
+									}
+								}
+							}
 							child = (Element) item.appendChild(doc.createElement("REMARKS"));
 							child.appendChild(doc.createTextNode(columns.stream().collect(Collectors.joining(", "))));
 
@@ -1148,133 +1161,97 @@ public class SqlConnector extends Connector {
 		return sqlTransaction;
 	}
 
-	public static List<SqlTransaction> createSqlTransaction(SqlConnector sqlConnector, String tableName, List<String> cruds) throws EngineException, ClassNotFoundException, SQLException {
-		var sqlTransactions = new LinkedList<SqlTransaction>();
-		if (sqlConnector != null && !tableName.isEmpty()) {
-			sqlConnector.open();
+	public static List<SqlTransaction> createSqlTransaction(SqlConnector connector, String tableName, List<String> cruds)
+			throws EngineException, ClassNotFoundException, SQLException {
+		return createSqlTransactions(connector, SqlTableInfo.read(connector, tableName), cruds);
+	}
 
-			var identifierQuoter = getIdentifierQuoter(sqlConnector.jdbcDriverClassName);
-			var dmd = sqlConnector.connection.getMetaData();
-			var catalog = sqlConnector.connection.getCatalog();
-			var columns = new LinkedList<String>();
-			var columnSqlTypes = new LinkedHashMap<String, Integer>();
-			var columnTypeNames = new HashMap<String, String>();
-			var nullables = new HashSet<String>();
-			var autoinc = new HashSet<String>();
-			var primaryKeys = new LinkedList<String>();
-
-			var rs = dmd.getColumns(catalog, null, tableName, "%");
-			while (rs.next()) {
-				var columnName = rs.getString("COLUMN_NAME");
-				columns.add(columnName);
-				columnSqlTypes.put(columnName, rs.getInt("DATA_TYPE"));
-				columnTypeNames.put(columnName, rs.getString("TYPE_NAME"));
-				if (rs.getInt("NULLABLE") != DatabaseMetaData.columnNoNulls) {
-					nullables.add(columnName);
-				}
-				if ("YES".equalsIgnoreCase(rs.getString("IS_AUTOINCREMENT"))) {
-					autoinc.add(columnName);
-				}
-			}
-
-			rs = dmd.getPrimaryKeys(catalog, null, tableName);
-			while(rs.next()) {
-				primaryKeys.add(rs.getString("COLUMN_NAME"));
-			}
-			if (primaryKeys.isEmpty() && !columns.isEmpty()) {
-				primaryKeys.add(columns.getFirst());
-			}
-
-			// the value of a column set by the INSERT and the UPDATE: NULL when it is sent empty (nullable columns)
-			UnaryOperator<String> valueOf = c -> CrudSqlValue.expression(sqlConnector.jdbcDriverClassName, c,
-					columnSqlTypes.getOrDefault(c, Types.VARCHAR), columnTypeNames.get(c), nullables.contains(c));
-
-			// the rows of the LIST and of the COUNT: a future filter must give both the same WHERE clause
-			var listWhere = "";
-
-			for (var verb : cruds) {
-				var sqlTransaction = sqlConnector.newTransaction();
-				sqlTransaction.setName(StringUtils.normalize(tableName) + "_" + verb);
-				sqlTransaction.hasChanged = true;
-				sqlTransaction.bNew = true;
-
-				String sqlQuery = null;
-
-				switch (verb) {
-				case "INSERT" -> {
-					var insertableCols = columns.stream()
-							.filter(c -> !autoinc.contains(c))
-							.collect(Collectors.toList());
-					var cols = insertableCols.stream()
-							.map(c -> formatColumnName(c, identifierQuoter))
-							.collect(Collectors.joining(", "));
-					var vals = insertableCols.stream()
-							.map(valueOf)
-							.collect(Collectors.joining(", "));
-					sqlQuery = "INSERT INTO " + tableName + " (" + cols + ")\nVALUES (" + vals + ")";
-				}
-				case "SELECT", "LIST" -> {
-					var bList = "LIST".equals(verb);
-					var cols = columns.stream()
-							.map(c -> formatColumnName(c, identifierQuoter))
-							.collect(Collectors.joining(", "));
-					var where = bList ? listWhere : primaryKeys.isEmpty() ? "" :
-						"\nWHERE " + primaryKeys.stream()
-						.map(pk -> formatColumnName(pk, identifierQuoter) + " = {" + pk + "}")
-						.collect(Collectors.joining("\nAND "));
-					sqlQuery = "SELECT " + cols + "\nFROM " + tableName + where;
-					if (bList) {
-						var driver = sqlConnector.jdbcDriverClassName;
-						sqlQuery += "\nORDER BY {{order_by}}";
-						sqlQuery += listPaginationClause(driver);
-						sqlTransaction.handlers = """
-function onTransactionStarted() {
-    if (!order_by || !order_by.length || -1 == context.transaction.sqlQuery.indexOf(order_by.replace(/\\s+(asc|desc)/i,""))) {
-        order_by = "''";
-    }
-}""";
-					}
-				}
-				case "COUNT" -> {
-					sqlQuery = "SELECT COUNT(*) AS total\nFROM " + tableName + listWhere;
-				}
-				case "UPDATE" -> {
-					var setClause = columns.stream()
-							.filter(c -> !primaryKeys.contains(c))
-							.map(c -> formatColumnName(c, identifierQuoter) + " = " + valueOf.apply(c))
-							.collect(Collectors.joining(", "));
-					var where = primaryKeys.isEmpty() ? "" :
-						"\nWHERE " + primaryKeys.stream()
-						.map(pk -> formatColumnName(pk, identifierQuoter) + " = {" + pk + "}")
-						.collect(Collectors.joining("\nAND "));
-					sqlQuery = "UPDATE " + tableName + "\nSET " + setClause + where;
-				}
-				case "DELETE" -> {
-					var where = primaryKeys.isEmpty() ? "" :
-						"\nWHERE " + primaryKeys.stream()
-						.map(pk -> formatColumnName(pk, identifierQuoter) + " = {" + pk + "}")
-						.collect(Collectors.joining("\nAND "));
-					sqlQuery = "DELETE FROM " + tableName + where;
-				}
-				}
-
-				if (sqlQuery != null) {
-					sqlTransaction.setSqlQuery(sqlQuery);
-					sqlTransaction.initializeQueries(true);
-					if ("COUNT".equals(verb)) {
-						prepareCrudTransaction(sqlConnector, sqlTransaction, verb, List.of("total"), Map.of("total", Types.BIGINT));
-					} else {
-						prepareCrudTransaction(sqlConnector, sqlTransaction, verb, columns, columnSqlTypes);
-					}
-					sqlTransactions.add(sqlTransaction);
-				} else {
-					Engine.logBeans.warn("Skipping SQL transaction generation for verb '" + verb + "' on table '" + tableName + "' due to missing SQL query");
-				}
-			}
-
-			sqlConnector.close();
+	public static List<SqlTransaction> createSqlTransactions(SqlConnector connector, SqlTableInfo table, List<String> cruds)
+			throws EngineException {
+		if (table.getColumns().isEmpty()) {
+			throw new EngineException("No columns found for table " + table.getIdentity().displayName());
 		}
-		return sqlTransactions;
+		var transactions = new ArrayList<SqlTransaction>();
+		var columns = table.getColumns().stream().map(SqlColumnInfo::getName).toList();
+		var columnTypes = new LinkedHashMap<String, Integer>();
+		table.getColumns().forEach(c -> columnTypes.put(c.getName(), c.getJdbcType()));
+		var keys = table.getPrimaryKeys().stream().map(SqlColumnInfo::getName).toList();
+		var quotedColumns = columns.stream().map(table::quoteColumn).collect(Collectors.joining(", "));
+		var where = table.getPrimaryKeys().stream().allMatch(SqlColumnInfo::isVariableName) && !keys.isEmpty()
+				? "\nWHERE " + keys.stream().map(key -> table.quoteColumn(key) + " = {" + key + "}").collect(Collectors.joining("\nAND "))
+				: "";
+		var driver = table.getDriverClassName();
+		var qualified = table.getQualifiedName();
+		var select = "SELECT " + quotedColumns + "\nFROM " + qualified;
+
+		for (var verb : cruds) {
+			if (!table.allows(verb)) {
+				continue;
+			}
+			var transaction = connector.newTransaction();
+			transaction.setName(StringUtils.normalize(table.getTableName()) + "_" + verb);
+			transaction.hasChanged = true;
+			transaction.bNew = true;
+
+			var fragments = new LinkedHashMap<String, String>();
+			String updateParameter = null;
+			String query;
+			switch (verb) {
+			case "INSERT" -> {
+				var insertable = table.getColumns().stream()
+						.filter(c -> !c.isAutoIncrement() && !c.isGenerated() && !c.isReadOnlyType()).toList();
+				var names = insertable.stream().map(c -> table.quoteColumn(c.getName())).collect(Collectors.joining(", "));
+				var values = insertable.stream()
+						.map(c -> CrudSqlValue.expression(driver, c.getName(), c.getJdbcType(), c.getTypeName(), !c.isNotNull()))
+						.collect(Collectors.joining(", "));
+				var emptyInsert = driver.contains("mysql") || driver.contains("mariadb") ? " () VALUES ()" : " DEFAULT VALUES";
+				query = "INSERT INTO " + qualified + (insertable.isEmpty() ? emptyInsert : " (" + names + ")\nVALUES (" + values + ")");
+			}
+			case "SELECT" -> query = select + where;
+			case "LIST" -> {
+				table.getDisplayedColumns().forEach(c -> fragments.put(c.getName(), table.quoteColumn(c.getName())));
+				keys.forEach(key -> fragments.put(key, table.quoteColumn(key)));
+				query = select + "\n{{crud_order}}";
+				addCrudParameter(transaction, SqlCrudQuery.SORT_KEY, "");
+				addCrudParameter(transaction, SqlCrudQuery.SORT_DIRECTION, "asc");
+				if (table.hasListPagination()) {
+					query += listPaginationClause(driver);
+					addCrudParameter(transaction, SqlCrudQuery.LIMIT, Integer.toString(SqlCrudQuery.DEFAULT_LIMIT));
+					addCrudParameter(transaction, SqlCrudQuery.OFFSET, "0");
+				}
+			}
+			case "COUNT" -> query = "SELECT COUNT(*) AS total\nFROM " + qualified;
+			case "UPDATE" -> {
+				for (var column : table.getUpdateColumns()) {
+					fragments.put(column.getName(), table.quoteColumn(column.getName()) + " = " + CrudSqlValue.boundExpression(driver, column));
+				}
+				updateParameter = table.getUpdateParameter();
+				query = "UPDATE " + qualified + "\nSET {{crud_update}}" + where;
+			}
+			case "DELETE" -> query = "DELETE FROM " + qualified + where;
+			default -> {
+				continue;
+			}
+			}
+			transaction.setCrudQuery(new SqlCrudQuery(table.getIdentity(), fragments, keys, updateParameter).serialize());
+			transaction.setSqlQuery(query);
+			transaction.initializeQueries(true);
+			if ("COUNT".equals(verb)) {
+				prepareCrudTransaction(connector, transaction, verb, List.of("total"), Map.of("total", Types.BIGINT));
+			} else {
+				prepareCrudTransaction(connector, transaction, verb, columns, columnTypes);
+			}
+			transactions.add(transaction);
+		}
+		return transactions;
+	}
+
+	private static void addCrudParameter(SqlTransaction transaction, String name, String defaultValue) throws EngineException {
+		var variable = new RequestableVariable();
+		variable.setName(name);
+		variable.setDescription(name);
+		variable.setValueOrNull(defaultValue);
+		transaction.addVariable(variable);
 	}
 
 	private static String listPaginationClause(String driver) {
@@ -1290,43 +1267,6 @@ function onTransactionStarted() {
 	/** True when the generated _LIST transaction of this driver pages with its limit and offset variables. */
 	public static boolean hasListPagination(String driverClassName) {
 		return driverClassName != null && !listPaginationClause(driverClassName).isEmpty();
-	}
-
-	/** The column name as the generated CRUD transactions of this driver write it (quoted or not). */
-	public static String quoteColumnName(String driverClassName, String columnName) {
-		return formatColumnName(columnName, getIdentifierQuoter(driverClassName));
-	}
-
-	private static UnaryOperator<String> getIdentifierQuoter(String driverClassName) {
-		if (driverClassName == null) {
-			return UnaryOperator.identity();
-		}
-		var normalized = driverClassName.toLowerCase(Locale.ROOT);
-
-		if (normalized.contains("postgresql") || normalized.contains("hsqldb") || normalized.contains("db2")
-				|| normalized.contains("oracle") || normalized.contains("as400")) {
-			return SqlConnector::quoteWithDoubleQuotes;
-		}
-		if (normalized.contains("sqlserver") || normalized.contains("jtds")) {
-			return SqlConnector::quoteWithBrackets;
-		}
-		// MySQL & MariaDB use backticks by default; keeping identifiers as-is avoids ANSI_QUOTES dependency.
-		return UnaryOperator.identity();
-	}
-
-	private static String formatColumnName(String columnName, UnaryOperator<String> quoter) {
-		if (columnName == null || columnName.isEmpty() || quoter == null) {
-			return columnName;
-		}
-		return quoter.apply(columnName);
-	}
-
-	private static String quoteWithDoubleQuotes(String identifier) {
-		return "\"" + identifier.replace("\"", "\"\"") + "\"";
-	}
-
-	private static String quoteWithBrackets(String identifier) {
-		return "[" + identifier.replace("]", "]]") + "]";
 	}
 
 	private static void prepareCrudTransaction(SqlConnector connector, SqlTransaction transaction, String verb,

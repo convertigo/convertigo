@@ -65,9 +65,6 @@ public final class CrudUiDefaults {
 	/** A NOT NULL column without a default value is a required field. */
 	public static final boolean REQUIRED_WHEN_NOT_NULL_WITHOUT_DEFAULT = true;
 
-	/** A table without a primary key only gets a read-only list (its UPDATE and DELETE could touch several rows). */
-	public static final boolean KEYLESS_TABLE_READ_ONLY = true;
-
 	/**
 	 * Workaround while the generated INSERT keeps the columns with a computed default: a NOT NULL one is shown and
 	 * required in the creation form instead of being hidden (hidden, it would insert NULL and break the constraint).
@@ -99,6 +96,9 @@ public final class CrudUiDefaults {
 		labels.put("delete", "Delete");
 		labels.put("clearSelection", "Clear selection");
 		labels.put("save", "Save");
+		labels.put("boolean_unset", "Not set");
+		labels.put("boolean_true", "True");
+		labels.put("boolean_false", "False");
 		labels.put("cancel", "Cancel");
 		labels.put("close", "Close");
 		labels.put("confirmTitle", "Confirm");

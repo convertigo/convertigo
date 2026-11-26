@@ -27,6 +27,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.twinsoft.convertigo.beans.connectors.SqlConnector;
+
 /** Metadata and type mapping of the SQL CRUD user interface generator, on an in-memory HSQLDB database. */
 public class SqlTableInfoTest {
 	static final String HSQLDB = "org.hsqldb.jdbc.JDBCDriver";
@@ -120,13 +122,12 @@ public class SqlTableInfoTest {
 	@Test
 	public void editableTable() throws Exception {
 		var table = read("PAIRS");
-		assertEquals(List.of("A", "B"), table.getKeyColumns().stream().map(SqlColumnInfo::getName).toList());
+		assertEquals(List.of("A", "B"), table.getPrimaryKeys().stream().map(SqlColumnInfo::getName).toList());
 		assertFalse(table.isReadOnly());
 		assertTrue(table.canCreate());
 		assertTrue(table.canUpdate());
 		assertTrue(table.canDelete());
 		assertTrue(table.hasListPagination());
-		assertEquals("\"A\"", table.getDefaultSortKey());
 		assertTrue(table.getWarnings().isEmpty());
 	}
 
@@ -146,12 +147,11 @@ public class SqlTableInfoTest {
 	public void tableWithoutKeyIsReadOnly() throws Exception {
 		var table = read("LOGS");
 		assertTrue(table.getPrimaryKeys().isEmpty());
-		assertEquals(List.of("MSG"), table.getKeyColumns().stream().map(SqlColumnInfo::getName).toList());
 		assertTrue(table.isReadOnly());
 		assertFalse(table.canCreate());
 		assertFalse(table.canUpdate());
 		assertFalse(table.canDelete());
-		assertEquals("\"MSG\"", table.getDefaultSortKey());
+		assertFalse(table.hasListPagination());
 	}
 
 	@Test
@@ -163,16 +163,11 @@ public class SqlTableInfoTest {
 	}
 
 	@Test
-	public void sortKeysAreQuotedLikeTheGeneratedSelect() throws Exception {
+	public void identifiersUseTheDatabaseQuoting() throws Exception {
 		var table = read("MATRIX");
-		var c = table.getColumnsByName();
-		assertEquals("\"FirstName\"", table.getSortKey(c.get("FirstName")));
-		var mysql = new SqlTableInfo("t", "com.mysql.cj.jdbc.Driver", List.of(), List.of());
-		assertTrue(mysql.hasListPagination());
-		var sqlServer = new SqlTableInfo("t", "com.microsoft.sqlserver.jdbc.SQLServerDriver", List.of(), List.of());
-		assertEquals("[First Name]", sqlServer.getSortKey(new SqlColumnInfo("First Name", Types.VARCHAR, "varchar", 10, 0, false, null, false, false, null)));
-		var db2 = new SqlTableInfo("t", "com.ibm.db2.jcc.DB2Driver", List.of(), List.of());
-		assertFalse(db2.hasListPagination());
+		assertEquals("\"FirstName\"", table.quoteColumn("FirstName"));
+		assertTrue(SqlConnector.hasListPagination("com.mysql.cj.jdbc.Driver"));
+		assertFalse(SqlConnector.hasListPagination("com.ibm.db2.jcc.DB2Driver"));
 	}
 
 	@Test
