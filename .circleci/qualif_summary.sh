@@ -55,9 +55,12 @@ ${entry}"
 	printf '\n'
 } > "$summary_txt"
 
-for index in 1 2 3; do
-	name="qualif-jmx-${index}"
-	report_url="${report_root_url}/${name}_result.html"
+for name in qualif-jmx-1 qualif-jmx-2 qualif-jmx-3 qualif-jmx-mobile; do
+	report_path="${name}_result.html"
+	if [ "$name" = qualif-jmx-mobile ]; then
+		report_path="mobile/qualif-jmx-1_result.html"
+	fi
+	report_url="${report_root_url}/${report_path}"
 	report_file="${output_dir}/${name}_result.html"
 
 	if ! curl -fsSL --retry 5 --retry-delay 2 --retry-all-errors "$report_url" -o "$report_file"; then

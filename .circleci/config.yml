@@ -619,6 +619,10 @@ jobs:
 
   qualif_jmx_1:
     <<: *defaults
+    parameters:
+      mobile-only:
+        type: boolean
+        default: false
     steps:
     - aws-cli/setup
 
@@ -650,15 +654,47 @@ jobs:
         command: |
           source /tmp/build.env
           cd convertigo-qualif-jmx-1
+          mobile_plan=jmx/mobileAppBuild.jmx
+          test -f "$mobile_plan"
+          if << parameters.mobile-only >>; then
+            for plan in jmx/*.jmx; do
+              if [ "$plan" != "$mobile_plan" ]; then
+                rm -- "$plan"
+              fi
+            done
+          else
+            rm -- "$mobile_plan"
+          fi
+
           sh run.sh
-          mkdir -p $CONVERTIGO_DIST
-          mv out $CONVERTIGO_DIST/qualif
+          if << parameters.mobile-only >>; then
+            result=out/jtl/mobileAppBuild.jtl
+            if ! grep -Eq '^[[:space:]]*<(httpSample|sample)[[:space:]]' "$result" 2>/dev/null; then
+              echo "Warning: mobile qualification produced no JMeter samples."
+            elif grep -Eq '^[[:space:]]*<(httpSample|sample)[[:space:]][^>]*[[:space:]]s="false"' "$result"; then
+              echo "Warning: mobile qualification reported failed JMeter samples."
+            fi
+          else
+            mkdir -p "$CONVERTIGO_DIST"
+            mv out "$CONVERTIGO_DIST/qualif"
+          fi
           
     - run:
         name: Sync results to S3
         command: |
           source /tmp/build.env
-          aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/.. s3://convertigo-ci/
+          if << parameters.mobile-only >>; then
+            aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read \
+              convertigo-qualif-jmx-1/out/ "s3://convertigo-ci/convertigo-$CONVERTIGO_BUILD_NAME/qualif/mobile/"
+          else
+            aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read "$CONVERTIGO_DIST/.." s3://convertigo-ci/
+          fi
+    - when:
+        condition: << parameters.mobile-only >>
+        steps:
+        - store_artifacts:
+            path: convertigo-qualif-jmx-1/out/qualif-jmx-1_result.html
+            destination: qualif-mobile.html
           
   qualif_jmx_2:
     <<: *defaults
@@ -1319,6 +1355,14 @@ workflows:
         filters:
           tags:
             only: /^\d+\..*$/
+    - qualif_jmx_1:
+        name: qualif_jmx_mobile
+        mobile-only: true
+        requires:
+        - build_docker_aks
+        filters:
+          tags:
+            only: /^\d+\..*$/
     - qualif_jmx_2:
         requires:
         - build_docker_default
@@ -1334,6 +1378,10 @@ workflows:
     - qualif_summary:
         requires:
         - qualif_jmx_1:
+          - success
+          - failed
+          - canceled
+        - qualif_jmx_mobile:
           - success
           - failed
           - canceled
