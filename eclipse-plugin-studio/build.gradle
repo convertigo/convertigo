@@ -54,7 +54,7 @@ dependencies {
 	implementation fileTree(dir: 'lib', include: '*.jar')
 }
 
-task writeManifest(dependsOn: ['copyLicense', 'syncLib', ':engine:unzipSwaggerUI']) {
+task writeManifest(dependsOn: ['copyLicense', 'syncLib', ':engine:unzipSwaggerUI', ':engine:installPouchDbBundle']) {
 	group = 'convertigo'
 	
 	doLast {

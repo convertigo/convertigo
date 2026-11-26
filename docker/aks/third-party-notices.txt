@@ -13,3 +13,12 @@ under their respective licenses. The original LICENSE file is shipped unchanged
 at the root of the Node.js distribution (WEB-INF/node/LICENSE). It contains the
 Node.js license and notices for its included third-party software. The upstream
 distribution's other license and notice files are retained as well.
+
+PouchDB server (https://github.com/pouchdb/pouchdb-server)
+
+Convertigo distributions include pouchdb-server and its dependencies, bundled
+in WEB-INF/pouchdb/pouchdb-server.cjs, with the leveldown
+binaries, which include LevelDB and Snappy. Their licenses (Apache-2.0, MIT,
+BSD-3-Clause, ISC and others) and the list of the bundled packages are shipped in
+WEB-INF/pouchdb/THIRD-PARTY-NOTICES.txt; the changes made by Convertigo are listed
+at the top of pouchdb-server.cjs.

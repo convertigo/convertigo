@@ -72,7 +72,7 @@ For compatibility with existing deployments, the image also detects a resolvable
 
 ## Use embedded PouchDB as FullSync engine (not for production)
 
-Convertigo FullSync is designed to use CouchDB server or cluster. Convertigo FullSync is also compatible with PouchDB but only for little projects or tests. Internet access is required to enable this feature.
+Convertigo FullSync is designed to use CouchDB server or cluster. Convertigo FullSync is also compatible with PouchDB but only for little projects or tests. The PouchDB server is included and runs without Internet access.
 
 It can be enabled directly at startup:
 
