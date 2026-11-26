@@ -19,8 +19,6 @@
 
 package com.twinsoft.convertigo.eclipse.editors;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -67,8 +65,17 @@ public final class ViewerJsDialogs {
 	private final Composite bar;
 	/** The question waiting for its answer, read and written on the UI thread only. */
 	private Question pending;
-	/** The alerts not acknowledged yet, oldest first, read and written on the UI thread only. */
-	private final List<String> alerts = new ArrayList<>();
+	private Object pendingPage;
+
+	// The browser callbacks share the page and alert state with the UI thread.
+	private Browser browser;
+	private Object page;
+	private boolean closed;
+	private String lastAlert;
+	private long alertCount;
+	private boolean alertRefreshQueued;
+
+	private record Alerts(Object page, String message, long count) {}
 
 	/** The answer of one confirm() or prompt(), given once: null means Cancel. */
 	static final class Question {
@@ -118,12 +125,13 @@ public final class ViewerJsDialogs {
 			bar.setData("style", "background-color: #4c525d");
 		}
 		bar.addDisposeListener(e -> {
-			alerts.clear();
-			Question question = pending;
-			pending = null;
-			if (question != null) {
-				cancel(question, "the viewer is closed");
+			synchronized (this) {
+				closed = true;
+				browser = null;
+				page = null;
+				clearAlerts();
 			}
+			cancelPending("the viewer is closed");
 		});
 	}
 
@@ -138,26 +146,30 @@ public final class ViewerJsDialogs {
 	}
 
 	void install(Browser browser) {
-		// a recreated browser no longer waits for the previous question
-		onUiThread(() -> newPage("the browser was recreated"));
+		synchronized (this) {
+			if (closed) {
+				return;
+			}
+			this.browser = browser;
+			changePage("the browser was recreated");
+		}
 
 		browser.set(AlertCallback.class, (params, tell) -> {
+			Object origin = pageOf(browser);
 			// the page does not wait for an alert
 			tell.ok();
+			if (origin == null) {
+				return;
+			}
 			String message = params.message() == null ? "" : params.message();
 			Engine.logStudio.warn("(" + viewer + ") JavaScript alert from " + params.url() + ": " + message);
-			onUiThread(() -> {
-				alerts.add(message);
-				// a waiting question keeps the bar, and its typed answer: the alert comes after it
-				if (pending == null) {
-					refresh();
-				}
-			});
+			alert(origin, message);
 		});
 
 		browser.set(ConfirmCallback.class, (params, tell) -> {
+			Object origin = pageOf(browser);
 			Engine.logStudio.info("(" + viewer + ") JavaScript confirm from " + params.url() + ", answer it in the viewer: " + params.message());
-			ask(new Question(params.message(), null, value -> {
+			ask(origin, new Question(params.message(), null, value -> {
 				if (value != null) {
 					tell.ok();
 				} else {
@@ -167,9 +179,10 @@ public final class ViewerJsDialogs {
 		});
 
 		browser.set(PromptCallback.class, (params, tell) -> {
+			Object origin = pageOf(browser);
 			Engine.logStudio.info("(" + viewer + ") JavaScript prompt from " + params.url() + ", answer it in the viewer: " + params.message());
 			String text = params.text();
-			ask(new Question(params.message(), text == null ? "" : text, value -> {
+			ask(origin, new Question(params.message(), text == null ? "" : text, value -> {
 				if (value != null) {
 					tell.ok(value);
 				} else {
@@ -180,59 +193,123 @@ public final class ViewerJsDialogs {
 
 		browser.set(BeforeUnloadCallback.class, (params, tell) -> tell.leave());
 
-		// a new page neither waits for the question of the previous one nor keeps its alerts
 		browser.navigation().on(NavigationStarted.class, event -> {
 			if (event.isInMainFrame() && !event.isSameDocument()) {
-				onUiThread(() -> newPage("the page changes"));
+				synchronized (this) {
+					if (this.browser == browser) {
+						changePage("the page changes");
+					}
+				}
 			}
 		});
 	}
 
-	/** Called by the browser: shows the question in the bar, or answers Cancel at once if it cannot. */
-	void ask(Question question) {
-		try {
-			display.asyncExec(() -> show(question));
-		} catch (Exception | LinkageError e) {
-			cancel(question, "the viewer cannot show the question: " + e);
+	private synchronized Object pageOf(Browser browser) {
+		return this.browser == browser ? page : null;
+	}
+
+	private synchronized boolean isCurrentPage(Object origin) {
+		return origin != null && page == origin;
+	}
+
+	private synchronized void alert(Object origin, String message) {
+		if (!isCurrentPage(origin)) {
+			return;
+		}
+		lastAlert = message;
+		alertCount++;
+		if (!alertRefreshQueued) {
+			alertRefreshQueued = onUiThread(this::refreshAlerts);
 		}
 	}
 
-	private void onUiThread(Runnable runnable) {
+	private void refreshAlerts() {
+		synchronized (this) {
+			alertRefreshQueued = false;
+		}
+		// A waiting question keeps its input and focus. Its reply refreshes the alerts.
+		if (pending == null) {
+			refresh();
+		}
+	}
+
+	private synchronized void clearAlerts() {
+		lastAlert = null;
+		alertCount = 0;
+	}
+
+	private synchronized Alerts alerts() {
+		return alertCount == 0 ? null : new Alerts(page, lastAlert, alertCount);
+	}
+
+	private synchronized void acknowledge(Alerts shown) {
+		if (isCurrentPage(shown.page())) {
+			alertCount -= shown.count();
+			if (alertCount == 0) {
+				lastAlert = null;
+			}
+		}
+	}
+
+	/** Called with the browser state lock held, before any callbacks for the new page are queued. */
+	private void changePage(String reason) {
+		Object nextPage = new Object();
+		page = nextPage;
+		clearAlerts();
+		onUiThread(() -> {
+			if (isCurrentPage(nextPage)) {
+				cancelPending(reason);
+				refresh();
+			}
+		});
+	}
+
+	private void ask(Object origin, Question question) {
+		synchronized (this) {
+			if (isCurrentPage(origin) && onUiThread(() -> show(origin, question))) {
+				return;
+			}
+		}
+		cancel(question, "the viewer cannot show the question");
+	}
+
+	private boolean onUiThread(Runnable runnable) {
 		try {
 			display.asyncExec(runnable);
-		} catch (Exception e) {
+			return true;
+		} catch (Exception | LinkageError e) {
 			// the Studio is closing
+			return false;
 		}
 	}
 
-	private void newPage(String reason) {
-		alerts.clear();
+	private void cancelPending(String reason) {
 		Question question = pending;
 		pending = null;
+		pendingPage = null;
 		if (question != null) {
 			cancel(question, reason);
 		}
-		refresh();
 	}
 
-	private void show(Question question) {
+	private void show(Object origin, Question question) {
 		if (question.isAnswered()) {
 			return;
 		}
-		if (bar.isDisposed()) {
-			cancel(question, "the viewer is closed");
+		if (bar.isDisposed() || !isCurrentPage(origin)) {
+			cancel(question, "the page is no longer in the viewer");
 			return;
 		}
 		Question previous = pending;
 		pending = question;
+		pendingPage = origin;
 		if (previous != null) {
 			cancel(previous, "a new question replaces it");
 		}
 		try {
 			refresh();
 		} catch (Exception e) {
-			pending = null;
-			cancel(question, "the viewer cannot show the question: " + e);
+			cancelPending("the viewer cannot show the question: " + e);
 			refresh();
 		}
 	}
@@ -250,12 +327,13 @@ public final class ViewerJsDialogs {
 		}
 		Control focus = null;
 		Question question = pending;
+		Alerts alerts = question == null ? alerts() : null;
 		if (question != null) {
 			focus = showQuestion(question);
-		} else if (!alerts.isEmpty()) {
-			showAlerts();
+		} else if (alerts != null) {
+			showAlerts(alerts);
 		}
-		boolean visible = question != null || !alerts.isEmpty();
+		boolean visible = question != null || alerts != null;
 		((GridData) bar.getLayoutData()).exclude = !visible;
 		bar.setVisible(visible);
 		bar.getParent().layout(true, true);
@@ -297,11 +375,11 @@ public final class ViewerJsDialogs {
 		return answer != null ? answer : ok;
 	}
 
-	private void showAlerts() {
-		int count = alerts.size();
+	private void showAlerts(Alerts alerts) {
+		long count = alerts.count();
 		bar.setLayout(barLayout(count > 1 ? 4 : 3));
 		icon(SWT.ICON_INFORMATION);
-		message(alerts.get(count - 1));
+		message(alerts.message());
 		if (count > 1) {
 			Label counter = new Label(bar, SWT.NONE);
 			counter.setText(count + " alerts");
@@ -311,7 +389,7 @@ public final class ViewerJsDialogs {
 		Button ok = new Button(bar, SWT.PUSH);
 		ok.setText("OK");
 		ok.addListener(SWT.Selection, e -> {
-			alerts.clear();
+			acknowledge(alerts);
 			refresh();
 		});
 	}
@@ -347,9 +425,14 @@ public final class ViewerJsDialogs {
 	}
 
 	private void reply(Question question, String value) {
-		if (pending == question) {
-			pending = null;
+		if (pending != question) {
+			return;
 		}
+		if (!isCurrentPage(pendingPage)) {
+			value = null;
+		}
+		pending = null;
+		pendingPage = null;
 		if (question.answer(value)) {
 			Engine.logStudio.info("(" + viewer + ") JavaScript " + (question.isPrompt() ? "prompt" : "confirm")
 					+ " answered " + (value == null ? "Cancel" : "OK"));
