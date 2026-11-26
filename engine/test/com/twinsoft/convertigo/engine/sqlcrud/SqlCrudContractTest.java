@@ -209,6 +209,24 @@ public class SqlCrudContractTest {
 	}
 
 	@Test
+	public void ordinarySqlExpandsFragmentsBeforeBinding() throws Exception {
+		var transaction = connector.newTransaction();
+		transaction.setName("ordinary");
+		connector.add(transaction);
+		transaction.setSqlQuery("SELECT label FROM items WHERE {{predicate}}");
+		transaction.variables.put("predicate", "{{column}} = '{label}' OR {{column}} = {other}");
+		transaction.variables.put("column", "label");
+		transaction.variables.put("label", "first");
+		transaction.variables.put("other", "second");
+		var query = transaction.initializeQueries(true).get(0);
+		assertEquals("SELECT label FROM items WHERE label = ? OR label = ?", query.getQuery());
+		assertEquals(List.of("label", "other"), query.getOrderedParametersList());
+		transaction.variables.put("predicate", "{{column}}");
+		transaction.variables.put("column", "{{predicate}}");
+		assertThrows(EngineException.class, () -> transaction.initializeQueries(false));
+	}
+
+	@Test
 	public void regeneratedSequenceTakesTheChosenSettings() throws Exception {
 		var transaction = transactions.get("LIST");
 		var hidden = SqlCrudGeneration.createSequence(transaction, Accessibility.Hidden, true);
