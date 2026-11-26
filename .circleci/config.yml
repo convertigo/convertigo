@@ -211,6 +211,51 @@ jobs:
         - ~/.gradle/caches/build-cache-1
         key: v6-engine-build-cache-{{ checksum ".circleci/cache/engine.fingerprint" }}-{{ .Revision }}
 
+  engine_check:
+    <<: *defaults
+    steps:
+    - checkout
+
+    - run:
+        name: Generate engine cache fingerprint
+        command: ./.circleci/cache_fingerprint.sh engine .circleci/cache/engine.fingerprint
+
+    - restore_cache:
+        keys:
+        - v6-engine-dependencies-{{ checksum ".circleci/cache/engine.fingerprint" }}
+
+    - run:
+        name: Run engine verification
+        no_output_timeout: 20m
+        command: |
+          result_dir=engine/build/ci-test-results
+          mkdir -p "$result_dir"
+          status=0
+          ./gradlew --console=plain --no-configuration-cache --max-workers=2 --continue \
+            --init-script .circleci/engine_check_reports.gradle :engine:check || status=$?
+          for report in engine/build/test-results/test/TEST-*.xml; do
+            if [ -f "$report" ]; then
+              cp "$report" "$result_dir/"
+            fi
+          done
+          printf '%s\n' "$status" > /tmp/qualif-engine-check.exit
+
+    - store_test_results:
+        path: engine/build/ci-test-results
+
+    - store_artifacts:
+        path: engine/build/ci-test-results
+        destination: engine-check-junit
+
+    - persist_to_workspace:
+        root: /tmp
+        paths:
+        - qualif-engine-check.exit
+
+    - run:
+        name: Report engine verification status
+        command: exit "$(cat /tmp/qualif-engine-check.exit)"
+
   build_web_admin:
     <<: *defaults
 
@@ -794,7 +839,7 @@ jobs:
         name: Generate qualif summary
         command: |
           source /tmp/build.env
-          sh ./.circleci/qualif_summary.sh "$CONVERTIGO_DIST/qualif"
+          sh ./.circleci/qualif_summary.sh "$CONVERTIGO_DIST/qualif" /tmp/qualif-engine-check.exit
 
     - run:
         name: Sync summary to S3
@@ -1294,6 +1339,10 @@ workflows:
             - 7.5.x
           tags:
             only: /^\d+\..*$/
+    - engine_check:
+        filters:
+          tags:
+            only: /^\d+\..*$/
     - build_web_admin:
         requires:
         - prepare_build
@@ -1377,6 +1426,10 @@ workflows:
             only: /^\d+\..*$/
     - qualif_summary:
         requires:
+        - engine_check:
+          - success
+          - failed
+          - canceled
         - qualif_jmx_1:
           - success
           - failed
