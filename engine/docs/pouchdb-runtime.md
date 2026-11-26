@@ -36,6 +36,6 @@ Docker images, Electron Studios and Windows Server get their copy from the porta
 The macOS Studio packagers sign the native addon before signing the application. They update its
 digest and its bytes in both the installed bundle and the accompanying provider JAR.
 
-`ext.pouchDbInWar = true` in the root `build.gradle` is the only switch: with false, the WAR, hence
-the Docker images, does not include the PouchDB server, and FullSync with PouchDB installs it with
-npm on first use.
+With `ext.pouchDbInWar = false` in the root `build.gradle`, the WAR omits both the installed bundle
+and the payload inside its copy of the provider JAR. FullSync with PouchDB installs it with npm on
+first use. The Eclipse Studio keeps its bundle.

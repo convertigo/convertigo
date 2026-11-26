@@ -204,10 +204,38 @@ tasks['publishToMavenLocal'].dependsOn dependenciesJar
 tasks['publish'].dependsOn dependenciesJar
 compileJava.dependsOn dependenciesJar
 
+def couchDbProviderArtifacts = { Configuration classpath ->
+	classpath.incoming.artifactView {
+		componentFilter { id ->
+			id instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier &&
+					id.group == 'com.convertigo.provider' && id.module == 'convertigo-provider-couchdb'
+		}
+	}.files
+}
+
+if (!pouchDbInWar) {
+	tasks.register('prepareWarProviderWithoutPouchDb', Zip) {
+		def provider = couchDbProviderArtifacts(configurations.runtimeClasspath)
+		from { zipTree(provider.singleFile) }
+		exclude 'pouchdb/**'
+		archiveFileName = providers.provider { provider.singleFile.name }
+		destinationDirectory = layout.buildDirectory.dir('tmp/warProviderWithoutPouchDb')
+		preserveFileTimestamps = false
+		reproducibleFileOrder = true
+	}
+}
+
 def warRuntimeClasspathDir = layout.buildDirectory.dir('tmp/warRuntimeClasspath')
 
 tasks.register('prepareWarRuntimeClasspath', Sync) {
-	from configurations.runtimeClasspath
+	from(configurations.runtimeClasspath) {
+		if (!pouchDbInWar) {
+			exclude 'convertigo-provider-couchdb-*.jar'
+		}
+	}
+	if (!pouchDbInWar) {
+		from tasks.named('prepareWarProviderWithoutPouchDb')
+	}
 	// the SAP JCo placeholder is only shipped once, renamed to sapjco3.jar (see the 'sapjco3' configuration below)
 	exclude 'sapjco3-*.jar'
 	into warRuntimeClasspathDir
@@ -222,12 +250,7 @@ tasks.register('prepareWarRuntimeClasspath', Sync) {
 // Extract the payload of the actual provider artifact selected for each distribution.
 def installPouchDbFrom = { Sync task, Closure resolveClasspath ->
 	task.from {
-		def provider = resolveClasspath().incoming.artifactView {
-			componentFilter { id ->
-				id instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier &&
-						id.group == 'com.convertigo.provider' && id.module == 'convertigo-provider-couchdb'
-			}
-		}.files.singleFile
+		def provider = couchDbProviderArtifacts(resolveClasspath()).singleFile
 		new java.util.zip.ZipFile(provider).withCloseable { archive ->
 			if (!archive.getEntry('pouchdb/bundle-info.json') || !archive.getEntry('pouchdb/pouchdb-server.cjs')) {
 				throw new GradleException("The resolved CouchDB provider JAR ${provider.name} does not contain the PouchDB bundle")
