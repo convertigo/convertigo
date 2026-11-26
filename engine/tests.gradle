@@ -520,8 +520,8 @@ tasks.register('statisticsTest', JavaExec) {
 tasks.register('sequenceRequestStatisticsTest', JavaExec) {
 	group = 'verification'
 	description = 'Regression test: parallel calls and early returns keep sequence request timings consistent.'
-	dependsOn sessionTestClasses
-	classpath = sourceSets.sessionTest.runtimeClasspath
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.SequenceRequestStatisticsTest'
 }
