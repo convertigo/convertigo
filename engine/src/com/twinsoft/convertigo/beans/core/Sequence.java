@@ -136,6 +136,10 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	transient private boolean arborting = false;
 	
 	transient private boolean skipSteps = false;
+
+	private transient int sequenceCallsRunning;
+	private transient long sequenceCallStart;
+	private transient long sequenceCallDuration;
 	
 	transient private List<RequestableVariable> vAllVariables = null;
 	transient private List<RequestableVariable> vVariables = new ArrayList<RequestableVariable>();
@@ -1328,13 +1332,39 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		removeSequenceContext();
 	}
 	
+	/** Measure wall time with at least one call running, including calls that overlap in parallel branches. */
+	synchronized void startSequenceCall() {
+		if (sequenceCallsRunning++ == 0) {
+			sequenceCallStart = System.currentTimeMillis();
+			sequenceCallDuration = Math.max(sequenceCallDuration, 0);
+		}
+	}
+
+	synchronized void stopSequenceCall() {
+		if (--sequenceCallsRunning == 0) {
+			sequenceCallDuration += Math.max(0, System.currentTimeMillis() - sequenceCallStart);
+		}
+	}
+
+	private synchronized void recordSequenceCallDuration() {
+		if (sequenceCallDuration >= 0) {
+			long duration = sequenceCallDuration;
+			if (sequenceCallsRunning > 0) {
+				duration += Math.max(0, System.currentTimeMillis() - sequenceCallStart);
+			}
+			context.statistics.add(EngineStatistics.EXECUTE_SEQUENCE_CALLS, duration);
+		}
+	}
+
 	protected boolean executeNextStep(org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException
     {
 		arborting = false;
 		skipSteps = false;
     	nbAsyncThreadRunning = 0;
     	stepContextNames = new ArrayList<String>();
-    	
+		sequenceCallsRunning = 0;
+		sequenceCallDuration = -1;
+
     	// Retrieves HttpState of sequence
     	getHttpState();
 		
@@ -1372,6 +1402,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		        			break;
 	    			}
 	    		} finally {
+					recordSequenceCallDuration();
 	    			context.statistics.stop(ts);
 	    		}
 	    		

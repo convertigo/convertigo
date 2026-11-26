@@ -63,7 +63,6 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
-import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
@@ -397,8 +396,6 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 			Engine.logBeans.debug("(TransactionStep) Executing method - " + method.getName() + "("
 					+ method.getPath() + ")");
 
-			String ts = sequence.context.statistics.start(EngineStatistics.EXECUTE_SEQUENCE_CALLS);
-
 			try {
 				requestHeaders = method.getRequestHeaders();
 				if (Engine.logBeans.isTraceEnabled())
@@ -446,8 +443,6 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 			} finally {
 				if (method != null)
 					method.releaseConnection();
-
-				sequence.context.statistics.stop(ts, sequence.getCurrentChildStep() != 0);
 			}
 		}
 		return result;

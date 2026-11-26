@@ -888,7 +888,13 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	            	}
 	            	else {
 		            	Engine.logBeans.debug("(RequestableStep) requesting : "+ method.getURI());
-		            	byte[] result = executeMethod();
+						byte[] result;
+						sequence.startSequenceCall();
+						try {
+							result = executeMethod();
+						} finally {
+							sequence.stopSequenceCall();
+						}
 		            	Engine.logBeans.debug("(RequestableStep) Total read bytes: " + ((result != null) ? result.length:0));
 		            	if (result != null) {
 			            	makeDocument(result);

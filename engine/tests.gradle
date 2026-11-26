@@ -331,6 +331,16 @@ tasks.register('statisticsTest', JavaExec) {
 	args 'com.twinsoft.convertigo.engine.util.StatisticsTest'
 }
 
+tasks.register('sequenceRequestStatisticsTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: parallel calls and early returns keep sequence request timings consistent.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.SequenceRequestStatisticsTest'
+}
+tasks.named('check') { dependsOn 'sequenceRequestStatisticsTest' }
+
 tasks.register('crypto2Test', JavaExec) {
 	group = 'verification'
 	description = 'Regression test: Crypto2 gives the same bytes as when it built its key and ciphers at each call, also from concurrent threads.'
