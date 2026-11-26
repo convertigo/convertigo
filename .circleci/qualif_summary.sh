@@ -2,8 +2,8 @@
 
 set -eu
 
-if [ "$#" -ne 1 ]; then
-	echo "Usage: $0 <output-dir>" >&2
+if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
+	echo "Usage: $0 <output-dir> [engine-check-exit-file]" >&2
 	exit 1
 fi
 
@@ -12,6 +12,7 @@ report_root_url="${CONVERTIGO_URL}/qualif"
 report_listing_url="https://convertigo-ci.s3-eu-west-3.amazonaws.com/index.html?prefix=convertigo-${CONVERTIGO_BUILD_NAME}/qualif/"
 summary_txt="${output_dir}/qualif-summary.txt"
 summary_json="${output_dir}/qualif-summary.json"
+engine_check_exit_file="${2:-}"
 
 mkdir -p "$output_dir"
 
@@ -55,9 +56,12 @@ ${entry}"
 	printf '\n'
 } > "$summary_txt"
 
-for index in 1 2 3; do
-	name="qualif-jmx-${index}"
-	report_url="${report_root_url}/${name}_result.html"
+for name in qualif-jmx-1 qualif-jmx-2 qualif-jmx-3 qualif-jmx-mobile; do
+	report_path="${name}_result.html"
+	if [ "$name" = qualif-jmx-mobile ]; then
+		report_path="mobile/qualif-jmx-1_result.html"
+	fi
+	report_url="${report_root_url}/${report_path}"
 	report_file="${output_dir}/${name}_result.html"
 
 	if ! curl -fsSL --retry 5 --retry-delay 2 --retry-all-errors "$report_url" -o "$report_file"; then
@@ -92,6 +96,15 @@ EOF
 	append_json_report "$name" "$tests" "$failures" "$success_rate" "$average_time" "$total_time" "$report_url"
 done
 
+engine_check_status=unavailable
+if [ -f "$engine_check_exit_file" ]; then
+	case "$(cat "$engine_check_exit_file")" in
+		0) engine_check_status=passed ;;
+		[1-9]|[1-9][0-9]|[1-9][0-9][0-9]) engine_check_status=failed ;;
+	esac
+fi
+printf 'engine-check: %s\n' "$engine_check_status" >> "$summary_txt"
+
 subject="Convertigo ${CIRCLE_BRANCH:-tag} build ${CONVERTIGO_BUILD_NAME} finished with ${total_failures} failures"
 if [ "$summary_errors" -gt 0 ]; then
 	subject="${subject} (${summary_errors} summary errors)"
@@ -114,6 +127,7 @@ cat > "$summary_json" <<EOF
   "branch": "${CIRCLE_BRANCH:-}",
   "buildName": "${CONVERTIGO_BUILD_NAME}",
   "totalFailures": ${total_failures},
+  "engineCheck": "${engine_check_status}",
   "summaryErrors": ${summary_errors},
   "reportsUrl": "${report_listing_url}",
   "subject": "${subject}",
