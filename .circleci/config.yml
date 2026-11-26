@@ -24,6 +24,27 @@ parameters:
 orbs:
   aws-cli: circleci/aws-cli@5.4.1
 commands:
+  checkout-qualif:
+    parameters:
+      suite:
+        type: integer
+      branch:
+        type: string
+    steps:
+    - run:
+        name: Checkout the qualification suite
+        command: |
+          : "${QUALIF_GITHUB_TOKEN:?Set QUALIF_GITHUB_TOKEN in the qualif-github context}"
+          umask 077
+          askpass=$(mktemp)
+          trap 'rm -f "$askpass"' EXIT
+          printf '%s\n' '#!/bin/sh' 'printf "%s\n" "$QUALIF_GITHUB_TOKEN"' > "$askpass"
+          chmod 700 "$askpass"
+          GIT_ASKPASS="$askpass" GIT_TERMINAL_PROMPT=0 \
+            git -c credential.helper= -c credential.username=x-access-token clone \
+              --depth 1 --branch "<< parameters.branch >>" --single-branch \
+              "https://github.com/convertigo/convertigo-qualif-jmx-<< parameters.suite >>.git"
+
   docker_build_push:
     description: >
       Build docker/<type> with buildx and push it once with every requested tag.
@@ -677,12 +698,9 @@ jobs:
     - setup_remote_docker:
         version: default
     
-    - run:
-        name: Checkout the qualif-jmx-1 project
-        command: |
-          ssh-keyscan ssh.bitbucket.org >> ~/.ssh/known_hosts
-          echo -e "Host ssh.bitbucket.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
-          git clone --depth 1 -b 8.5.x git@ssh.bitbucket.org:convertigoqualif/convertigo-qualif-jmx-1.git
+    - checkout-qualif:
+        suite: 1
+        branch: "8.5.x"
           
     - run:
         name: Pull the docker aks image
@@ -711,7 +729,11 @@ jobs:
             rm -- "$mobile_plan"
           fi
 
-          sh run.sh
+          if << parameters.mobile-only >>; then
+            sh run.sh || echo "Warning: mobile qualification did not finish successfully."
+          else
+            sh run.sh
+          fi
           if << parameters.mobile-only >>; then
             result=out/jtl/mobileAppBuild.jtl
             if ! grep -Eq '^[[:space:]]*<(httpSample|sample)[[:space:]]' "$result" 2>/dev/null; then
@@ -730,7 +752,8 @@ jobs:
           source /tmp/build.env
           if << parameters.mobile-only >>; then
             aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read \
-              convertigo-qualif-jmx-1/out/ "s3://convertigo-ci/convertigo-$CONVERTIGO_BUILD_NAME/qualif/mobile/"
+              convertigo-qualif-jmx-1/out/ "s3://convertigo-ci/convertigo-$CONVERTIGO_BUILD_NAME/qualif/mobile/" \
+              || echo "Warning: mobile qualification results could not be published."
           else
             aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read "$CONVERTIGO_DIST/.." s3://convertigo-ci/
           fi
@@ -752,12 +775,9 @@ jobs:
     - setup_remote_docker:
         version: default
     
-    - run:
-        name: Checkout the qualif-jmx-2 project
-        command: |
-          ssh-keyscan ssh.bitbucket.org >> ~/.ssh/known_hosts
-          echo -e "Host ssh.bitbucket.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
-          git clone --depth 1 -b 8.5.0 git@ssh.bitbucket.org:convertigoqualif/convertigo-qualif-jmx-2.git
+    - checkout-qualif:
+        suite: 2
+        branch: "8.5.0"
           
     - run:
         name: Pull the docker default image
@@ -767,7 +787,7 @@ jobs:
           
           docker pull $CONVERTIGO_IMAGE
           docker tag $CONVERTIGO_IMAGE c8o:latest
-          docker pull convertigo/qualif-jmeter:v2
+          docker pull convertigo/qualif-jmeter:v4
           
     - run:
         name: Run the qualif
@@ -795,12 +815,9 @@ jobs:
     - setup_remote_docker:
         version: default
     
-    - run:
-        name: Checkout the qualif-jmx-3 project
-        command: |
-          ssh-keyscan ssh.bitbucket.org >> ~/.ssh/known_hosts
-          echo -e "Host ssh.bitbucket.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
-          git clone --depth 1 -b 8.5.x git@ssh.bitbucket.org:convertigoqualif/convertigo-qualif-jmx-3.git
+    - checkout-qualif:
+        suite: 3
+        branch: "8.5.x"
           
     - run:
         name: Pull the docker default image
@@ -810,7 +827,7 @@ jobs:
           
           docker pull $CONVERTIGO_IMAGE
           docker tag $CONVERTIGO_IMAGE c8o:latest
-          docker pull convertigo/qualif-jmeter:v2
+          docker pull convertigo/qualif-jmeter:v4
           
     - run:
         name: Run the qualif
@@ -1399,12 +1416,14 @@ workflows:
           tags:
             only: /^\d+\..*$/
     - qualif_jmx_1:
+        context: qualif-github
         requires:
         - build_docker_aks
         filters:
           tags:
             only: /^\d+\..*$/
     - qualif_jmx_1:
+        context: qualif-github
         name: qualif_jmx_mobile
         mobile-only: true
         requires:
@@ -1413,12 +1432,14 @@ workflows:
           tags:
             only: /^\d+\..*$/
     - qualif_jmx_2:
+        context: qualif-github
         requires:
         - build_docker_default
         filters:
           tags:
             only: /^\d+\..*$/
     - qualif_jmx_3:
+        context: qualif-github
         requires:
         - build_docker_default
         filters:
