@@ -84,7 +84,6 @@ tasks['eclipse'].dependsOn ':engine:dependenciesSourceJar'
 configurations {
 	compileFlat
 	sapjco3
-	pouchDbBundle
 }
 
 configurations.compileFlat {
@@ -220,23 +219,40 @@ tasks.register('prepareWarRuntimeClasspath', Sync) {
 	}
 }
 
-// The pouchdb-server bundle, the same for every platform, in the webapp of the Studio: the dev Studio,
-// the Eclipse Studios and, unless pouchDbInWar is false, the WAR (hence Docker, Electron and Windows
-// Server) use it read-only.
+// Extract the payload of the actual provider artifact selected for each distribution.
+def installPouchDbFrom = { Sync task, Closure resolveClasspath ->
+	task.from {
+		def provider = resolveClasspath().incoming.artifactView {
+			componentFilter { id ->
+				id instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier &&
+						id.group == 'com.convertigo.provider' && id.module == 'convertigo-provider-couchdb'
+			}
+		}.files.singleFile
+		new java.util.zip.ZipFile(provider).withCloseable { archive ->
+			if (!archive.getEntry('pouchdb/bundle-info.json') || !archive.getEntry('pouchdb/pouchdb-server.cjs')) {
+				throw new GradleException("The resolved CouchDB provider JAR ${provider.name} does not contain the PouchDB bundle")
+			}
+		}
+		zipTree(provider)
+	}
+	task.include 'pouchdb/**'
+	task.eachFile { it.path = it.path.substring('pouchdb/'.length()) }
+	task.includeEmptyDirs = false
+	task.filePermissions { unix('0644') }
+	task.dirPermissions { unix('0755') }
+}
+
+def studioPouchDbDir = file('../eclipse-plugin-studio/tomcat/webapps/convertigo/WEB-INF/pouchdb')
 tasks.register('installPouchDbBundle', Sync) {
 	group = 'convertigo'
-	description = 'Installs the pouchdb-server bundle of the CouchDB provider in WEB-INF/pouchdb.'
-	from({ zipTree(configurations.pouchDbBundle.singleFile) }) {
-		eachFile { it.path = it.path.replaceFirst('^pouchdb/', '') }
-		includeEmptyDirs = false
-	}
-	into '../eclipse-plugin-studio/tomcat/webapps/convertigo/WEB-INF/pouchdb'
-	filePermissions {
-		unix('0644')
-	}
-	dirPermissions {
-		unix('0755')
-	}
+	description = 'Installs the PouchDB bundle from the CouchDB provider used by the Eclipse Studio.'
+	installPouchDbFrom(delegate, { project(':eclipse-plugin-studio').configurations.toSync })
+	into studioPouchDbDir
+}
+
+def warPouchDbBundle = tasks.register('prepareWarPouchDbBundle', Sync) {
+	installPouchDbFrom(delegate, { configurations.runtimeClasspath })
+	into layout.buildDirectory.dir('tmp/warPouchDbBundle')
 }
 
 war {
@@ -282,9 +298,12 @@ war {
 	exclude 'WEB-INF/flow-migration/**'
 	// Platform-specific runtimes belong to the installers, never to the portable WAR.
 	exclude 'WEB-INF/node/**'
-	// the PouchDB server, the same for every platform, unless pouchDbInWar is false (see docs/pouchdb-runtime.md)
-	if (!pouchDbInWar) {
-		exclude 'WEB-INF/pouchdb/**'
+	// The Studio webapp may already have a bundle from its own provider resolution.
+	exclude { it.file.toPath().startsWith(studioPouchDbDir.toPath()) }
+	if (pouchDbInWar) {
+		webInf {
+			from(warPouchDbBundle) { into 'pouchdb' }
+		}
 	}
 	
 	exclude '**/keys.txt'
@@ -302,9 +321,6 @@ war {
 	}
 	
 	dependsOn 'unzipSwaggerUI', 'prepareWarRuntimeClasspath'
-	if (pouchDbInWar) {
-		dependsOn 'installPouchDbBundle'
-	}
 }
 
 sourceSets {
@@ -339,8 +355,6 @@ dependencies {
 	compileFlat    'com.convertigo.lib:httpclientAuthHelper:2014.12.23'
 	compileFlat    'com.smartbear.soapui:soapui-light:' + soapuiVersion
 	implementation "com.convertigo.provider:convertigo-provider-couchdb:8.5.0-SNAPSHOT"
-	// the pouchdb-server bundle of the same provider version (see docs/pouchdb-runtime.md)
-	pouchDbBundle  "com.convertigo.provider:convertigo-provider-couchdb:8.5.0-SNAPSHOT:pouchdb@zip"
 	implementation 'com.convertigo.provider:convertigo-provider-sap:8.4.5'
 	compileFlat    'com.convertigo.twinsoft.lib:aviva:2017.09.04'
 	compileFlat    'com.convertigo.twinsoft.lib:comm:1998.11.15'
