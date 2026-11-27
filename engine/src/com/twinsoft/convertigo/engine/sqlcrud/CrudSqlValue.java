@@ -40,7 +40,14 @@ public final class CrudSqlValue {
 
 	/** {column}, NULLIF({column}, '') or CAST(NULLIF({column}, '') AS type). */
 	public static String expression(String driverClassName, String column, int jdbcType, String typeName, boolean nullable) {
-		var variable = "{" + column + "}";
+		return nullableExpression(driverClassName, "{" + column + "}", jdbcType, typeName, nullable);
+	}
+
+	public static String boundExpression(String driverClassName, SqlColumnInfo column) {
+		return nullableExpression(driverClassName, "?", column.getJdbcType(), column.getTypeName(), !column.isNotNull());
+	}
+
+	private static String nullableExpression(String driverClassName, String variable, int jdbcType, String typeName, boolean nullable) {
 		if (!CrudUiDefaults.EMPTY_VALUE_IS_NULL_IN_TRANSACTIONS || !nullable || driverClassName == null) {
 			return variable;
 		}

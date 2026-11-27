@@ -22,6 +22,8 @@ package com.twinsoft.convertigo.engine.sqlcrud;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
+import com.twinsoft.convertigo.engine.util.StringUtils;
+
 /** One column of a table, as the JDBC metadata describes it, with what the generated user interface does of it. */
 public final class SqlColumnInfo {
 	/** Names that the engine recognizes as a {variable} of a SQL query. */
@@ -117,7 +119,7 @@ public final class SqlColumnInfo {
 
 	/** The engine can bind this column as a {variable}: its name only has letters, digits and underscores. */
 	public boolean isVariableName() {
-		return VARIABLE_NAME.matcher(name).matches();
+		return VARIABLE_NAME.matcher(name).matches() && StringUtils.isNormalized(name);
 	}
 
 	/** The value comes from the database: auto increment, generated column, or a computed default value. */

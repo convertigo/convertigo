@@ -65,6 +65,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.ErrorType;
 import com.twinsoft.convertigo.engine.enums.Visibility;
+import com.twinsoft.convertigo.engine.sqlcrud.SqlCrudQuery;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
@@ -74,6 +75,12 @@ public class SqlTransaction extends TransactionWithVariables {
 
 	private static final long serialVersionUID = 5180639998317573920L;
 
+	private static final Pattern SQL_FRAGMENT = Pattern.compile("\\{\\{([a-zA-Z0-9_]+)\\}\\}");
+	private static final Pattern SQL_PARAMETER = Pattern.compile("([\"']?)\\{([a-zA-Z0-9_]+)\\}\\1");
+	private static final int MAX_SQL_FRAGMENT_EXPANSIONS = 1024;
+	private static final long MAX_SQL_EXPANSION_CHARS = 16L * 1024 * 1024;
+	private static final Pattern CRUD_TOKEN = Pattern.compile(
+			"\"(?:[^\"]|\"\")*\"|`(?:[^`]|``)*`|'(?:[^']|'')*'|\\{\\{([a-z_]+)\\}\\}|\\{([a-zA-Z0-9_]+)\\}|[{}]");
 	final private static Pattern p_semicolon = Pattern.compile(".*?(?:;|$)", Pattern.DOTALL);
 
 	enum keywords {
@@ -231,67 +238,102 @@ public class SqlTransaction extends TransactionWithVariables {
 		}
 
 		public SqlQueryInfos(String thequery, SqlTransaction sqlTransaction, boolean updateDefinitions) throws EngineException {
-			this.query = thequery.replaceAll("\n", " ").replaceAll("\r", "").trim();
+			this.query = (crudQuery.isEmpty() ? thequery.replace('\n', ' ').replace("\r", "") : thequery).trim();
 			this.sqlTransaction = sqlTransaction;
 			findType();
 			this.query = prepareParameters(updateDefinitions);
 		}
 
-		/** We prepare the query and create lists
-		 * @throws EngineException  **/
 		private String prepareParameters(boolean updateDefinitions) throws EngineException {
-			String preparedSqlQuery = "";
+			orderedParametersList = new ArrayList<>();
+			otherParametersList = new ArrayList<>();
+			parametersMap.clear();
 
-			if ( query != null && (bNew || updateDefinitions)) {
-				preparedSqlQuery = query;
-
-				// Handled the case if we have value like {{id}} or "{{id}}" or '{{id}}' (i.e: table name or instructions)
-				Pattern pattern = Pattern.compile("\\{\\{([a-zA-Z0-9_]+)\\}\\}");
-				Matcher matcher = pattern.matcher(preparedSqlQuery);
-
-				// Retrieve parameter names
-				orderedParametersList = new ArrayList<String>(); // for parameters like {id}
-				otherParametersList = new ArrayList<String>();	 // for parameters like {{id}}
-
-				// Clear parameters Map
-				parametersMap.clear();
-
-				while (matcher.find()) {
-					String parameterName = matcher.group(1);
-					String parameterValue = sqlTransaction.getParameterStringValue(parameterName);
-					preparedSqlQuery = preparedSqlQuery.replace("{{"+parameterName+"}}", parameterValue);
-
-					// Add the parameterName into the ArrayList if is looks like {{id}}.
-					otherParametersList.add(parameterName);
-
-					matcher = pattern.matcher(preparedSqlQuery);
-
-					updateVariable(updateDefinitions, parameterName);
-				}
-
-				// Handled the case if we have value like {id} (i.e: parameters value)
-				pattern = Pattern.compile("([\"']?)\\{([a-zA-Z0-9_]+)\\}\\1");
-				matcher = pattern.matcher(preparedSqlQuery);
-
-				while (matcher.find()) {
-					String parameterName = matcher.group(2);
-					var parameterValue = sqlTransaction.getParameterTypedValue(parameterName);
-
-					// Add the parameterName into the ArrayList if is looks like {id} and not {{id}}.
-					orderedParametersList.add(parameterName);
-
-					// Update the parameters map if needed
-					if (!parametersMap.containsKey(parameterName)) {
-						parametersMap.put(parameterName, parameterValue);
-					}
-
-					updateVariable(updateDefinitions, parameterName);
-				}
-				// Replace parameter by question mark (for parameter value injection)
-				preparedSqlQuery = matcher.replaceAll("?");
+			if (!crudQuery.isEmpty()) {
+				return prepareCrudParameters(SqlCrudQuery.parse(crudQuery), updateDefinitions);
 			}
+			var expanded = expandSqlFragments(updateDefinitions);
+			var parameters = SQL_PARAMETER.matcher(expanded);
+			while (parameters.find()) {
+				bindParameter(parameters.group(2), updateDefinitions, false);
+			}
+			return parameters.replaceAll("?");
+		}
 
-			return preparedSqlQuery;
+		private String expandSqlFragments(boolean updateDefinitions) throws EngineException {
+			var expanded = query;
+			var fragments = SQL_FRAGMENT.matcher(expanded);
+			var seen = new java.util.HashSet<String>();
+			long expandedChars = 0;
+			while (fragments.find()) {
+				String name = fragments.group(1);
+				if (seen.size() == MAX_SQL_FRAGMENT_EXPANSIONS || !seen.add(expanded)) {
+					throw new EngineException("Circular SQL fragment or too many expansions: " + name + ".");
+				}
+				String marker = fragments.group();
+				String value = sqlTransaction.getParameterStringValue(name);
+				updateVariable(updateDefinitions, name);
+				otherParametersList.add(name);
+
+				long length = expanded.length();
+				if (value.length() > marker.length()) {
+					long growth = value.length() - marker.length();
+					do {
+						if (marker.equals(fragments.group())) {
+							length += growth;
+						}
+					} while (fragments.find());
+				}
+				expandedChars += length;
+				if (expandedChars > MAX_SQL_EXPANSION_CHARS) {
+					throw new EngineException("SQL fragment expansion is too large: " + name + ".");
+				}
+				expanded = expanded.replace(marker, value);
+				fragments.reset(expanded);
+			}
+			return expanded;
+		}
+
+		private String prepareCrudParameters(SqlCrudQuery crud, boolean updateDefinitions) throws EngineException {
+			var matcher = CRUD_TOKEN.matcher(query);
+			var sql = new StringBuilder();
+			boolean designTime = sqlTransaction.context == null;
+			while (matcher.find()) {
+				var marker = matcher.group(1);
+				var variable = matcher.group(2);
+				String replacement = matcher.group();
+				if ("crud_order".equals(marker)) {
+					replacement = crud.orderBy(sqlTransaction.getParameterStringValue(SqlCrudQuery.SORT_KEY),
+							sqlTransaction.getParameterStringValue(SqlCrudQuery.SORT_DIRECTION));
+				} else if ("crud_update".equals(marker) && crud.updateParameter() != null) {
+					updateVariable(updateDefinitions, crud.updateParameter());
+					var fields = designTime ? crud.columns().keySet() : crud.updateFields(sqlTransaction.getParameterStringValue(crud.updateParameter()));
+					var assignments = new ArrayList<String>();
+					for (var field : fields) {
+						bindParameter(field, updateDefinitions, false);
+						assignments.add(crud.columns().get(field));
+					}
+					replacement = String.join(", ", assignments);
+				} else if (variable != null) {
+					bindParameter(variable, updateDefinitions, crud.updateParameter() == null
+							&& !crud.columns().isEmpty() && (SqlCrudQuery.LIMIT.equals(variable) || SqlCrudQuery.OFFSET.equals(variable)));
+					replacement = "?";
+				} else if (replacement.startsWith("{") || replacement.equals("}")) {
+					throw new EngineException("Unresolved marker in generated CRUD SQL.");
+				}
+				matcher.appendReplacement(sql, Matcher.quoteReplacement(replacement));
+			}
+			return matcher.appendTail(sql).toString();
+		}
+
+		private void bindParameter(String name, boolean updateDefinitions, boolean pagination) throws EngineException {
+			updateVariable(updateDefinitions, name);
+			orderedParametersList.add(name);
+			if (!parametersMap.containsKey(name)) {
+				var value = pagination ? SqlCrudQuery.paginationValue(name, sqlTransaction.getParameterStringValue(name))
+						: sqlTransaction.getParameterTypedValue(name);
+				parametersMap.put(name, value);
+			}
 		}
 
 		public String getQuery(){
@@ -321,6 +363,10 @@ public class SqlTransaction extends TransactionWithVariables {
 
 		public List<String> getOtherParametersList(){
 			return otherParametersList;
+		}
+
+		public boolean isGeneratedCrud() {
+			return !crudQuery.isEmpty();
 		}
 
 		public Map<String, Object> getParametersMap(){
@@ -365,6 +411,11 @@ public class SqlTransaction extends TransactionWithVariables {
 			preparedSqlQueries.clear();
 		} else {
 			preparedSqlQueries = new ArrayList<SqlQueryInfos>();
+		}
+
+		if (!crudQuery.isEmpty()) {
+			preparedSqlQueries.add(new SqlQueryInfos(sqlQuery, this, updateDefinitions));
+			return preparedSqlQueries;
 		}
 
 		// We split the sqlQuery in list array of multiple sqlQuery
@@ -1085,7 +1136,9 @@ public class SqlTransaction extends TransactionWithVariables {
 				return;
 
 			// We check variables and initialize queries if we have a change
-			if (!checkVariables(preparedSqlQueries)) {
+			if (!crudQuery.isEmpty()) {
+				preparedSqlQueries = initializeQueries(false);
+			} else if (!checkVariables(preparedSqlQueries)) {
 				preparedSqlQueries = initializeQueries(true);
 			}
 
@@ -1580,6 +1633,16 @@ public class SqlTransaction extends TransactionWithVariables {
 		return document;
 	}
 
+	private String crudQuery = "";
+
+	public String getCrudQuery() {
+		return crudQuery;
+	}
+
+	public void setCrudQuery(String crudQuery) {
+		this.crudQuery = crudQuery;
+	}
+
 	/**
 	 * Getter for property sqlQuery
 	 * @return String
@@ -1715,12 +1778,17 @@ public class SqlTransaction extends TransactionWithVariables {
 		this.pendingSchemaTypes = schemaTypes;
 	}
 
+	public String takePendingSchemaTypes() {
+		var schema = pendingSchemaTypes;
+		pendingSchemaTypes = null;
+		return schema;
+	}
+
 	@Override
 	public void setParent(DatabaseObject databaseObject) {
 		super.setParent(databaseObject);
 		if (databaseObject != null && pendingSchemaTypes != null) {
-			writeSchemaToFile(pendingSchemaTypes);
-			pendingSchemaTypes = null;
+			writeSchemaToFile(takePendingSchemaTypes());
 		}
 	}
 }

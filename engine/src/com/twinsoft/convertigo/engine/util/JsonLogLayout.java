@@ -38,6 +38,9 @@ import org.apache.logging.log4j.message.Message;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.twinsoft.convertigo.engine.LogParameters;
 
 /**
  * One JSON object per line, for the standard output read by log collectors that only split JSON lines into fields.
@@ -46,7 +49,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
  * from the {@link Format} chosen by log.stdout.format.
  */
 public final class JsonLogLayout extends AbstractStringLayout {
-	static final String CONTEXTUAL_PARAMETERS = "ContextualParameters";
+	private static final TypeReference<Map<String, String>> CONTEXT_TYPE = new TypeReference<>() {};
 
 	/** the version of the Elastic Common Schema followed by the json-ecs format */
 	public static final String ECS_VERSION = "9.5.0";
@@ -210,10 +213,7 @@ public final class JsonLogLayout extends AbstractStringLayout {
 			}
 		}
 		case PARAMETERS -> {
-			Object parameters = event.getContextData().getValue(CONTEXTUAL_PARAMETERS);
-			if (parameters != null) {
-				writeParameters(json, parseContextualParameters(parameters.toString()));
-			}
+			writeParameters(json, contextualParameters(event));
 		}
 		case DURATION -> {
 			if (STATISTICS_LOGGER.equals(event.getLoggerName())) {
@@ -240,11 +240,28 @@ public final class JsonLogLayout extends AbstractStringLayout {
 		}
 	}
 
+	private static Map<String, String> contextualParameters(LogEvent event) {
+		String structured = event.getContextData().getValue(Log4jHelper.STRUCTURED_PARAMETERS);
+		if (structured != null) {
+			try {
+				return Log4jHelper.CONTEXT_MAPPER.readValue(structured, CONTEXT_TYPE);
+			} catch (JsonProcessingException e) {
+				// Fall back to the legacy MDC of events without a readable structured snapshot.
+			}
+		}
+		Object legacy = event.getContextData().getValue(Log4jHelper.CONTEXTUAL_PARAMETERS);
+		return legacy instanceof LogParameters parameters ? parameters.asMap()
+				: parseContextualParameters(legacy == null ? null : legacy.toString());
+	}
+
 	private void writeParameters(JsonGenerator json, Map<String, String> parameters) throws IOException {
 		Map<String, String> others = null;
 		for (var entry : parameters.entrySet()) {
 			String key = entry.getKey();
 			String value = entry.getValue();
+			if (value == null) {
+				continue;
+			}
 			String name = fields.parameters().get(key);
 			if (name != null) {
 				if ("user".equals(key)) {

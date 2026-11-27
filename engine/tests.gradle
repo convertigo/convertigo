@@ -262,6 +262,18 @@ tasks.register('studioSearchTest', JavaExec) {
 	args 'com.twinsoft.convertigo.engine.admin.services.studio.treeview.SearchTest'
 }
 
+tasks.register('stackLimitProtectionTest', JavaExec) {
+	group = 'verification'
+	description = 'Boundaries and configuration for protected recursive engine operations.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.XMLUtilsParallelJsonTest',
+		'com.twinsoft.convertigo.engine.util.StackLimitProtectionTest'
+}
+
+tasks.named('check') { dependsOn 'stackLimitProtectionTest' }
+
 tasks.register('requestableStepCloneTest', JavaExec) {
 	group = 'verification'
 	description = 'A clone of a requestable step orders its own variables, also under concurrent runs.'
@@ -516,6 +528,16 @@ tasks.register('statisticsTest', JavaExec) {
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.util.StatisticsTest'
 }
+
+tasks.register('sequenceRequestStatisticsTest', JavaExec) {
+	group = 'verification'
+	description = 'Regression test: parallel calls and early returns keep sequence request timings consistent.'
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.SequenceRequestStatisticsTest'
+}
+tasks.named('check') { dependsOn 'sequenceRequestStatisticsTest' }
 
 tasks.register('crypto2Test', JavaExec) {
 	group = 'verification'
@@ -1065,7 +1087,7 @@ tasks.register('sqlCrudContractTest', JavaExec) {
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
 	args 'com.twinsoft.convertigo.engine.sqlcrud.SqlCrudContractTest'
-	['convertigo.test.crud.postgresql.url', 'convertigo.test.crud.postgresql.user', 'convertigo.test.crud.postgresql.password'].each { name ->
+	['convertigo.test.crud.postgresql.url', 'convertigo.test.crud.postgresql.user', 'convertigo.test.crud.postgresql.password', 'convertigo.test.crud.hsqldb.url'].each { name ->
 		def value = System.getProperty(name)
 		if (value) {
 			systemProperty name, value

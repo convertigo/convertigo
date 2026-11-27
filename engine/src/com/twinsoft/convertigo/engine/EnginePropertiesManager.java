@@ -699,6 +699,8 @@ public class EnginePropertiesManager {
 		TIMING_TRACE ("timing.trace", "false", "Log the start and the duration of each request, requestable, HTTP call and CouchDB transaction (cems.Engine, WARN), to break down the time of a request", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN)
 		XML_COUNT_DOCUMENTS ("xml.count_documents", "false", "Count the XML documents, document builders and factories each request creates and the documents it serializes, and log them at the end of the request (cems.Engine, WARN)", PropertyCategory.Main),
+
+		STACK_LIMIT_PROTECTION ("stack.limit.protection", "1000", "Stack limit protection — maximum recursion depth for protected engine operations, counting the root as level 1. Zero or a negative value disables this limit", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = NativeScope.class, visibility = Visibility.HIDDEN)
 		JAVASCRIPT_SHARED_SCOPE ("javascript.shared_scope", "native", "native: the native sequences (Sequence.nativeExecution) and their calls run their JavaScript in a light scope over one sealed scope of the standard objects, instead of building the standard objects again for each request; all: every requestable does (its scripts then cannot change the standard objects); false: none", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = BytecodeCache.class)

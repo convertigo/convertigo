@@ -24,6 +24,72 @@ parameters:
 orbs:
   aws-cli: circleci/aws-cli@5.4.1
 commands:
+  checkout-qualif:
+    parameters:
+      suite:
+        type: integer
+      branch:
+        type: string
+      optional:
+        type: boolean
+        default: false
+    steps:
+    - run:
+        name: Checkout the qualification suite
+        command: |
+          set +x
+          : "${QUALIF_GITHUB_TOKEN:?Set QUALIF_GITHUB_TOKEN in the qualif-github context}"
+          umask 077
+          askpass=$(mktemp)
+          trap 'rm -f "$askpass"' EXIT
+          printf '%s\n' '#!/bin/sh' 'set +x' 'printf "%s\n" "$QUALIF_GITHUB_TOKEN"' > "$askpass"
+          chmod 700 "$askpass"
+          mkdir -p /tmp/qualification-sources
+          cd /tmp/qualification-sources
+          # Docker images copy the suites' workspace files for an unprivileged engine user.
+          if (umask 022; GIT_ASKPASS="$askpass" GIT_TERMINAL_PROMPT=0 \
+            git -c credential.helper= -c credential.username=x-access-token clone \
+              --depth 1 --branch "<< parameters.branch >>" --single-branch \
+              "https://github.com/convertigo/convertigo-qualif-jmx-<< parameters.suite >>.git"); then
+            suite_repo="convertigo-qualif-jmx-<< parameters.suite >>"
+            git -C "$suite_repo" rev-parse HEAD > "$suite_repo/.qualif-source-sha"
+            cat "$suite_repo/.qualif-source-sha"
+            rm -rf -- "$suite_repo/.git"
+          elif << parameters.optional >>; then
+            echo "Warning: optional qualification sources are unavailable"
+          else
+            exit 1
+          fi
+
+  run-qualif:
+    parameters:
+      suite:
+        type: integer
+      report:
+        type: string
+    steps:
+    - run:
+        name: Run qualification and collect counters
+        no_output_timeout: 40m
+        command: |
+          set +x
+          source /tmp/build.env
+          if [ "<< parameters.suite >>" = 4 ]; then
+            export C8O_IMAGE="$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE"
+          fi
+          bash .circleci/run_qualif.sh "<< parameters.report >>" \
+            "/tmp/qualification-sources/convertigo-qualif-jmx-<< parameters.suite >>" /tmp
+    - persist_to_workspace:
+        root: /tmp
+        paths:
+        - qualif-reports/<< parameters.report >>.json
+    - run:
+        name: Upload private qualification diagnostics
+        command: |
+          set +x
+          source /tmp/build.env
+          bash .circleci/upload_qualif.sh "<< parameters.report >>" "$CONVERTIGO_BUILD_NAME" /tmp
+
   docker_build_push:
     description: >
       Build docker/<type> with buildx and push it once with every requested tag.
@@ -210,6 +276,51 @@ jobs:
         paths:
         - ~/.gradle/caches/build-cache-1
         key: v6-engine-build-cache-{{ checksum ".circleci/cache/engine.fingerprint" }}-{{ .Revision }}
+
+  engine_check:
+    <<: *defaults
+    steps:
+    - checkout
+
+    - run:
+        name: Generate engine cache fingerprint
+        command: ./.circleci/cache_fingerprint.sh engine .circleci/cache/engine.fingerprint
+
+    - restore_cache:
+        keys:
+        - v6-engine-dependencies-{{ checksum ".circleci/cache/engine.fingerprint" }}
+
+    - run:
+        name: Run engine verification
+        no_output_timeout: 20m
+        command: |
+          result_dir=engine/build/ci-test-results
+          mkdir -p "$result_dir"
+          status=0
+          ./gradlew --console=plain --no-configuration-cache --max-workers=2 --continue \
+            --init-script .circleci/engine_check_reports.gradle :engine:check || status=$?
+          for report in engine/build/test-results/test/TEST-*.xml; do
+            if [ -f "$report" ]; then
+              cp "$report" "$result_dir/"
+            fi
+          done
+          printf '%s\n' "$status" > /tmp/qualif-engine-check.exit
+
+    - store_test_results:
+        path: engine/build/ci-test-results
+
+    - store_artifacts:
+        path: engine/build/ci-test-results
+        destination: engine-check-junit
+
+    - persist_to_workspace:
+        root: /tmp
+        paths:
+        - qualif-engine-check.exit
+
+    - run:
+        name: Report engine verification status
+        command: exit "$(cat /tmp/qualif-engine-check.exit)"
 
   build_web_admin:
     <<: *defaults
@@ -617,134 +728,111 @@ jobs:
             docker run --rm -d alpine/curl -m 10 "$BETA_KILL_URL" || true
           fi
 
-  qualif_jmx_1:
+  qualif_sources:
     <<: *defaults
     steps:
-    - aws-cli/setup
+    - checkout-qualif:
+        suite: 1
+        branch: "8.5.x"
+    - checkout-qualif:
+        suite: 2
+        branch: "8.5.0"
+    - checkout-qualif:
+        suite: 3
+        branch: "8.5.x"
+    - checkout-qualif:
+        suite: 4
+        branch: "8.5.x"
+        optional: true
+    - persist_to_workspace:
+        root: /tmp
+        paths:
+        - qualification-sources
 
+  qualif_jmx_1:
+    <<: *defaults
+    parameters:
+      mobile-only:
+        type: boolean
+        default: false
+    steps:
+    - checkout
     - attach_workspace:
         at: /tmp
-        
     - setup_remote_docker:
         version: default
-    
     - run:
-        name: Checkout the qualif-jmx-1 project
+        name: Pull the Docker aks image
         command: |
-          ssh-keyscan ssh.bitbucket.org >> ~/.ssh/known_hosts
-          echo -e "Host ssh.bitbucket.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
-          git clone --depth 1 -b 8.5.x git@ssh.bitbucket.org:convertigoqualif/convertigo-qualif-jmx-1.git
-          
-    - run:
-        name: Pull the docker aks image
-        command: |
+          set +x
           source /tmp/build.env
-          CONVERTIGO_IMAGE=$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-aks
-          
-          docker pull $CONVERTIGO_IMAGE
-          docker tag $CONVERTIGO_IMAGE c8o:latest
+          docker pull "$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-aks"
+          docker tag "$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-aks" c8o:latest
           docker pull convertigo/qualif-jmeter:v4
-          
-    - run:
-        name: Run the qualif
-        command: |
-          source /tmp/build.env
-          cd convertigo-qualif-jmx-1
-          sh run.sh
-          mkdir -p $CONVERTIGO_DIST
-          mv out $CONVERTIGO_DIST/qualif
-          
-    - run:
-        name: Sync results to S3
-        command: |
-          source /tmp/build.env
-          aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/.. s3://convertigo-ci/
-          
+    - when:
+        condition: << parameters.mobile-only >>
+        steps:
+        - run-qualif:
+            suite: 1
+            report: qualif-jmx-mobile
+    - unless:
+        condition: << parameters.mobile-only >>
+        steps:
+        - run-qualif:
+            suite: 1
+            report: qualif-jmx-1
+
   qualif_jmx_2:
     <<: *defaults
     steps:
-    - aws-cli/setup
-
+    - checkout
     - attach_workspace:
         at: /tmp
-    
     - setup_remote_docker:
         version: default
-    
     - run:
-        name: Checkout the qualif-jmx-2 project
+        name: Pull the Docker default image
         command: |
-          ssh-keyscan ssh.bitbucket.org >> ~/.ssh/known_hosts
-          echo -e "Host ssh.bitbucket.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
-          git clone --depth 1 -b 8.5.0 git@ssh.bitbucket.org:convertigoqualif/convertigo-qualif-jmx-2.git
-          
-    - run:
-        name: Pull the docker default image
-        command: |
+          set +x
           source /tmp/build.env
-          CONVERTIGO_IMAGE=$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE
-          
-          docker pull $CONVERTIGO_IMAGE
-          docker tag $CONVERTIGO_IMAGE c8o:latest
-          docker pull convertigo/qualif-jmeter:v2
-          
-    - run:
-        name: Run the qualif
-        command: |
-          source /tmp/build.env
-          cd convertigo-qualif-jmx-2
-          sh run.sh
-          mkdir -p $CONVERTIGO_DIST
-          mv out $CONVERTIGO_DIST/qualif
-          
-    - run:
-        name: Sync results to S3
-        command: |
-          source /tmp/build.env
-          aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/.. s3://convertigo-ci/
-          
+          docker pull "$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE"
+          docker tag "$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE" c8o:latest
+          docker pull convertigo/qualif-jmeter:v4
+    - run-qualif:
+        suite: 2
+        report: qualif-jmx-2
+
   qualif_jmx_3:
     <<: *defaults
     steps:
-    - aws-cli/setup
-
+    - checkout
     - attach_workspace:
         at: /tmp
-    
     - setup_remote_docker:
         version: default
-    
     - run:
-        name: Checkout the qualif-jmx-3 project
+        name: Pull the Docker default image
         command: |
-          ssh-keyscan ssh.bitbucket.org >> ~/.ssh/known_hosts
-          echo -e "Host ssh.bitbucket.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
-          git clone --depth 1 -b 8.5.x git@ssh.bitbucket.org:convertigoqualif/convertigo-qualif-jmx-3.git
-          
-    - run:
-        name: Pull the docker default image
-        command: |
+          set +x
           source /tmp/build.env
-          CONVERTIGO_IMAGE=$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE
-          
-          docker pull $CONVERTIGO_IMAGE
-          docker tag $CONVERTIGO_IMAGE c8o:latest
-          docker pull convertigo/qualif-jmeter:v2
-          
-    - run:
-        name: Run the qualif
-        command: |
-          source /tmp/build.env
-          cd convertigo-qualif-jmx-3
-          sh run.sh
-          mkdir -p $CONVERTIGO_DIST
-          mv out $CONVERTIGO_DIST/qualif
-          
-    - run:
-        name: Sync results to S3
-        command: |
-          source /tmp/build.env
-          aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/.. s3://convertigo-ci/
+          docker pull "$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE"
+          docker tag "$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE" c8o:latest
+          docker pull convertigo/qualif-jmeter:v4
+    - run-qualif:
+        suite: 3
+        report: qualif-jmx-3
+
+  qualif_jmx_4:
+    <<: *defaults
+    steps:
+    - checkout
+    - attach_workspace:
+        at: /tmp
+    - setup_remote_docker:
+        version: default
+    - run-qualif:
+        suite: 4
+        report: qualif-jmx-4
 
   qualif_summary:
     <<: *defaults
@@ -758,17 +846,17 @@ jobs:
         name: Generate qualif summary
         command: |
           source /tmp/build.env
-          sh ./.circleci/qualif_summary.sh "$CONVERTIGO_DIST/qualif"
+          python3 .circleci/qualif_report.py summary /tmp /tmp/qualif-summary
 
     - run:
         name: Sync summary to S3
         command: |
           source /tmp/build.env
-          aws s3 cp --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/qualif/qualif-summary.txt s3://convertigo-ci/convertigo-$CONVERTIGO_BUILD_NAME/qualif/qualif-summary.txt
-          aws s3 cp --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/qualif/qualif-summary.json s3://convertigo-ci/convertigo-$CONVERTIGO_BUILD_NAME/qualif/qualif-summary.json
+          aws s3 cp --storage-class REDUCED_REDUNDANCY --acl public-read /tmp/qualif-summary/qualif-summary.txt s3://convertigo-ci/convertigo-$CONVERTIGO_BUILD_NAME/qualif/qualif-summary.txt
+          aws s3 cp --storage-class REDUCED_REDUNDANCY --acl public-read /tmp/qualif-summary/qualif-summary.json s3://convertigo-ci/convertigo-$CONVERTIGO_BUILD_NAME/qualif/qualif-summary.json
 
     - store_artifacts:
-        path: /home/circleci/s3
+        path: /tmp/qualif-summary
         destination: qualif-summary
           
   build_studio:
@@ -1258,6 +1346,10 @@ workflows:
             - 7.5.x
           tags:
             only: /^\d+\..*$/
+    - engine_check:
+        filters:
+          tags:
+            only: /^\d+\..*$/
     - build_web_admin:
         requires:
         - prepare_build
@@ -1313,38 +1405,60 @@ workflows:
         filters:
           tags:
             only: /^\d+\..*$/
+    - qualif_sources:
+        context: qualif-github
+        filters:
+          tags:
+            only: /^\d+\..*$/
     - qualif_jmx_1:
+        context: qualif-runtime
         requires:
+        - qualif_sources
+        - build_docker_aks
+        filters:
+          tags:
+            only: /^\d+\..*$/
+    - qualif_jmx_1:
+        context: qualif-runtime
+        name: qualif_jmx_mobile
+        mobile-only: true
+        requires:
+        - qualif_sources
         - build_docker_aks
         filters:
           tags:
             only: /^\d+\..*$/
     - qualif_jmx_2:
+        context: qualif-runtime
         requires:
+        - qualif_sources
         - build_docker_default
         filters:
           tags:
             only: /^\d+\..*$/
     - qualif_jmx_3:
+        context: qualif-runtime
         requires:
+        - qualif_sources
+        - build_docker_default
+        filters:
+          tags:
+            only: /^\d+\..*$/
+    - qualif_jmx_4:
+        requires:
+        - qualif_sources
         - build_docker_default
         filters:
           tags:
             only: /^\d+\..*$/
     - qualif_summary:
         requires:
-        - qualif_jmx_1:
-          - success
-          - failed
-          - canceled
-        - qualif_jmx_2:
-          - success
-          - failed
-          - canceled
-        - qualif_jmx_3:
-          - success
-          - failed
-          - canceled
+        - engine_check: terminal
+        - qualif_jmx_1: terminal
+        - qualif_jmx_mobile: terminal
+        - qualif_jmx_2: terminal
+        - qualif_jmx_3: terminal
+        - qualif_jmx_4: terminal
         filters:
           tags:
             only: /^\d+\..*$/

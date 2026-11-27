@@ -42,6 +42,7 @@ import org.w3c.dom.Node;
 public class LegacyYamlConverter {
 	private static final String inc = "  ";
 	private static final String sep = ": ";
+	private static final String READ_OPERATION = "Project YAML read";
 	
 	private static final String endLine = System.getProperty("line.separator");
 	
@@ -64,6 +65,7 @@ public class LegacyYamlConverter {
 	private String line = "";
 	private String lastLine = null;
 	private File subdir = null;
+	private long readDepthLimit;
 	private StringBuilder errors = new StringBuilder();
 	
 	private LegacyYamlConverter() {
@@ -198,12 +200,13 @@ public class LegacyYamlConverter {
 		}
 	}
 	
-	private void readYamlArray(Node parent, String indent, boolean isBean) throws Exception {
+	private void readYamlArray(Node parent, String indent, int depth) throws Exception {
 		while(checkLine()) {
 			if (!parseLine()) {
 				throw new Exception("no match: " + line);
 			}
 			if (groups[P_INDENT].length() == indent.length()) {
+				RecursionGuard.checkDepth(READ_OPERATION, readDepthLimit, depth + 1);
 				String tagName = groups[P_KEY];
 				Element elt = doc.createElement(tagName);
 				parent.appendChild(elt);
@@ -212,7 +215,7 @@ public class LegacyYamlConverter {
 					value = readYalmText(value, indent);
 					elt.setTextContent(value);
 				} else {
-					readYamlArray(elt, indent + inc + inc, isBean);
+					readYamlArray(elt, indent + inc + inc, depth + 1);
 				}
 			} else {
 				restoreLine();
@@ -221,7 +224,7 @@ public class LegacyYamlConverter {
 		}
 	}
 	
-	private void readYamlElement(Element elt, String indent, boolean isBean) throws Exception {
+	private void readYamlElement(Element elt, String indent, boolean isBean, int depth) throws Exception {
 		while(checkLine()) {
 			if (!parseLine()) {
 				throw new Exception("no match: " + line);
@@ -246,6 +249,7 @@ public class LegacyYamlConverter {
 				}
 			} else if (groups[P_CHILD] != null) {
 				if (isBean) {
+					RecursionGuard.checkDepth(READ_OPERATION, readDepthLimit, depth + 1);
 					Element nElt = doc.createElement("bean");
 					elt.appendChild(nElt);
 					nElt.setAttribute("yaml_key", groups[P_KEY]);
@@ -256,18 +260,19 @@ public class LegacyYamlConverter {
 						String lineSaved = line;
 						try (BufferedReader brSub = new BufferedReader(new InputStreamReader(new FileInputStream(subfile), "UTF-8"))) {
 							br = brSub;
-							readYamlElement(nElt, "", isBean);
+							readYamlElement(nElt, "", isBean, depth + 1);
 						} finally {
 							br = brSaved;
 							line = lineSaved;
 						}
 					} else {
-						readYamlElement(nElt, indent + inc, isBean);
+						readYamlElement(nElt, indent + inc, isBean, depth + 1);
 					}
 				} else {
-					readYamlArray(elt, indent, isBean);
+					readYamlArray(elt, indent, depth);
 				}
 			} else {
+				RecursionGuard.checkDepth(READ_OPERATION, readDepthLimit, depth + 1);
 				String key = groups[P_KEY];
 				String value = groups[P_VALUE];
 				String textIndent = groups[P_ARRAY] == null ? indent : (indent + inc);
@@ -279,7 +284,7 @@ public class LegacyYamlConverter {
 					// A quoted empty scalar is a value, even when attributes follow it.
 					nElt.appendChild(doc.createTextNode(value));
 				}
-				readYamlElement(nElt, indent + inc, false);
+				readYamlElement(nElt, indent + inc, false, depth + 1);
 			}
 		}
 	}
@@ -372,7 +377,8 @@ public class LegacyYamlConverter {
 			y.doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
 			y.doc.appendChild(y.doc.createElement("convertigo"));
 			y.br = br;
-			y.readYamlElement(y.doc.getDocumentElement(), "", true);
+			y.readDepthLimit = RecursionGuard.getLimit();
+			y.readYamlElement(y.doc.getDocumentElement(), "", true, 0);
 			y.br.close();
 			return y.doc;
 		}

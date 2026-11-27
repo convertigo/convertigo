@@ -1055,7 +1055,9 @@ public class XMLUtils {
 	}
 
 	public static void copyDocument(Document from, Document to) {
-		Node node = to.importNode(from.getDocumentElement(), true);
+		Element root = from.getDocumentElement();
+		RecursionGuard.checkDomDepth(root, "DOM document copy");
+		Node node = to.importNode(root, true);
 		to.getDocumentElement().appendChild(node);
 	}
 
@@ -1273,8 +1275,16 @@ public class XMLUtils {
 	}
 
 	public static String getNormalizedText(Node node) {
+		return getNormalizedText(node, RecursionGuard.getLimit(), node instanceof Document ? 0 : 1);
+	}
+
+	private static String getNormalizedText(Node node, long limit, int depth) {
 		String res = "";
-		if (node.hasChildNodes()) {
+		boolean hasChildren = node.hasChildNodes();
+		if (node instanceof Element || hasChildren) {
+			RecursionGuard.checkDepth("DOM text extraction", limit, depth);
+		}
+		if (hasChildren) {
 			NodeList nl = node.getChildNodes();
 			for (int i = 0; i < nl.getLength(); i++) {
 				if (nl.item(i).getNodeType() == Node.TEXT_NODE) {
@@ -1282,7 +1292,7 @@ public class XMLUtils {
 				} else {
 					// ignore <SCRIPT> nodes ...
 					if (!nl.item(i).getNodeName().equalsIgnoreCase("script"))
-						res += getNormalizedText(nl.item(i));
+						res += getNormalizedText(nl.item(i), limit, depth + 1);
 				}
 			}
 		}
@@ -1614,6 +1624,7 @@ public class XMLUtils {
 	}
 
 	public static Document copyDocumentWithoutNamespace(Document document) throws ParserConfigurationException {
+		RecursionGuard.checkDomDepth(document, "DOM document copy without namespaces");
 		Document newDocument = XMLUtils.createDom("java");
 		copyNodeWithoutNamespace(newDocument, newDocument, document);
 		return newDocument;
@@ -1686,8 +1697,24 @@ public class XMLUtils {
 		return localName;
 	}
 	
+	public static final class XmlToJsonDepthException extends JSONException {
+		private static final long serialVersionUID = 1L;
+
+		private XmlToJsonDepthException(long maxDepth) {
+			super(RecursionGuard.limitMessage("XML to JSON conversion", maxDepth));
+		}
+	}
+
+	// Check before conversion, including nested elements read through getTextContent().
+	private static void checkXmlToJsonDepth(Element root) throws XmlToJsonDepthException {
+		long limit = RecursionGuard.getLimit();
+		if (RecursionGuard.exceedsDomDepth(root, limit)) {
+			throw new XmlToJsonDepthException(limit);
+		}
+	}
+
 	/*
-	 * getValue and handleElement walk the children with getFirstChild and getNextSibling, never with getChildNodes:
+	 * Walk the children with getFirstChild and getNextSibling, never with getChildNodes:
 	 * the Xerces node lists share a per document cache that is not thread-safe, even for reading. The branches of a
 	 * ParallelStep convert their own parts of the same sequence document at the same time: through that cache, a
 	 * branch read the children of another element (wrong JSON) or an element as its own child (endless recursion).
@@ -1710,7 +1737,7 @@ public class XMLUtils {
 							if (childValue != null) {
 								jsonObject.put(childName, childValue);
 							} else {
-								handleElement(child, jsonObject, ignoreStepIds, useType);
+								convertElement(child, jsonObject, ignoreStepIds, useType);
 							}
 						}
 					}
@@ -1728,7 +1755,7 @@ public class XMLUtils {
 							} else {
 								JSONObject obj = new JSONObject();
 								array.put(obj);
-								handleElement(child, obj, ignoreStepIds, useType);
+								convertElement(child, obj, ignoreStepIds, useType);
 							}
 						}
 					}
@@ -1755,10 +1782,6 @@ public class XMLUtils {
 				} else if (type.equals("float")) {
 					value = Float.parseFloat(elt.getTextContent());
 				}
-
-				if (value != null) {
-					elt.removeAttribute(type);
-				}
 			}
 		} catch (Exception e) {
 			// not an Error: a StackOverflowError caught here was retried by handleElement at each level, for hours
@@ -1768,7 +1791,12 @@ public class XMLUtils {
 		return value;
 	}
 	
-	public static  void handleElement(Element elt, JSONObject obj, boolean ignoreStepIds, boolean useType) throws JSONException {
+	public static void handleElement(Element elt, JSONObject obj, boolean ignoreStepIds, boolean useType) throws JSONException {
+		checkXmlToJsonDepth(elt);
+		convertElement(elt, obj, ignoreStepIds, useType);
+	}
+
+	private static void convertElement(Element elt, JSONObject obj, boolean ignoreStepIds, boolean useType) throws JSONException {
 		String key = elt.getTagName();
 		JSONObject value = new JSONObject();
 		
@@ -1781,7 +1809,7 @@ public class XMLUtils {
 					String childName = child.hasAttribute("originalKeyName") ? child.getAttribute("originalKeyName") : child.getTagName();
 					value.accumulate(childName, childValue);
 				} else {
-					handleElement(child, value, ignoreStepIds, useType);
+					convertElement(child, value, ignoreStepIds, useType);
 				}
 			}
 		}
@@ -1869,6 +1897,7 @@ public class XMLUtils {
 	}
 	
 	public static String XmlToJson(Element elt, boolean ignoreStepIds, boolean useType, JsonRoot jsonRoot) throws JSONException {
+		checkXmlToJsonDepth(elt);
 		JSONObject json = null;
 		Object value = null;
 		if (useType && elt.hasAttribute("type") && jsonRoot == null) {
@@ -1882,7 +1911,7 @@ public class XMLUtils {
 		
 		if (value == null) {
 			json = new JSONObject();
-			handleElement(elt, json, ignoreStepIds, useType);
+			convertElement(elt, json, ignoreStepIds, useType);
 		}
 		
 		if (json != null && jsonRoot != null && !jsonRoot.equals(JsonRoot.docNode)) {
@@ -1972,8 +2001,15 @@ public class XMLUtils {
 	}
 	
 	public static void jsonToXml(Object object, String objectKey, Element parentElement, boolean modifyElement, boolean includeDataType, boolean compactArray, String arrayChildrenTag) throws JSONException {
-		Engine.logBeans.trace("Converting JSON to XML: object=" + object + "; objectKey=\"" + objectKey + "\"");
-		
+		long limit = RecursionGuard.getLimit();
+		if (RecursionGuard.exceedsJsonDepth(object, limit)) {
+			throw new JSONException(RecursionGuard.limitMessage("JSON to XML conversion", limit));
+		}
+		Engine.logBeans.trace("Converting JSON to XML with key: " + objectKey);
+		convertJsonToXml(object, objectKey, parentElement, modifyElement, includeDataType, compactArray, arrayChildrenTag);
+	}
+
+	private static void convertJsonToXml(Object object, String objectKey, Element parentElement, boolean modifyElement, boolean includeDataType, boolean compactArray, String arrayChildrenTag) throws JSONException {
 		Document doc = parentElement.getOwnerDocument();
 
 		if ("_attachments".equals(parentElement.getNodeName()) && "item".equals(arrayChildrenTag) && object instanceof JSONObject) {
@@ -2026,7 +2062,7 @@ public class XMLUtils {
 			}
 			
 			for (String key: keys) {
-				jsonToXml(json.get(key), key, element, false, includeDataType, compactArray, arrayChildrenTag);
+				convertJsonToXml(json.get(key), key, element, false, includeDataType, compactArray, arrayChildrenTag);
 			}
 		}
 		// Array value case
@@ -2053,7 +2089,7 @@ public class XMLUtils {
 
 			for (int i = 0; i < len; i++) {
 				Object itemArray = array.get(i);
-				jsonToXml(itemArray, arrayItemObjectKey, arrayElement, false, includeDataType, compactArray, arrayChildrenTag);
+				convertJsonToXml(itemArray, arrayItemObjectKey, arrayElement, false, includeDataType, compactArray, arrayChildrenTag);
 			}
 		}
 		else {

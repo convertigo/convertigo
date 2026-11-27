@@ -35,6 +35,7 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.XMLUtils.XmlToJsonDepthException;
 
 public class WriteJSONStep extends WriteFileStep {
 
@@ -81,6 +82,8 @@ public class WriteJSONStep extends WriteFileStep {
 					if (node instanceof Element) {
 						try {
 							sb.append(XMLUtils.XmlToJson((Element) node, true, true, null));
+						} catch (XmlToJsonDepthException e) {
+							throw new EngineException(e.getMessage(), e);
 						} catch (JSONException e) {
 							sb.append(node.getNodeValue());
 						}

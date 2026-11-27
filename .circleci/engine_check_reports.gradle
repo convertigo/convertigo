@@ -1,0 +1,75 @@
+import groovy.xml.MarkupBuilder
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.SetProperty
+import org.gradle.api.services.BuildService
+import org.gradle.api.services.BuildServiceParameters
+import org.gradle.build.event.BuildEventsListenerRegistry
+import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.OperationCompletionListener
+import org.gradle.tooling.events.task.TaskFailureResult
+import org.gradle.tooling.events.task.TaskFinishEvent
+import org.gradle.tooling.events.task.TaskSkippedResult
+
+import javax.inject.Inject
+
+// JavaExec verification tasks do not produce Gradle's native JUnit reports.
+abstract class EngineCheckReports implements BuildService<Parameters>, OperationCompletionListener {
+    interface Parameters extends BuildServiceParameters {
+        DirectoryProperty getReportDirectory()
+        SetProperty<String> getVerificationTasks()
+    }
+
+    @Override
+    void onFinish(FinishEvent event) {
+        if (!(event instanceof TaskFinishEvent) || !parameters.verificationTasks.get().contains(event.descriptor.taskPath)) {
+            return
+        }
+
+        def taskName = event.descriptor.taskPath.tokenize(':').last()
+        def result = event.result
+        def duration = (result.endTime - result.startTime) / 1000.0
+        def failed = result instanceof TaskFailureResult
+        def wasSkipped = result instanceof TaskSkippedResult
+        def directory = parameters.reportDirectory.get().asFile
+        directory.mkdirs()
+
+        new File(directory, "TEST-${taskName}.xml").withWriter('UTF-8') { writer ->
+            new MarkupBuilder(writer).testsuite(
+                name: taskName, tests: 1, failures: failed ? 1 : 0, errors: 0,
+                skipped: wasSkipped ? 1 : 0, time: duration
+            ) {
+                testcase(classname: 'engine.verification', name: taskName, time: duration) {
+                    if (failed) {
+                        failure(message: "Gradle verification task ${event.descriptor.taskPath} failed. See the job log.")
+                    }
+                    if (wasSkipped) {
+                        skipped()
+                    }
+                }
+            }
+        }
+    }
+}
+
+abstract class EngineCheckReportingPlugin implements Plugin<Gradle> {
+    @Inject
+    abstract BuildEventsListenerRegistry getBuildEventsListenerRegistry()
+
+    @Override
+    void apply(Gradle gradle) {
+        gradle.taskGraph.whenReady { graph ->
+            def verificationTasks = graph.allTasks.findAll {
+                it instanceof JavaExec && it.project.path == ':engine' && it.group == 'verification'
+            }
+            def reports = gradle.sharedServices.registerIfAbsent('engineCheckReports', EngineCheckReports) {
+                parameters.reportDirectory.set(
+                    gradle.rootProject.layout.projectDirectory.dir('engine/build/ci-test-results/verification')
+                )
+                parameters.verificationTasks.set(verificationTasks*.path as Set)
+            }
+            buildEventsListenerRegistry.onTaskCompletion(reports)
+        }
+    }
+}
+
+apply plugin: EngineCheckReportingPlugin

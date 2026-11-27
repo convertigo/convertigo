@@ -237,6 +237,25 @@ public class StdoutLogFormatTest {
 	}
 
 	@Test
+	public void structuredContextKeepsLiteralValuesInBothFormats() throws IOException {
+		for (var format : List.of("json", "json-ecs")) {
+			configure(format);
+			out.reset();
+			var parameters = new LogParameters();
+			parameters.put("project", "Inventory");
+			parameters.put("platform", "macOS | $edition=desktop");
+			parameters.put("version", "null");
+			parameters.put("optional", null);
+			Log4jHelper.mdcSet(parameters);
+			logger.info("client event");
+			var line = jsonLine();
+			String prefix = format.equals("json-ecs") ? "convertigo." : "";
+			assertEquals("Inventory", line.get(prefix + "project"));
+			assertEquals(Map.of("platform", "macOS | $edition=desktop", "version", "null"), line.get(prefix + "context"));
+		}
+	}
+
+	@Test
 	public void multilineExceptionStaysInTheLine() throws IOException {
 		configure("json");
 		var failure = new EngineException("outer failure", new IllegalStateException("inner\nsecond line"));

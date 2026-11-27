@@ -35,6 +35,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -49,7 +50,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIUseShared;
 import com.twinsoft.convertigo.beans.ngx.components.UIUseVariable;
-import com.twinsoft.convertigo.beans.sequences.GenericSequence;
+import com.twinsoft.convertigo.engine.enums.Accessibility;
 import com.twinsoft.convertigo.engine.Engine;
 
 /** NGX objects generated for the tables of {@link MatrixTables}, on a project built in memory. */
@@ -77,19 +78,31 @@ public class NgxCrudGeneratorTest {
 		return SqlTableInfo.read(connection, SqlTableInfoTest.HSQLDB, name);
 	}
 
-	static ApplicationComponent project(String table, List<String> verbs) throws Exception {
+	static ApplicationComponent project(String name, List<String> verbs) throws Exception {
+		return project(verbs.isEmpty() ? null : table(name), verbs);
+	}
+
+	private static ApplicationComponent project(SqlTableInfo table, List<String> verbs) throws Exception {
 		var project = new Project();
 		project.setName("crudtest");
 		var mobile = new MobileApplication();
 		project.add(mobile);
 		var app = new ApplicationComponent();
 		mobile.add(app);
-		for (var verb : verbs) {
-			var sequence = new GenericSequence();
-			sequence.setName(table + "_" + verb);
-			project.add(sequence);
+		var connector = new SqlConnector();
+		connector.setName("db");
+		project.add(connector);
+		if (table != null) {
+			var transactions = SqlConnector.createSqlTransactions(connector, table, verbs);
+			transactions.forEach(com.twinsoft.convertigo.beans.transactions.SqlTransaction::takePendingSchemaTypes);
+			SqlCrudGeneration.installTransactions(connector, transactions, false, Accessibility.Hidden, false, true);
 		}
 		return app;
+	}
+
+	private static NgxCrudGenerator generator(ApplicationComponent app, SqlTableInfo table) throws Exception {
+		var project = app.getProject();
+		return new NgxCrudGenerator(project, (SqlConnector) project.getConnectorByName("db"), table);
 	}
 
 	static List<DatabaseObject> tree(DatabaseObject root) {
@@ -117,7 +130,7 @@ public class NgxCrudGeneratorTest {
 	@Test
 	public void sharedComponentOfAnEditableTable() throws Exception {
 		var app = project("PAIRS", ALL);
-		var result = new NgxCrudGenerator(app.getProject(), table("PAIRS")).generate(false);
+		var result = generator(app, table("PAIRS")).generate(false);
 		assertFalse(result.isSkipped());
 		var comp = result.getComponent();
 		assertEquals("pairTable", comp.getName());
@@ -151,9 +164,9 @@ public class NgxCrudGeneratorTest {
 		assertEquals(CrudUiDefaults.LIB_GRID, grid.getSharedComponentQName());
 		var grids = useVariables(grid);
 		assertEquals("'infinite'", grids.get("rowModelType"));
-		assertEquals("this.pageSize", grids.get("cacheBlockSize"));
+		assertEquals("this.crudPageSize()", grids.get("cacheBlockSize"));
 		assertEquals("this.pagination", grids.get("pagination"));
-		assertEquals("this.pageSize", grids.get("paginationPageSize"));
+		assertEquals("this.crudPageSize()", grids.get("paginationPageSize"));
 		assertEquals("this.crudColumnDefs", grids.get("columnDefs"));
 		assertEquals("this.crudMultiSelect() ? 'multiple' : 'single'", grids.get("rowSelection"));
 		assertEquals("false", grids.get("suppressRowClickSelection"));
@@ -172,7 +185,7 @@ public class NgxCrudGeneratorTest {
 		assertTrue(script.contains("crudCount()"));
 		assertFalse(result.getWarnings().stream().anyMatch(w -> w.contains("no row count")));
 		assertTrue(script.contains("public crudKeys: string[] = [\"A\", \"B\"];"));
-		assertTrue(script.contains("public crudDefaultSortKey: string = \"\\\"A\\\"\";"));
+		assertTrue(script.contains("sort_key: field.name"));
 		assertTrue(script.contains("public crudCan: any = {create: true, update: true, delete: true};"));
 		assertTrue(script.contains("public crudPaginated: boolean = true;"));
 		assertTrue(script.contains("filter: false"));
@@ -210,14 +223,14 @@ public class NgxCrudGeneratorTest {
 	@Test
 	public void binaryColumnsAndComputedDefaults() throws Exception {
 		var app = project("MATRIX", ALL);
-		var result = new NgxCrudGenerator(app.getProject(), table("MATRIX")).generate(false);
+		var result = generator(app, table("MATRIX")).generate(false);
 		var comp = result.getComponent();
 		assertEquals("matrixTable", comp.getName());
 		var script = comp.getScriptContent().getString();
 		assertFalse(script.contains("PHOTO"));
 		assertTrue(script.contains("public crudCan: any = {create: true, update: false, delete: true};"));
 		assertTrue(script.contains("{name: \"FirstName\", kind: \"TEXT\", input: \"text\", key: false, required: true"));
-		assertTrue(script.contains("{name: \"PRICE\", kind: \"DECIMAL\", input: \"number\", key: false, required: false, hiddenOnCreate: false, readOnlyOnEdit: false, readOnly: false, maxLength: 0, step: \"0.01\", scale: 2, sortKey: \"\\\"PRICE\\\"\", createDefault: \"0.00\""));
+		assertTrue(script.contains("{name: \"PRICE\", kind: \"DECIMAL\", input: \"number\", key: false, required: false, hiddenOnCreate: false, readOnlyOnEdit: false, readOnly: false, maxLength: 0, step: \"0.01\", scale: 2, nullable: false, createDefault: \"0.00\""));
 		assertTrue(script.contains("{name: \"ID\", kind: \"INTEGER\", input: \"number\", key: true, required: false, hiddenOnCreate: true, readOnlyOnEdit: true"));
 		assertTrue(script.contains("help: \"Free notes\""));
 		assertTrue(result.getWarnings().stream().anyMatch(w -> w.contains("PHOTO")));
@@ -236,7 +249,7 @@ public class NgxCrudGeneratorTest {
 		var born = new JSONObject(((UIDynamicElement) named(form, "Field_BORN").getAllChildren().get(0)).getBeanData()).getJSONObject("properties");
 		assertEquals("date", born.getJSONObject("Type").getString("value"));
 		var created = new JSONObject(((UIDynamicElement) named(form, "Field_CREATED_AT").getAllChildren().get(0)).getBeanData()).getJSONObject("properties");
-		assertEquals("datetime-local", created.getJSONObject("Type").getString("value"));
+		assertEquals("text", created.getJSONObject("Type").getString("value"));
 		var notes = new JSONObject(((UIDynamicElement) named(form, "Field_NOTES").getAllChildren().get(0)).getBeanData()).getJSONObject("properties");
 		assertEquals("Free notes", notes.getJSONObject("HelperText").getString("value"));
 	}
@@ -244,7 +257,7 @@ public class NgxCrudGeneratorTest {
 	@Test
 	public void missingVerbsAdaptTheUserInterface() throws Exception {
 		var app = project("PAIRS", List.of("LIST", "DELETE"));
-		var result = new NgxCrudGenerator(app.getProject(), table("PAIRS")).generate(false);
+		var result = generator(app, table("PAIRS")).generate(false);
 		var comp = result.getComponent();
 		assertNull(named(comp, "Add"));
 		assertNull(named(comp, "Edit"));
@@ -260,7 +273,7 @@ public class NgxCrudGeneratorTest {
 	@Test
 	public void tableWithoutKeyGivesAReadOnlyList() throws Exception {
 		var app = project("LOGS", ALL);
-		var result = new NgxCrudGenerator(app.getProject(), table("LOGS")).generate(false);
+		var result = generator(app, table("LOGS")).generate(false);
 		var comp = result.getComponent();
 		assertEquals("logTable", comp.getName());
 		assertNull(named(comp, "Add"));
@@ -276,7 +289,7 @@ public class NgxCrudGeneratorTest {
 	@Test
 	public void noListSequenceNoComponent() throws Exception {
 		var app = project("PAIRS", List.of("INSERT", "UPDATE", "DELETE"));
-		var result = new NgxCrudGenerator(app.getProject(), table("PAIRS")).generate(true);
+		var result = generator(app, table("PAIRS")).generate(true);
 		assertTrue(result.isSkipped());
 		assertTrue(result.getSkipReason().contains("PAIRS_LIST"));
 		assertTrue(app.getSharedComponentList().isEmpty());
@@ -289,7 +302,7 @@ public class NgxCrudGeneratorTest {
 		var existing = new UISharedRegularComponent();
 		existing.setName("pairTable");
 		app.add(existing);
-		var result = new NgxCrudGenerator(app.getProject(), table("PAIRS")).generate(true);
+		var result = generator(app, table("PAIRS")).generate(true);
 		assertTrue(result.isSkipped());
 		assertEquals(List.of(existing), app.getSharedComponentList());
 		assertTrue(app.getPageComponentList().isEmpty());
@@ -298,7 +311,7 @@ public class NgxCrudGeneratorTest {
 		var existingForm = new UISharedRegularComponent();
 		existingForm.setName("pairForm");
 		app.add(existingForm);
-		result = new NgxCrudGenerator(app.getProject(), table("PAIRS")).generate(true);
+		result = generator(app, table("PAIRS")).generate(true);
 		assertTrue(result.isSkipped());
 		assertTrue(result.getSkipReason().contains("pairForm"));
 		assertEquals(List.of(existingForm), app.getSharedComponentList());
@@ -308,7 +321,7 @@ public class NgxCrudGeneratorTest {
 		page.setName("Pairs");
 		page.setSegment("other");
 		app.add(page);
-		result = new NgxCrudGenerator(app.getProject(), table("PAIRS")).generate(true);
+		result = generator(app, table("PAIRS")).generate(true);
 		assertFalse(result.isSkipped());
 		assertNull(result.getPage());
 		assertEquals(List.of(page), app.getPageComponentList());
@@ -318,7 +331,7 @@ public class NgxCrudGeneratorTest {
 	@Test
 	public void samplePage() throws Exception {
 		var app = project("MATRIX", ALL);
-		var result = new NgxCrudGenerator(app.getProject(), table("MATRIX")).generate(true);
+		var result = generator(app, table("MATRIX")).generate(true);
 		var page = result.getPage();
 		assertNotNull(page);
 		assertEquals("Matrix", page.getName());
@@ -351,8 +364,8 @@ public class NgxCrudGeneratorTest {
 	public void databaseWithoutPaginatedListLoadsEverything() throws Exception {
 		var column = new SqlColumnInfo("ID", Types.INTEGER, "INTEGER", 10, 0, true, null, false, false, null);
 		var table = new SqlTableInfo("ITEMS", "com.ibm.db2.jcc.DB2Driver", List.of(column), List.of("ID"));
-		var app = project("ITEMS", ALL);
-		var comp = new NgxCrudGenerator(app.getProject(), table).generate(false).getComponent();
+		var app = project(table, ALL);
+		var comp = generator(app, table).generate(false).getComponent();
 		var grid = (UIUseShared) named(comp, "Grid");
 		var grids = useVariables(grid);
 		assertEquals("'clientSide'", grids.get("rowModelType"));
@@ -366,7 +379,7 @@ public class NgxCrudGeneratorTest {
 	@Test
 	public void templateExpressionsHaveNoDoubleQuote() throws Exception {
 		for (var name : List.of("PAIRS", "MATRIX", "LOGS")) {
-			var result = new NgxCrudGenerator(project(name, ALL).getProject(), table(name)).generate(true);
+			var result = generator(project(name, ALL), table(name)).generate(true);
 			var objects = new ArrayList<DatabaseObject>(tree(result.getComponent()));
 			objects.addAll(tree(result.getPage()));
 			if (result.getForm() != null) {
@@ -430,12 +443,12 @@ public class NgxCrudGeneratorTest {
 		var text = Files.readString(Path.of(template, "ionicTpl", "ion", "ion_objects.json"));
 		var beans = new JSONObject(text.replaceAll("(?s)/\\*.*?\\*/", "")).getJSONObject("Beans");
 		var app = project("PAIRS", ALL);
-		var result = new NgxCrudGenerator(app.getProject(), table("PAIRS")).generate(true);
+		var result = generator(app, table("PAIRS")).generate(true);
 		var elements = new ArrayList<UIDynamicElement>();
 		elements.addAll(find(result.getComponent(), UIDynamicElement.class));
 		elements.addAll(find(result.getPage(), UIDynamicElement.class));
 		elements.addAll(find(result.getForm(), UIDynamicElement.class));
-		var matrix = new NgxCrudGenerator(project("MATRIX", ALL).getProject(), table("MATRIX")).generate(false);
+		var matrix = generator(project("MATRIX", ALL), table("MATRIX")).generate(false);
 		elements.addAll(find(matrix.getForm(), UIDynamicElement.class));
 		assertTrue(elements.size() > 10);
 		for (var element : elements) {
@@ -469,7 +482,7 @@ public class NgxCrudGeneratorTest {
 		for (var name : List.of("MATRIX", "PAIRS", "LOGS", "PAIRS-form", "MATRIX-form")) {
 			var tableName = name.replace("-form", "");
 			var app = project(tableName, ALL);
-			var result = new NgxCrudGenerator(app.getProject(), table(tableName)).generate(false);
+			var result = generator(app, table(tableName)).generate(false);
 			var comp = name.endsWith("-form") ? result.getForm() : result.getComponent();
 			var script = comp.getScriptContent().getString();
 			var sb = new StringBuilder();
@@ -514,7 +527,7 @@ public class NgxCrudGeneratorTest {
 		for (var name : List.of("PAIRS", "MATRIX")) {
 			var app = project(name, ALL);
 			app.setTplProjectName("crudtpl");
-			var result = new NgxCrudGenerator(app.getProject(), table(name)).generate(true);
+			var result = generator(app, table(name)).generate(true);
 			for (var comp : List.of(result.getComponent(), result.getForm())) {
 				Files.writeString(Path.of(out, comp.getName() + ".html"), comp.computeTemplate());
 			}
