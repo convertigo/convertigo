@@ -12,6 +12,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 
 public class JavascriptDebugLiveParticipantTest {
+    @org.junit.Rule public final FrozenInspectionClock inspectionClock = new FrozenInspectionClock();
     @Test public void attachAfterStartKeepsTheOrdinaryContextAndHonorsConstructionBarriers() throws Exception {
         EnginePropertiesManager.initProperties();
         com.twinsoft.convertigo.engine.Engine.logAdmin = org.apache.log4j.Logger.getLogger("debugger-live-test");

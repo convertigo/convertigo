@@ -9,6 +9,7 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 
 public class JavascriptDebugChildrenTest {
+    @org.junit.Rule public final FrozenInspectionClock inspectionClock = new FrozenInspectionClock();
     @org.junit.Before public void editingEnabledFixture() throws Exception {
         com.twinsoft.convertigo.engine.EnginePropertiesManager.initProperties();
         com.twinsoft.convertigo.engine.EnginePropertiesManager.setProperty(com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName.WEB_STUDIO,"enabled");

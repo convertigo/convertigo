@@ -10,6 +10,7 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 
 public class JavascriptDebugParticipantTest {
+    @org.junit.Rule public final FrozenInspectionClock inspectionClock = new FrozenInspectionClock();
     @org.junit.Before public void editingEnabledFixture() throws Exception {
         com.twinsoft.convertigo.engine.EnginePropertiesManager.initProperties();
         com.twinsoft.convertigo.engine.EnginePropertiesManager.setProperty(com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName.WEB_STUDIO,"enabled");
@@ -110,12 +111,6 @@ public class JavascriptDebugParticipantTest {
             });
             var state = paused(session,0); long id=state.getLong("pauseId");
             var response=session.variables(0,id);
-            // A cold callback may legitimately consume its first 50 ms. Each refresh is a new bounded command.
-            for (int retry=0;response.optBoolean("refused") && retry<3;retry++) {
-                assertEquals("time",response.getString("reason"));
-                assertTrue(response.getJSONObject("inspectionBudget").getInt("candidates")<=1000);
-                response=session.variables(0,id);
-            }
             assertFalse(response.optString("reason"),response.optBoolean("refused"));
             var root=response.getJSONArray("scopes").getJSONObject(0);
             assertEquals(20,root.getJSONArray("variables").length());assertTrue(root.getInt("nextOffset") > 0);

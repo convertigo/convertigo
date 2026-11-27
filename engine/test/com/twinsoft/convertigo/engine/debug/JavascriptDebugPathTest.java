@@ -14,6 +14,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 
 /** Contract probes use synthetic markers only. Counters must stay zero on rejected paths. */
 public class JavascriptDebugPathTest {
+    @org.junit.Rule public final FrozenInspectionClock inspectionClock = new FrozenInspectionClock();
     private static final JSONObject probes=new JSONObject();
     private static void probe(String id,Object... values) throws Exception {
         var item=new JSONObject();for(int i=0;i<values.length;i+=2)item.put((String)values[i],values[i+1]);probes.put(id,item);

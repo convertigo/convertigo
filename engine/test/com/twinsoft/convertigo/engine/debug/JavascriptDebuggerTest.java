@@ -18,6 +18,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 public class JavascriptDebuggerTest {
+    @org.junit.Rule public final FrozenInspectionClock inspectionClock = new FrozenInspectionClock();
     @Test public void editorPropertyNamesMatchEngineSourcesIncludingSmartTypes() throws Exception {
         assertEquals("expression", com.twinsoft.convertigo.engine.admin.services.studio.debug.Debugger.scriptName(
                 new com.twinsoft.convertigo.beans.steps.SimpleStep(), "expression"));
