@@ -146,7 +146,7 @@ function loadProject(projectName) {
 			data: data,
 			onCreateLi: function(node, $li, isSelected) {
 				if ('beanClass' in node) {
-					$li.find('.jqtree-title').prepend('<img src="services/database_objects.GetIcon?__xsrfToken=' + encodeURIComponent(getXsrfToken()) + '&className=' + node.beanClass + '" />');
+					$li.find('.jqtree-title').prepend('<img src="../admin/services/database_objects.GetIcon?__xsrfToken=' + encodeURIComponent(getXsrfToken()) + '&className=' + node.beanClass + '" />');
 					$li.attr('title', node.comment);
 				} else {
 					$li.find('.jqtree-title').prepend('<img src="images/folder.gif" />');
