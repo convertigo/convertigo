@@ -26,7 +26,7 @@
 			"postcss-selector-parser": "6.1.6"
 		},
 		"@typescript-eslint/typescript-estree": {
-			"minimatch": "11.0.5"
+			"minimatch": "11.0.9"
 		},
 		"@sveltejs/kit": {
 			"cookie": "0.7.2"
@@ -60,7 +60,7 @@
 		"@types/node": "^25.9.12",
 		"@typescript-eslint/parser": "^8.74.0",
 		"eslint": "^9.39.2",
-		"eslint-config-prettier": "^10.1.8",
+		"eslint-config-prettier": "^10.1.9",
 		"eslint-plugin-svelte": "^3.24.1",
 		"globals": "^17.14.0",
 		"postcss-nesting": "^14.0.3",
