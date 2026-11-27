@@ -9,6 +9,7 @@ import org.mozilla.javascript.*;
 import org.codehaus.jettison.json.*;
 
 public class JavascriptDebugInspectionBudgetTest {
+    @org.junit.Rule public final FrozenInspectionClock inspectionClock = new FrozenInspectionClock();
     @org.junit.Before public void editingEnabledFixture() throws Exception {
         com.twinsoft.convertigo.engine.EnginePropertiesManager.initProperties();
         com.twinsoft.convertigo.engine.EnginePropertiesManager.setProperty(com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName.WEB_STUDIO,"enabled");
@@ -74,7 +75,7 @@ public class JavascriptDebugInspectionBudgetTest {
                 var cx=Context.getCurrentContext();return cx.evaluateString(cx.initStandardObjects(),"var value=41;\n42;","bounded",1,null);
             }});
             long id=paused(session);
-            var slow=session.evaluate(0,id,"var t=java.lang.System.nanoTime(); while(java.lang.System.nanoTime()-t<120000000){} value+1");
+            var slow=session.evaluate(0,id,"Packages.com.twinsoft.convertigo.engine.debug.FrozenInspectionClock.advance(120); value+1");
             assertEquals(slow.toString(),"42",slow.getString("result"));assertFalse(slow.optBoolean("refused",false));
             var endless=session.evaluate(0,id,"while(true){}");
             assertEquals("Evaluation timed out.",endless.getString("result"));assertTrue(endless.getBoolean("evaluationError"));
@@ -87,8 +88,8 @@ public class JavascriptDebugInspectionBudgetTest {
             var task=pool.submit(()->{try(var lease=session.enter();var suspended=JavascriptDebugger.suspendForFlow()){
                 var cx=Context.getCurrentContext();var scope=cx.initStandardObjects();
                 // The participant's own evaluation outlasts the 50 ms inspection quota, as a cold or loaded JVM can.
-                var inspect=(Function)cx.evaluateString(scope,"(function(id,action,expression){if(action!=='variables'){var t=java.lang.System.nanoTime();"
-                    +"while(java.lang.System.nanoTime()-t<120000000){}}return JSON.stringify(action==='variables'?{scopes:[]}:{result:'42'});})","slow-inspect",1,null);
+                var inspect=(Function)cx.evaluateString(scope,"(function(id,action,expression){if(action!=='variables')Packages.com.twinsoft.convertigo.engine.debug.FrozenInspectionClock.advance(120);"
+                    +"return JSON.stringify(action==='variables'?{scopes:[]}:{result:'42'});})","slow-inspect",1,null);
                 var plugin=JavascriptDebugger.participant("fake",inspect);
                 plugin.enter("x","{\"url\":\"fake:slow\",\"line\":1}");plugin.at("x","before");plugin.leave("x");return 42;
             }});
@@ -117,7 +118,7 @@ public class JavascriptDebugInspectionBudgetTest {
             assertThrows(IllegalStateException.class,()->session.properties(id,root.getString("ref"),200));
         }
     }
-    @Test public void formattingDeadlineReplaysUndeliveredRowsBeforeTheDelayedCandidate() throws Exception {
+    @Test public void timeLimitDeliversTheGatheredRowsAndResumesAtTheDelayedCandidate() throws Exception {
         try(var pool=Executors.newSingleThreadExecutor();var session=new JavascriptDebugSession()) {
             session.breakpoint("bounded",2,true);
             var task=pool.submit(()->{try(var lease=session.enter()){
@@ -133,19 +134,46 @@ public class JavascriptDebugInspectionBudgetTest {
             var calls=new java.util.concurrent.atomic.AtomicInteger();
             iteratorField.set(cursor,(JavascriptDebugProperties.Cursor)()->{
                 int n=calls.getAndIncrement(); if(n==4)return null;
-                if(n==3)Thread.sleep(60);
+                if(n==3)FrozenInspectionClock.advance(60);
                 return new JavascriptDebugProperties.Item("queued"+n,40+n,false,true);
             });
-            var partial=session.properties(id,ref,offset);assertEquals("time",partial.getString("reason"));assertEquals(0,partial.getJSONArray("variables").length());
+            // The rows gathered before the delayed unit are delivered; the delayed candidate opens the next page.
+            var partial=session.properties(id,ref,offset);assertEquals("time",partial.getString("reason"));assertTrue(partial.getBoolean("partial"));
+            assertEquals(3,partial.getJSONArray("variables").length());
             assertTrue(partial.getInt("nextOffset") > 0);assertNotEquals(offset,partial.getInt("nextOffset"));
             var next=session.properties(id,ref,partial.getInt("nextOffset"));
-            assertEquals(4,next.getJSONArray("variables").length());
+            assertEquals(1,next.getJSONArray("variables").length());assertEquals(-1,next.getInt("nextOffset"));
+            var rows=new JSONArray();
+            for(var page:List.of(partial,next))for(int i=0;i<page.getJSONArray("variables").length();i++)rows.put(page.getJSONArray("variables").get(i));
             for(int n=0;n<4;n++) {
-                assertEquals("queued"+n,next.getJSONArray("variables").getJSONObject(n).getString("name"));
-                assertEquals(Integer.toString(40+n),next.getJSONArray("variables").getJSONObject(n).getString("value"));
+                assertEquals("queued"+n,rows.getJSONObject(n).getString("name"));
+                assertEquals(Integer.toString(40+n),rows.getJSONObject(n).getString("value"));
             }
             assertEquals(5,calls.get());
 
+            session.close();task.get(5,TimeUnit.SECONDS);
+        }
+    }
+    @Test public void underALoadThatExhaustsEveryQuotaEachPageStillDeliversRowsUntilTheEnd() throws Exception {
+        try(var pool=Executors.newSingleThreadExecutor();var session=new JavascriptDebugSession()) {
+            session.breakpoint("bounded",2,true);
+            var task=pool.submit(()->{try(var lease=session.enter()){
+                var cx=Context.getCurrentContext();return cx.evaluateString(cx.initStandardObjects(),
+                    "var object=Array.from({length:250},function(_,i){return 'v'+i;});\n42;","bounded",1,null);
+            }});
+            long id=paused(session);String ref=find(session.variables(0,id).getJSONArray("scope"),"object").getString("ref");
+            FrozenInspectionClock.advanceOnEachReading(60);
+            var scope=session.variables(0,id);
+            assertFalse(scope.optBoolean("refused",false));assertTrue("the first scope row is delivered",scope.getJSONArray("scope").length()>0);
+            var names=new java.util.LinkedHashSet<String>();int offset=0,pages=0;
+            do {
+                var page=session.properties(id,ref,offset);var rows=page.getJSONArray("variables");
+                // Only the last page may be empty: it found the end behind invisible keys, such as the array length.
+                assertTrue("an empty page at offset "+offset,rows.length()>0||page.getInt("nextOffset")<0&&!page.getBoolean("partial"));
+                for(int i=0;i<rows.length();i++)assertTrue(names.add(rows.getJSONObject(i).getString("name")));
+                offset=page.getInt("nextOffset");pages++;
+            } while(offset>0&&pages<1000);
+            assertTrue(names.containsAll(List.of("0","124","249")));assertTrue(names.size()>=250);
             session.close();task.get(5,TimeUnit.SECONDS);
         }
     }

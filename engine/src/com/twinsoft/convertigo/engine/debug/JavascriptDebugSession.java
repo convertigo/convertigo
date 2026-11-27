@@ -502,7 +502,7 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 			}
 			if (name == null || name.length() > 500) throw new IllegalArgumentException("Invalid scope name.");
 			var registry = JavascriptDebugSession.this.inspection;
-			return JavascriptDebugResponse.prepare(registry.page(value, 0, 20).put("name", name).put("ref", registry.reference(value)), registry::work).toString();
+			return JavascriptDebugResponse.prepare(registry.page(value, 0, 20).put("name", name).put("ref", registry.reference(value)), registry::untimed).toString();
 		}
         /** Read a supplied root through qualified own-data descriptors only, never host getters. */
         public String previewPath(Object value, String path) {
@@ -524,19 +524,19 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 			cx.setDebugger(null, null); worker.evaluationDeadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(500);
 			try {
 				var scope = inspect.getParentScope();
-				JavascriptDebugSession.this.inspection.work(false);
-				Object value; long evaluation = System.nanoTime();
+				JavascriptDebugSession.this.inspection.untimed(false);
+				Object value; long evaluation = inspectionClock.getAsLong();
 				try { value = inspect.call(cx, scope, scope, new Object[] { frame.frameId, action, expression instanceof JavascriptDebugPath ? Context.javaToJS(expression, scope) : expression }); }
 				finally {
 					// An administrator evaluation has its own deadline, as a Rhino expression: its run is not inspection work.
-					if ("evaluate".equals(action) || "path".equals(action)) JavascriptDebugSession.this.inspection.exclude(System.nanoTime() - evaluation);
+					if ("evaluate".equals(action) || "path".equals(action)) JavascriptDebugSession.this.inspection.exclude(inspectionClock.getAsLong() - evaluation);
 				}
 				if (!(value instanceof String || value instanceof org.mozilla.javascript.ConsString)) throw new IllegalArgumentException("Participant inspection must return text.");
-                if (!JavascriptDebugSession.this.inspection.budget.check()) return json("result", "Inspection work limit reached.", "partial", true, "reason", JavascriptDebugSession.this.inspection.budget.reason);
+                if (!JavascriptDebugSession.this.inspection.budget.check(false)) return json("result", "Inspection work limit reached.", "partial", true, "reason", JavascriptDebugSession.this.inspection.budget.reason);
                 // A rope can flatten arbitrary work in toString: only a materialized, bounded reply is accepted.
                 if (!(value instanceof String text) || text.length() > 32768)
                     return JavascriptDebugSession.this.inspection.refused("participant-response-size");
-                try { return JavascriptDebugResponse.decode(text, JavascriptDebugSession.this.inspection::work); }
+                try { return JavascriptDebugResponse.decode(text, JavascriptDebugSession.this.inspection::untimed); }
                 catch (JavascriptDebugResponse.Limit e) { return JavascriptDebugSession.this.inspection.refused(e.reason); }
 			} catch (EvaluationTimeout e) { return json("result", "Evaluation timed out.", "evaluationError", true); }
 			catch (Exception e) {
@@ -718,7 +718,7 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
         }
 		synchronized (lock) { checkPause(expected); frame(index); }
 		return inspect(expected, cx -> {
-            inspection.work(false);
+            inspection.untimed(false);
 			var frame = frame(index);
 			// A queued command rechecks a mode that may have become more restrictive.
             var parsed = evaluationFree() ? path : path == null ? JavascriptDebugPath.parse(expression) : path;
@@ -743,10 +743,10 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 				var scope = frame.scope;
 				// Top-level lexical bindings live in the enclosing scope (as in Rhino Dim.do_eval).
 				if (!frame.script.isFunction() && scope.getParentScope() != null) scope = scope.getParentScope();
-				Object value; long evaluation = System.nanoTime();
+				Object value; long evaluation = inspectionClock.getAsLong();
 				try { value = cx.compileString(expression, "<debug-expression>", 1, null).exec(cx, scope, frame.thisObject); }
-				finally { inspection.exclude(System.nanoTime() - evaluation); }
-                inspection.work(false);
+				finally { inspection.exclude(inspectionClock.getAsLong() - evaluation); }
+                inspection.untimed(false);
 				return json("result", preview(value));
 			} catch (EvaluationTimeout e) { return json("result", "Evaluation timed out.", "evaluationError", true); }
 			catch (org.mozilla.javascript.RhinoException e) { return json("result", e.details(), "evaluationError", true); }
@@ -805,7 +805,12 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 	}
 
 	private record LexicalScope(Scriptable lexical, Scriptable global) { }
-    /** One quota for the whole worker command, including all scopes, skipped keys and previews. */
+	/** Monotonic clock of the inspection quota. The engine keeps System.nanoTime; tests replace it to stay deterministic. */
+	static volatile java.util.function.LongSupplier inspectionClock = System::nanoTime;
+    /**
+     * One quota for the whole worker command, including all scopes, skipped keys and previews. Its time limit only stops
+     * gathering: each page delivers at least its first row, and gathered rows or received replies are always formatted.
+     */
     private final class Inspection {
         private final Map<String, Object> values = new LinkedHashMap<>();
         private final Map<Object, String> references = new java.util.IdentityHashMap<>();
@@ -824,16 +829,20 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
         }
         private final class Budget {
             final long epoch = generation;
-            long start = System.nanoTime();
+            long start = inspectionClock.getAsLong();
             int examined;
             String reason = "";
-            boolean check() {
+            boolean check() { return check(true); }
+            /** An untimed check keeps the expiry and candidate limits: it lets work already done be delivered. */
+            boolean check(boolean timed) {
                 if (epoch != generation || closed || !paused || pausedWorker == null || pausedWorker.cancelled.getAsBoolean()) reason = "expired";
-                else if (System.nanoTime() - start >= TimeUnit.MILLISECONDS.toNanos(50)) reason = "time";
                 else if (examined >= 1000) reason = "candidates";
-                return reason.isEmpty();
+                else if (timed && inspectionClock.getAsLong() - start >= TimeUnit.MILLISECONDS.toNanos(50)) reason = "time";
+                else return true;
+                return false;
             }
-            boolean candidate() { if (!check()) return false; examined++; return true; }
+            boolean candidate() { return candidate(true); }
+            boolean candidate(boolean timed) { if (!check(timed)) return false; examined++; return true; }
         }
         private final class Continuation {
             final JavascriptDebugProperties.Cursor iterator;
@@ -859,6 +868,15 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
             if (budget == null || !(candidate ? budget.candidate() : budget.check()))
                 throw new JavascriptDebugResponse.Limit(budget == null ? "expired" : budget.reason);
         }
+        /**
+         * Work which the time limit must not refuse: the start of a command, before anything is gathered, and the delivery
+         * of work already done (formatting of gathered rows, decoding of a received reply, an evaluated result). Its size
+         * bounds it; the expiry and candidate limits still apply.
+         */
+        void untimed(boolean candidate) {
+            if (budget == null || !(candidate ? budget.candidate(false) : budget.check(false)))
+                throw new JavascriptDebugResponse.Limit(budget == null ? "expired" : budget.reason);
+        }
         JSONObject refused(String reason) {
             return json("refused", true, "partial", true, "reason", reason, "scopes", new JSONArray().put(json("name", "Inspection limited", "variables", new JSONArray(), "limited", true, "reason", reason)), "result", "Inspection response refused; request a smaller qualified page.");
         }
@@ -869,7 +887,7 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
                     String reason = result.optString("reason");
                     if (!Set.of("time", "candidates", "expired", "participant-response-size", "participant-response-shape", "scope-capacity").contains(reason)) reason = "participant-refused";
                     output = retryPages(reason, result);
-                } else output = JavascriptDebugResponse.prepare(result == null ? json() : result, this::work);
+                } else output = JavascriptDebugResponse.prepare(result == null ? json() : result, this::untimed);
             }
             catch (JavascriptDebugResponse.Limit e) {
                 output = retryPages(e.reason, result);
@@ -878,7 +896,7 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
             }
             try {
                 output.put("inspectionBudget", json("candidates", budget.examined,
-                    "elapsedNanos", System.nanoTime() - budget.start, "limitCandidates", 1000,
+                    "elapsedNanos", inspectionClock.getAsLong() - budget.start, "limitCandidates", 1000,
                     "limitMillis", 50, "reason", budget.reason, "cpuNanos", JSONObject.NULL));
                 // Fixed-size accounting trailer; user data has already been masked and formatted under the quota.
                 if (output instanceof JavascriptDebugResponse.Prepared prepared) prepared.seal();
@@ -966,9 +984,10 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
                 }
                 var exported = new java.util.ArrayDeque<JavascriptDebugProperties.Item>();
                 int rows = 0; boolean end = false;
-                while (rows < limit && budget.candidate()) {
+                // The time limit stops gathering after the first row: under load, every page still makes progress.
+                while (rows < limit && budget.candidate(rows > 0)) {
                     var item = cursor.next();
-                    if (!budget.check()) { cursor.pending = item; break; }
+                    if (rows > 0 && !budget.check()) { cursor.pending = item; break; }
                     if (item == null) { end = true; break; }
                     if (!item.visible()) continue;
                     result.put(item.accessor() ? json("name", boundedName(item.name()), "value", "<accessor>",
