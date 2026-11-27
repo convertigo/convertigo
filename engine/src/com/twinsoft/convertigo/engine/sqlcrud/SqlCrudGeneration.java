@@ -51,6 +51,7 @@ public final class SqlCrudGeneration {
 	private SqlCrudGeneration() {
 	}
 
+	private static final String GENERATED_TRANSACTION = "Generated SQL CRUD transaction. Definition SHA-256: ";
 	private static final String GENERATED_SEQUENCE = "Generated SQL CRUD wrapper. Definition SHA-256: ";
 
 	private record Change(Transaction previous, SqlTransaction replacement, Sequence previousSequence, GenericSequence replacementSequence) {}
@@ -74,20 +75,27 @@ public final class SqlCrudGeneration {
 				if (previous != null && !sameTable(previous, candidate)) {
 					throw new EngineException("Transaction " + target + " already exists for another table or has no generated table identity.");
 				}
+				var transaction = previous == null || override ? candidate : null;
+				// NGX alone reuses existing wrappers and their transaction contract.
+				if (accessibility != null && !generateSequences && previousSequence != null && previous != null) {
+					transaction = null;
+				}
+				if (transaction != null) {
+					if (previous instanceof SqlTransaction sql && !isManagedTransaction(sql)) {
+						throw new EngineException("Transaction " + target
+								+ " already exists and has a different or customized definition.");
+					}
+					transaction.setComment(GENERATED_TRANSACTION + definitionDigest(transaction));
+				}
 				GenericSequence sequence = null;
 				if (accessibility != null) {
 					if (previousSequence != null && !isManagedSequence(previousSequence, target)) {
 						throw new EngineException("Sequence " + previousSequence.getQName() + " already exists and has a different or customized definition.");
 					}
 					if (previousSequence == null || override && generateSequences) {
-						var transaction = previous == null || override ? candidate : (SqlTransaction) previous;
-						sequence = buildSequence(transaction, target, accessibility, authenticated);
+						sequence = buildSequence(transaction == null ? (SqlTransaction) previous : transaction,
+								target, accessibility, authenticated);
 					}
-				}
-				var transaction = previous == null || override ? candidate : null;
-				// NGX alone reuses existing wrappers and their transaction contract.
-				if (accessibility != null && !generateSequences && previousSequence != null && previous != null) {
-					transaction = null;
 				}
 				if (sequence != null || transaction != null) {
 					changes.add(new Change(previous, transaction, previousSequence, sequence));
@@ -149,6 +157,11 @@ public final class SqlCrudGeneration {
 		return SqlCrudQuery.parse(sql.getCrudQuery()).table().equals(SqlCrudQuery.parse(candidate.getCrudQuery()).table());
 	}
 
+	private static boolean isManagedTransaction(SqlTransaction transaction) throws EngineException {
+		return transaction.getComment().startsWith(GENERATED_TRANSACTION)
+				&& transaction.getComment().equals(GENERATED_TRANSACTION + definitionDigest(transaction));
+	}
+
 	static Sequence findSequence(Project project, String name) {
 		return project.getSequencesList().stream().filter(s -> s.getName().equalsIgnoreCase(name)).findFirst().orElse(null);
 	}
@@ -194,9 +207,13 @@ public final class SqlCrudGeneration {
 		return sequence;
 	}
 
-	private static String definitionDigest(Sequence sequence) throws EngineException {
+	private static String definitionDigest(DatabaseObject object) throws EngineException {
 		var document = XMLUtils.getDefaultDocumentBuilder().newDocument();
-		var root = sequence.toXml(document);
+		var root = object.toXml(document);
+		if (object instanceof SqlTransaction) {
+			// The connector preserves its default transaction selection on replacement.
+			root.removeAttribute("default");
+		}
 		for (var child = root.getFirstChild(); child != null; child = child.getNextSibling()) {
 			if (child instanceof Element property && property.getTagName().equals("property") && property.getAttribute("name").equals("comment")) {
 				root.removeChild(child);
@@ -204,7 +221,7 @@ public final class SqlCrudGeneration {
 			}
 		}
 		document.appendChild(root);
-		appendDefinition(document, root, sequence);
+		appendDefinition(document, root, object);
 		return DigestUtils.sha256Hex(XMLUtils.prettyPrintDOM(document));
 	}
 
