@@ -251,9 +251,14 @@ jobs:
         command: |
           result_dir=engine/build/ci-test-results
           mkdir -p "$result_dir"
+          fixture_dir="$PWD/engine/build/ci-library-fixture"
           status=0
-          ./gradlew --console=plain --no-configuration-cache --max-workers=2 --continue \
-            --init-script .circleci/engine_check_reports.gradle :engine:check || status=$?
+          sh .circleci/fetch-engine-test-fixture.sh "$fixture_dir" || status=$?
+          if [ "$status" -eq 0 ]; then
+            ./gradlew --console=plain --no-configuration-cache --max-workers=2 --continue \
+              -PengineTestFixture="$fixture_dir/_flow" \
+              --init-script .circleci/engine_check_reports.gradle :engine:check || status=$?
+          fi
           for report in engine/build/test-results/test/TEST-*.xml; do
             if [ -f "$report" ]; then
               cp "$report" "$result_dir/"
