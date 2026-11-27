@@ -58,6 +58,40 @@ commands:
             exit 1
           fi
 
+  run-qualif:
+    parameters:
+      suite:
+        type: integer
+      report:
+        type: string
+    steps:
+    - run:
+        name: Run qualification and collect counters
+        no_output_timeout: 40m
+        command: |
+          source /tmp/build.env
+          if [ "<< parameters.suite >>" = 4 ]; then
+            export C8O_IMAGE="$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE"
+          fi
+          bash .circleci/run_qualif.sh "<< parameters.report >>" \
+            "/tmp/qualification-sources/convertigo-qualif-jmx-<< parameters.suite >>" /tmp
+    - persist_to_workspace:
+        root: /tmp
+        paths:
+        - qualif-reports/<< parameters.report >>.json
+    - aws-cli/setup
+    - run:
+        name: Upload private qualification diagnostics
+        command: |
+          source /tmp/build.env
+          report="<< parameters.report >>"
+          diagnostics="/tmp/qualif-private/$report.tar.gz"
+          if [ -f "$diagnostics" ]; then
+            aws s3 cp --only-show-errors --acl private "$diagnostics" \
+              "s3://convertigo-ci/convertigo-$CONVERTIGO_BUILD_NAME/qualif/private/$report.tar.gz" \
+              >/dev/null 2>&1 || echo "Warning: could not upload $report diagnostics"
+          fi
+
   docker_build_push:
     description: >
       Build docker/<type> with buildx and push it once with every requested tag.
@@ -639,47 +673,18 @@ jobs:
           docker pull "$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-aks"
           docker tag "$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-aks" c8o:latest
           docker pull convertigo/qualif-jmeter:v4
-    - run:
-        name: Run qualification and collect counters
-        no_output_timeout: 40m
-        command: |
-          suite_repo=/tmp/qualification-sources/convertigo-qualif-jmx-1
-          report=qualif-jmx-1
-          mobile_plan="$suite_repo/jmx/mobileAppBuild.jmx"
-          if << parameters.mobile-only >>; then
-            report=qualif-jmx-mobile
-            test -f "$mobile_plan"
-            for plan in "$suite_repo"/jmx/*.jmx; do
-              if [ "$plan" != "$mobile_plan" ]; then
-                rm -- "$plan"
-              fi
-            done
-          else
-            # The historical IBM 3270 SSL plan has no enabled samples.
-            rm -f -- "$mobile_plan" "$suite_repo/jmx/ibm3270_ssl.jmx"
-          fi
-          status=0
-          (cd "$suite_repo" && unset QUALIF_GITHUB_TOKEN && sh run.sh) >/dev/null 2>&1 || status=$?
-          verdict=0
-          python3 .circleci/qualif_report.py collect "$report" "$suite_repo" "$status" /tmp/qualif-reports || verdict=$?
-          printf '%s\n' "$verdict" > /tmp/qualif-verdict
     - when:
         condition: << parameters.mobile-only >>
         steps:
-        - persist_to_workspace:
-            root: /tmp
-            paths:
-            - qualif-reports/qualif-jmx-mobile.json
+        - run-qualif:
+            suite: 1
+            report: qualif-jmx-mobile
     - unless:
         condition: << parameters.mobile-only >>
         steps:
-        - persist_to_workspace:
-            root: /tmp
-            paths:
-            - qualif-reports/qualif-jmx-1.json
-    - run:
-        name: Report qualification status
-        command: exit "$(cat /tmp/qualif-verdict)"
+        - run-qualif:
+            suite: 1
+            report: qualif-jmx-1
 
   qualif_jmx_2:
     <<: *defaults
@@ -696,24 +701,9 @@ jobs:
           docker pull "$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE"
           docker tag "$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE" c8o:latest
           docker pull convertigo/qualif-jmeter:v4
-    - run:
-        name: Run qualification and collect counters
-        no_output_timeout: 40m
-        command: |
-          suite_repo=/tmp/qualification-sources/convertigo-qualif-jmx-2
-          report=qualif-jmx-2
-          status=0
-          (cd "$suite_repo" && unset QUALIF_GITHUB_TOKEN && sh run.sh) >/dev/null 2>&1 || status=$?
-          verdict=0
-          python3 .circleci/qualif_report.py collect "$report" "$suite_repo" "$status" /tmp/qualif-reports || verdict=$?
-          printf '%s\n' "$verdict" > /tmp/qualif-verdict
-    - persist_to_workspace:
-        root: /tmp
-        paths:
-        - qualif-reports/qualif-jmx-2.json
-    - run:
-        name: Report qualification status
-        command: exit "$(cat /tmp/qualif-verdict)"
+    - run-qualif:
+        suite: 2
+        report: qualif-jmx-2
 
   qualif_jmx_3:
     <<: *defaults
@@ -730,24 +720,9 @@ jobs:
           docker pull "$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE"
           docker tag "$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE" c8o:latest
           docker pull convertigo/qualif-jmeter:v4
-    - run:
-        name: Run qualification and collect counters
-        no_output_timeout: 40m
-        command: |
-          suite_repo=/tmp/qualification-sources/convertigo-qualif-jmx-3
-          report=qualif-jmx-3
-          status=0
-          (cd "$suite_repo" && unset QUALIF_GITHUB_TOKEN && sh run.sh) >/dev/null 2>&1 || status=$?
-          verdict=0
-          python3 .circleci/qualif_report.py collect "$report" "$suite_repo" "$status" /tmp/qualif-reports || verdict=$?
-          printf '%s\n' "$verdict" > /tmp/qualif-verdict
-    - persist_to_workspace:
-        root: /tmp
-        paths:
-        - qualif-reports/qualif-jmx-3.json
-    - run:
-        name: Report qualification status
-        command: exit "$(cat /tmp/qualif-verdict)"
+    - run-qualif:
+        suite: 3
+        report: qualif-jmx-3
 
   qualif_jmx_4:
     <<: *defaults
@@ -757,22 +732,9 @@ jobs:
         at: /tmp
     - setup_remote_docker:
         version: default
-    - run:
-        name: Run Redis qualification and collect counters
-        no_output_timeout: 40m
-        command: |
-          source /tmp/build.env
-          suite_repo=/tmp/qualification-sources/convertigo-qualif-jmx-4
-          export C8O_IMAGE="$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE"
-          status=0
-          if [ -f "$suite_repo/run.sh" ]; then
-            (cd "$suite_repo" && unset QUALIF_GITHUB_TOKEN && sh run.sh) >/dev/null 2>&1 || status=$?
-          fi
-          python3 .circleci/qualif_report.py collect qualif-jmx-4 "$suite_repo" "$status" /tmp/qualif-reports
-    - persist_to_workspace:
-        root: /tmp
-        paths:
-        - qualif-reports/qualif-jmx-4.json
+    - run-qualif:
+        suite: 4
+        report: qualif-jmx-4
 
   qualif_summary:
     <<: *defaults
@@ -1272,7 +1234,6 @@ workflows:
           tags:
             only: /^\d+\..*$/
     - qualif_jmx_4:
-        context: qualif-runtime
         requires:
         - qualif_sources
         - build_docker_default

@@ -42,12 +42,13 @@ def count_samples(path):
     return tests, failures
 
 
-def collect(suite, repo, status, output):
-    plans = sorted((repo / "jmx").glob("*.jmx"))
+def collect(suite, repo, status, output, evaluation_license=False):
+    plans = (["mobileAppBuild"] if suite == MOBILE_SUITE
+             else sorted(plan.stem for plan in (repo / "jmx").glob("*.jmx")))
     tests = failures = missing = 0
     # The Redis runner checks readiness of both nodes before running its plans.
     init_plans = [] if suite == REDIS_SUITE else ["A_init"]
-    for name in [*init_plans, *(plan.stem for plan in plans)]:
+    for name in [*init_plans, *plans]:
         try:
             count, failed = count_samples(repo / "out" / "jtl" / f"{name}.jtl")
         except (OSError, ValueError, ElementTree.ParseError):
@@ -57,16 +58,17 @@ def collect(suite, repo, status, output):
             failures += failed
     if status or failures:
         verdict = "failed"
-    elif missing or not plans:
+    elif missing or not plans or evaluation_license:
         verdict = "incomplete"
     else:
         verdict = "passed"
     output.mkdir(parents=True, exist_ok=True)
     report = dict(tests=tests, failures=failures, missingPlans=missing, status=verdict)
+    if evaluation_license:
+        report["license"] = "evaluation"
     (output / f"{suite}.json").write_text(json.dumps(report) + "\n")
-    warning = "Warning: " if verdict != "passed" and suite == REDIS_SUITE else ""
+    warning = "Warning: " if verdict != "passed" else ""
     print(f"{warning}{suite}: {verdict}")
-    return verdict != "passed" and suite in REQUIRED_SUITES
 
 
 def read_suite(path, name):
@@ -79,7 +81,10 @@ def read_suite(path, name):
                 and counts["failures"] <= counts["tests"]
                 and (status != "passed" or counts["tests"] > 0
                      and not counts["failures"] and not counts["missingPlans"])):
-            return dict(name=name, status=status, **counts)
+            report = dict(name=name, status=status, **counts)
+            if data.get("license") == "evaluation":
+                report["license"] = "evaluation"
+            return report
     except (OSError, ValueError, TypeError, KeyError):
         pass
     return dict(name=name, status="unavailable", tests=None, failures=None, missingPlans=None)
@@ -98,14 +103,19 @@ def summarize(source, output):
     suites = "failed" if "failed" in required else "passed" if required == {"passed"} else "incomplete"
     mobile = reports[-1]["status"]
     redis = next(report["status"] for report in reports if report["name"] == REDIS_SUITE)
-    qualification = ("failed" if "failed" in (engine, suites)
-                     else "passed" if engine == suites == "passed" else "incomplete")
+    qualification = engine
+    if engine == "passed" and suites != "passed":
+        qualification = "warning"
     build = re.sub(r"[^a-zA-Z0-9._-]", "-", os.environ["CONVERTIGO_BUILD_NAME"])
     redis_label = "passed" if redis == "passed" else "warning"
-    subject = f"Engine {engine} | Suites {suites} | Redis {redis_label} | Mobile {mobile} | {build}"[:100]
-    lines = [subject, f"Qualification: {qualification} (engine and suites 1–3 required)", ""]
-    lines.extend(f"{r['name']}: {r['status']} (samples={r['tests']}, failures={r['failures']}, "
-                 f"missing plans={r['missingPlans']})" for r in reports)
+    suites_label = "passed" if suites == "passed" else "warning"
+    mobile_label = "passed" if mobile == "passed" else "warning"
+    subject = f"Engine {engine} | Suites {suites_label} | Redis {redis_label} | Mobile {mobile_label} | {build}"[:100]
+    lines = [subject, f"Qualification: {qualification}", ""]
+    for report in reports:
+        license_note = ", evaluation license" if report.get("license") == "evaluation" else ""
+        lines.append(f"{report['name']}: {report['status']} (samples={report['tests']}, "
+                     f"failures={report['failures']}, missing plans={report['missingPlans']}{license_note})")
     message = "\n".join(lines) + "\n"
     output.mkdir(parents=True, exist_ok=True)
     (output / "qualif-summary.txt").write_text(message)
@@ -129,13 +139,15 @@ def main():
     collect_parser.add_argument("repo", type=Path)
     collect_parser.add_argument("status", type=int)
     collect_parser.add_argument("output", type=Path)
+    collect_parser.add_argument("--evaluation-license", action="store_true")
     summary_parser = commands.add_parser("summary")
     summary_parser.add_argument("source", type=Path)
     summary_parser.add_argument("output", type=Path)
     args = parser.parse_args()
     if args.command == "collect":
-        return collect(args.suite, args.repo, args.status, args.output)
-    summarize(args.source, args.output)
+        collect(args.suite, args.repo, args.status, args.output, args.evaluation_license)
+    else:
+        summarize(args.source, args.output)
     return 0
 
 

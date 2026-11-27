@@ -1,11 +1,13 @@
 import json
 import os
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
 
-from qualif_report import REDIS_SUITE, REQUIRED_SUITES, SUITES, collect, summarize
+from qualif_report import MOBILE_SUITE, REDIS_SUITE, REQUIRED_SUITES, SUITES, collect, summarize
 
 
 class QualificationReportTest(unittest.TestCase):
@@ -37,11 +39,19 @@ class QualificationReportTest(unittest.TestCase):
             self.assertNotIn("PRIVATE_RESPONSE_MARKER", output)
         return json.loads((self.public / "qualif-summary.json").read_text())
 
+    def collect_cli(self, suite, status):
+        result = subprocess.run([
+            sys.executable, str(Path(__file__).with_name("qualif_report.py")),
+            "collect", suite, str(self.repo), str(status), str(self.reports),
+        ], capture_output=True, text=True, check=True)
+        self.assertIn(f"Warning: {suite}", result.stdout)
+
     def test_only_counters_cross_the_workspace_and_publication_boundary(self):
         self.write_result("A_init", "true")
         self.write_result("main", "true")
+        self.write_result("mobileAppBuild", "true")
         for suite in SUITES:
-            self.assertFalse(collect(suite, self.repo, 0, self.reports))
+            collect(suite, self.repo, 0, self.reports)
         check = self.root / "qualif-engine-check.exit"
         check.write_text("1\n")
         result = self.summary()
@@ -53,34 +63,50 @@ class QualificationReportTest(unittest.TestCase):
 
     def test_initialization_error_and_missing_or_empty_results(self):
         self.write_result("A_init", "false")
-        self.assertTrue(collect(SUITES[0], self.repo, 0, self.reports))
+        self.collect_cli(SUITES[0], 0)
         self.write_result("A_init", "true")
         (self.jtl / "main.jtl").write_text("<testResults/>")
-        self.assertTrue(collect(SUITES[1], self.repo, 0, self.reports))
+        self.collect_cli(SUITES[1], 0)
         self.write_result("main", "true")
-        self.assertFalse(collect(SUITES[-1], self.repo, 1, self.reports))
+        self.collect_cli(MOBILE_SUITE, 1)
         result = self.summary()
         self.assertEqual(result["engineCheck"], "incomplete")
         self.assertEqual(result["suites"], "failed")
         self.assertEqual(result["mobile"], "failed")
+        self.assertEqual(result["reports"][-1]["missingPlans"], 1)
         self.assertEqual([r["status"] for r in result["reports"]],
                          ["failed", "incomplete", "unavailable", "unavailable", "failed"])
+        (self.root / "qualif-engine-check.exit").write_text("0\n")
+        result = self.summary()
+        self.assertEqual(result["status"], "warning")
+        self.assertIn("Suites warning", result["subject"])
+        self.assertIn("Mobile warning", result["subject"])
+        (self.root / "qualif-engine-check.exit").unlink()
         (self.reports / f"{SUITES[0]}.json").unlink()
         result = self.summary()
         self.assertEqual(result["status"], "incomplete")
         self.assertEqual(result["suites"], "incomplete")
 
+    def test_evaluation_license_keeps_a_warning_with_passing_samples(self):
+        self.write_result("A_init", "true")
+        self.write_result("main", "true")
+        collect(SUITES[0], self.repo, 0, self.reports, evaluation_license=True)
+        report = self.summary()["reports"][0]
+        self.assertEqual(report["status"], "incomplete")
+        self.assertEqual(report["license"], "evaluation")
+        self.assertEqual(report["tests"], 2)
+
     def test_redis_is_reported_without_affecting_required_qualification(self):
         self.write_result("A_init", "true")
         self.write_result("main", "true")
         for suite in REQUIRED_SUITES:
-            self.assertFalse(collect(suite, self.repo, 0, self.reports))
+            collect(suite, self.repo, 0, self.reports)
         (self.root / "qualif-engine-check.exit").write_text("0\n")
         (self.jtl / "A_init.jtl").unlink()
-        self.assertFalse(collect(REDIS_SUITE, self.repo, 0, self.reports))
+        collect(REDIS_SUITE, self.repo, 0, self.reports)
         self.assertEqual(self.summary()["redis"], "passed")
         self.write_result("main", "false")
-        self.assertFalse(collect(REDIS_SUITE, self.repo, 1, self.reports))
+        collect(REDIS_SUITE, self.repo, 1, self.reports)
         result = self.summary()
         self.assertEqual(result["redis"], "failed")
         self.assertEqual(result["status"], "passed")
