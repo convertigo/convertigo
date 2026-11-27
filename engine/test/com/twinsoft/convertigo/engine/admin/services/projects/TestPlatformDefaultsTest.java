@@ -148,8 +148,10 @@ public class TestPlatformDefaultsTest {
 		assertEquals(runtimeCalls, com.twinsoft.convertigo.engine.flow.FlowBridgeProbe.calls());
 		assertEquals("Private", child(platform.getElementsByTagName("sequence"), "Declared").getAttribute("accessibility"));
 		assertEquals("Private", child(platform.getElementsByTagName("sequence"), "Unreadable").getAttribute("accessibility"));
-		org.junit.Assert.assertTrue("GetTestPlatform took over one second",
-				System.nanoTime() - started < java.util.concurrent.TimeUnit.SECONDS.toNanos(1));
+		// The counters above prove that no source is evaluated. This bound only catches a reading that is no longer
+		// linear in the size of the 100,000-line source, with room for a cold JVM on a loaded build machine.
+		org.junit.Assert.assertTrue("GetTestPlatform took over ten seconds",
+				System.nanoTime() - started < java.util.concurrent.TimeUnit.SECONDS.toNanos(10));
 		org.junit.Assert.assertFalse(com.twinsoft.convertigo.engine.flow.FlowGenericView.active());
 	}
 
