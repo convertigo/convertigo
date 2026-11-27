@@ -550,6 +550,8 @@ jobs:
         no_output_timeout: 40m
         command: |
           suite_repo="$PWD/convertigo-qualif-jmx-1"
+          # The historical IBM 3270 SSL plan has no enabled samples.
+          rm -f -- "$suite_repo/jmx/ibm3270_ssl.jmx"
           status=0
           (cd "$suite_repo" && sh run.sh) >/dev/null 2>&1 || status=$?
           verdict=0
