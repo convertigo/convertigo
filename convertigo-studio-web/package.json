@@ -24,7 +24,7 @@
 	},
 	"overrides": {
 		"@typescript-eslint/typescript-estree": {
-			"minimatch": "11.0.8"
+			"minimatch": "11.0.9"
 		},
 		"monaco-editor": {
 			"dompurify": "3.4.18"
@@ -47,7 +47,7 @@
 		"@types/node": "^26.6.10",
 		"@typescript-eslint/parser": "^8.74.0",
 		"eslint": "^9.39.2",
-		"eslint-config-prettier": "^10.1.8",
+		"eslint-config-prettier": "^10.1.9",
 		"eslint-plugin-svelte": "^3.24.1",
 		"globals": "^17.14.0",
 		"prettier": "^3.10.1",

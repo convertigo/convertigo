@@ -1,4 +1,5 @@
 <script>
+	import MaskedPropertyInput from '#lib/admin/components/MaskedPropertyInput.svelte';
 	import PropertyType from '#lib/admin/components/PropertyType.svelte';
 	import SaveCancelButtons from '#lib/admin/components/SaveCancelButtons.svelte';
 	import AccordionGroup from '#lib/common/components/AccordionGroup.svelte';
@@ -643,7 +644,7 @@
 	 */
 	function toggleNull(row) {
 		row.isNull = !row.isNull;
-		if (row.isNull) {
+		if (row.isNull || row.maskedString) {
 			row.value = row.table ? [] : '';
 		}
 	}
@@ -1332,7 +1333,9 @@
 											<div class="studio-properties__field-control">
 												{#if isReadOnlyRow(row, category)}
 													<span class="studio-properties__static">
-														{row.isMasked === true && value ? '••••••••' : value}
+														{row.hasMaskedValue || (row.isMasked === true && value)
+															? '••••••••'
+															: value}
 													</span>
 												{:else if row.isNull}
 													<div class="studio-properties__fallback layout-x-low">
@@ -1350,6 +1353,17 @@
 															/>
 														</div>
 													</div>
+												{:else if row.maskedString}
+													<MaskedPropertyInput {row} onChange={(value) => (row.value = value)} />
+													{#if row.nillable}
+														<StudioIconButton
+															icon="mdi:null"
+															size="xs"
+															title="Set it to null"
+															ariaLabel={`Set ${label} to null`}
+															onclick={() => toggleNull(row)}
+														/>
+													{/if}
 												{:else if row.table}
 													{#if row.nillable}
 														<div class="studio-properties__table-actions layout-x-end-none">

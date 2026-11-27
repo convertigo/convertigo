@@ -197,21 +197,14 @@ public class Set extends JSonService {
 							var fc = new FormatedContent(pvalue);
 							setter.invoke(dbo, new Object[] { fc });
 						} else {
+							if (dbo.matchesCipheredPropertyValue(pname, pvalue, oldValue)) {
+								done = true;
+								break;
+							}
 							// a tag of the Eclipse Studio editors is set as its index
 							pvalue = PropertyTags.index(dbo, pname, pvalue);
 							var propertyValue = dbo.compileProperty(pname, pvalue).toString();
 							var oPropertyValue = createObject(ptc, propertyValue);
-
-							if (dbo.isCipheredProperty(pname)) {
-								var initialValue = (String) getter.invoke(dbo, (Object[]) null);
-
-								if (oPropertyValue.equals(initialValue)
-										|| DatabaseObject.encryptPropertyValue(initialValue).equals(oPropertyValue)) {
-									oPropertyValue = initialValue;
-									// } else{
-									// dbo.hasChanged = true;
-								}
-							}
 
 							if (oPropertyValue != null) {
 								var args = new Object[] { oPropertyValue };

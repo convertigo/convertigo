@@ -10,6 +10,7 @@
 	import { getContext, onMount, tick, untrack } from 'svelte';
 	import { fromAction } from 'svelte/attachments';
 	import Button from './Button.svelte';
+	import MaskedPropertyInput from './MaskedPropertyInput.svelte';
 	import PropertyType from './PropertyType.svelte';
 	import SaveCancelButtons from './SaveCancelButtons.svelte';
 	import TableAutoCard from './TableAutoCard.svelte';
@@ -283,6 +284,8 @@
 									{@const { class: cls, value, originalValue, values } = row}
 									{#if category == 'Information'}
 										<span>{value}</span>
+									{:else if row.maskedString}
+										<MaskedPropertyInput {row} onChange={(value) => (row.value = value)} />
 									{:else if cls?.startsWith('java.lang.')}
 										{@const type = getType(row)}
 										<PropertyType

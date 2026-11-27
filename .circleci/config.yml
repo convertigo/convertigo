@@ -67,9 +67,12 @@ commands:
         type: integer
       report:
         type: string
+      with-mobile:
+        type: boolean
+        default: false
     steps:
     - run:
-        name: Run qualification and collect counters
+        name: Run qualification and collect results
         no_output_timeout: 40m
         command: |
           set +x
@@ -77,18 +80,47 @@ commands:
           if [ "<< parameters.suite >>" = 4 ]; then
             export C8O_IMAGE="$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE"
           fi
+          options=()
+          if << parameters.with-mobile >>; then
+            options+=(--mobile-repo /tmp/qualification-sources/convertigo-qualif-jmx-1
+                      --mobile-image "$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-aks")
+          fi
           bash .circleci/run_qualif.sh "<< parameters.report >>" \
-            "/tmp/qualification-sources/convertigo-qualif-jmx-<< parameters.suite >>" /tmp
+            "/tmp/qualification-sources/convertigo-qualif-jmx-<< parameters.suite >>" /tmp "${options[@]}"
     - persist_to_workspace:
         root: /tmp
         paths:
         - qualif-reports/<< parameters.report >>.json
+        - qualif-reports/<< parameters.report >>-samples.json
+    - when:
+        condition: << parameters.with-mobile >>
+        steps:
+        - persist_to_workspace:
+            root: /tmp
+            paths:
+            - qualif-reports/qualif-jmx-mobile.json
+            - qualif-reports/qualif-jmx-mobile-samples.json
     - run:
         name: Upload private qualification diagnostics
         command: |
           set +x
           source /tmp/build.env
-          bash .circleci/upload_qualif.sh "<< parameters.report >>" "$CONVERTIGO_BUILD_NAME" /tmp
+          extra=()
+          if << parameters.with-mobile >>; then
+            extra+=(qualif-jmx-mobile)
+          fi
+          bash .circleci/upload_qualif.sh "<< parameters.report >>" "$CONVERTIGO_BUILD_NAME" /tmp "${extra[@]}"
+    - persist_to_workspace:
+        root: /tmp
+        paths:
+        - qualif-uploads/<< parameters.report >>.files
+    - when:
+        condition: << parameters.with-mobile >>
+        steps:
+        - persist_to_workspace:
+            root: /tmp
+            paths:
+            - qualif-uploads/qualif-jmx-mobile.files
 
   docker_build_push:
     description: >
@@ -756,10 +788,6 @@ jobs:
 
   qualif_jmx_1:
     <<: *defaults
-    parameters:
-      mobile-only:
-        type: boolean
-        default: false
     steps:
     - checkout
     - attach_workspace:
@@ -774,18 +802,9 @@ jobs:
           docker pull "$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-aks"
           docker tag "$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-aks" c8o:latest
           docker pull convertigo/qualif-jmeter:v4
-    - when:
-        condition: << parameters.mobile-only >>
-        steps:
-        - run-qualif:
-            suite: 1
-            report: qualif-jmx-mobile
-    - unless:
-        condition: << parameters.mobile-only >>
-        steps:
-        - run-qualif:
-            suite: 1
-            report: qualif-jmx-1
+    - run-qualif:
+        suite: 1
+        report: qualif-jmx-1
 
   qualif_jmx_2:
     <<: *defaults
@@ -838,6 +857,7 @@ jobs:
     - run-qualif:
         suite: 4
         report: qualif-jmx-4
+        with-mobile: true
 
   qualif_summary:
     <<: *defaults
@@ -854,11 +874,20 @@ jobs:
           python3 .circleci/qualif_report.py summary /tmp /tmp/qualif-summary
 
     - run:
-        name: Sync summary to S3
+        name: Publish qualification pages to S3
         command: |
           source /tmp/build.env
-          aws s3 cp --storage-class REDUCED_REDUNDANCY --acl public-read /tmp/qualif-summary/qualif-summary.txt s3://convertigo-ci/convertigo-$CONVERTIGO_BUILD_NAME/qualif/qualif-summary.txt
-          aws s3 cp --storage-class REDUCED_REDUNDANCY --acl public-read /tmp/qualif-summary/qualif-summary.json s3://convertigo-ci/convertigo-$CONVERTIGO_BUILD_NAME/qualif/qualif-summary.json
+          target="s3://convertigo-ci/convertigo-$CONVERTIGO_BUILD_NAME/qualif"
+          for file in /tmp/qualif-summary/qualif-jmx-*.html /tmp/qualif-summary/qualif-summary.html; do
+            aws s3 cp --storage-class REDUCED_REDUNDANCY --acl public-read --content-type 'text/html; charset=utf-8' \
+              "$file" "$target/${file##*/}"
+          done
+          aws s3 cp --storage-class REDUCED_REDUNDANCY --acl public-read /tmp/qualif-summary/qualif-summary.txt "$target/qualif-summary.txt"
+          aws s3 cp --storage-class REDUCED_REDUNDANCY --acl public-read /tmp/qualif-summary/qualif-summary.json "$target/qualif-summary.json"
+
+    - run:
+        name: Notify qualification results
+        command: python3 .circleci/qualif_report.py notify /tmp/qualif-summary
 
     - store_artifacts:
         path: /tmp/qualif-summary
@@ -1423,16 +1452,6 @@ workflows:
         filters:
           tags:
             only: /^\d+\..*$/
-    - qualif_jmx_1:
-        context: qualif-runtime
-        name: qualif_jmx_mobile
-        mobile-only: true
-        requires:
-        - qualif_sources
-        - build_docker_aks
-        filters:
-          tags:
-            only: /^\d+\..*$/
     - qualif_jmx_2:
         context: qualif-runtime
         requires:
@@ -1450,9 +1469,11 @@ workflows:
           tags:
             only: /^\d+\..*$/
     - qualif_jmx_4:
+        context: qualif-runtime
         requires:
         - qualif_sources
-        - build_docker_default
+        - build_docker_default: terminal
+        - build_docker_aks: terminal
         filters:
           tags:
             only: /^\d+\..*$/
@@ -1460,7 +1481,6 @@ workflows:
         requires:
         - engine_check: terminal
         - qualif_jmx_1: terminal
-        - qualif_jmx_mobile: terminal
         - qualif_jmx_2: terminal
         - qualif_jmx_3: terminal
         - qualif_jmx_4: terminal

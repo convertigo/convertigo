@@ -102,6 +102,10 @@ configurations.compileFlat {
 			// Force Redisson transitive dependencies to the security-fixed Netty version.
 			details.useVersion '4.2.21.Final'
 		}
+		if (details.requested.group == 'org.testng' && details.requested.name == 'testng') {
+			details.useVersion '7.5.1'
+			details.because 'Use the maintenance release of the TestNG dependency brought in by SoapUI'
+		}
 	}
 }
 

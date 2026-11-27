@@ -4,8 +4,14 @@ set -eu
 
 suite=$1
 build=$2
-archive="$3/qualif-private/$suite.tar.gz"
-test -f "$archive" || exit 0
+private="$3/qualif-private"
+uploads="$3/qualif-uploads"
+shift 3
+mkdir -p "$uploads"
+for report in "$suite" "$@"; do
+    : > "$uploads/$report.files"
+done
+test -d "$private" || exit 0
 
 install_aws() {
     local arch
@@ -30,6 +36,24 @@ if ! command -v aws >/dev/null 2>&1; then
     export PATH="$tools/bin:$PATH"
 fi
 
-timeout 180s aws s3 cp --only-show-errors --acl private "$archive" \
-    "s3://convertigo-ci/convertigo-$build/qualif/private/$suite.tar.gz" \
-    >/dev/null 2>&1 || echo "Warning: could not upload $suite diagnostics"
+for report in "$suite" "$@"; do
+    folder="$private/$report"
+    test -d "$folder" || continue
+    target="s3://convertigo-ci/convertigo-$build/qualif/private/$report/"
+    if timeout 180s aws s3 cp --only-show-errors --acl private --recursive --no-follow-symlinks \
+        --exclude '*' --include '*.html' --content-type 'text/html; charset=utf-8' "$folder/" "$target" \
+        >/dev/null 2>&1; then
+        (cd "$folder" && find . -type f -name '*.html' -print0) >> "$uploads/$report.files" ||
+            echo "Warning: could not list $report private HTML diagnostics"
+    else
+        echo "Warning: could not upload $report private HTML diagnostics"
+    fi
+    if timeout 180s aws s3 cp --only-show-errors --acl private --recursive --no-follow-symlinks \
+        --exclude '*.html' --content-type 'text/plain; charset=utf-8' "$folder/" "$target" \
+        >/dev/null 2>&1; then
+        (cd "$folder" && find . -type f ! -name '*.html' -print0) >> "$uploads/$report.files" ||
+            echo "Warning: could not list $report private text diagnostics"
+    else
+        echo "Warning: could not upload $report private text diagnostics"
+    fi
+done

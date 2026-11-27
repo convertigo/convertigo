@@ -79,14 +79,21 @@ export function createDatabaseObjectProperties() {
 			if (serial !== selectionLoadSerial || id !== nextId) {
 				return;
 			}
-			properties = Object.entries(res?.properties ?? {}).map(([k, p]) => ({
-				displayName: k,
-				originalValue: p.value,
-				originalMode: p.mode,
-				originalIsNull: p.isNull,
-				...p,
-				category: normalizeCategory(p.category)
-			}));
+			properties = Object.entries(res?.properties ?? {}).map(([k, p]) => {
+				const maskedString = p.isMasked === true && p.class === 'java.lang.String';
+				const value = maskedString ? undefined : p.value;
+				return {
+					...p,
+					displayName: k,
+					value,
+					originalValue: value,
+					originalMode: p.mode,
+					originalIsNull: p.isNull,
+					maskedString,
+					hasMaskedValue: maskedString && (p.hasMaskedValue ?? Boolean(p.value)),
+					category: normalizeCategory(p.category)
+				};
+			});
 		} finally {
 			if (serial === selectionLoadSerial && id === nextId) {
 				loading = false;
@@ -127,6 +134,10 @@ export function createDatabaseObjectProperties() {
 		}
 		const saveId = id;
 		const submitted = changes.map((property) => {
+			if (property.maskedString) {
+				const { name, value, mode, isNull } = property;
+				return { name, value: value ?? '', mode, isNull };
+			}
 			const copy = { ...property };
 			delete copy.validation;
 			return copy;
@@ -138,12 +149,20 @@ export function createDatabaseObjectProperties() {
 		});
 		if (res?.done) {
 			changes.forEach((p, index) => {
-				p.originalValue = submitted[index].value;
+				const { value, mode, isNull } = submitted[index];
+				if (p.maskedString) {
+					p.hasMaskedValue = !isNull && value !== '';
+					if (p.value === value) {
+						p.value = undefined;
+					}
+				} else {
+					p.originalValue = value;
+				}
 				if ('mode' in p) {
-					p.originalMode = submitted[index].mode;
+					p.originalMode = mode;
 				}
 				if ('isNull' in p) {
-					p.originalIsNull = submitted[index].isNull;
+					p.originalIsNull = isNull;
 				}
 			});
 			await createUndefinedSymbols(saveId, res.undefinedSymbols);

@@ -264,7 +264,13 @@ public class Get extends JSonService {
 		var displayName = elt.getAttribute("displayName");
 		Node fc = elt.getFirstChild();
 		var nodeName = fc.getNodeName();
-		if (fc instanceof Element c && c.hasAttribute("value")) {
+		if (property.optBoolean("isMasked") && "java.lang.String".equals(nodeName) && fc instanceof Element c) {
+			var value = c.getAttribute("value");
+			var ciphered = property.optBoolean("ciphered");
+			property.put("hasMaskedValue", !value.isEmpty()
+					&& (!ciphered || !value.equals(DatabaseObject.encryptPropertyValue(""))));
+			property.remove("ciphered");
+		} else if (fc instanceof Element c && c.hasAttribute("value")) {
 			if ("beanData".equals(displayName)) {
 				addIonProperties(dbo, props, c.getAttribute("value"));
 			} else {

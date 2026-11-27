@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { call } from '#lib/utils/service.js';
 import { describe, expect, it, vi } from 'vitest';
 import { createDatabaseObjectProperties } from './DatabaseObjectProperties.svelte.js';
@@ -276,5 +277,72 @@ describe('createDatabaseObjectProperties', () => {
 		expect(
 			dboProperties.categories.find(({ category }) => category === 'Properties')?.properties
 		).toEqual([expect.objectContaining({ displayName: 'Visible' })]);
+	});
+	it('omits an untouched masked property when saving another edit', async () => {
+		vi.mocked(call)
+			.mockResolvedValueOnce({
+				properties: {
+					...propertiesResponse('old comment').properties,
+					'SMTP password': {
+						class: 'java.lang.String',
+						name: 'smtpPassword',
+						isMasked: true,
+						hasMaskedValue: true
+					}
+				}
+			})
+			.mockResolvedValueOnce({ done: true });
+		const editor = createDatabaseObjectProperties();
+		await editor.onSelectionChange({ selectedValue: ['Project.Sequence.SendMail'] });
+		const [comment, masked] = editor.properties;
+
+		expect(masked.value).toBeUndefined();
+		expect(editor.getChanges()).toEqual([]);
+		comment.name = 'comment';
+		comment.value = 'new comment';
+		await editor.save();
+		expect(JSON.parse(vi.mocked(call).mock.lastCall[1].props)).toMatchObject([
+			{ name: 'comment', value: 'new comment' }
+		]);
+	});
+
+	it('distinguishes an explicit clear from an unchanged masked value and discards saved drafts', async () => {
+		vi.mocked(call)
+			.mockResolvedValueOnce({
+				properties: {
+					'SMTP password': {
+						class: 'java.lang.String',
+						name: 'smtpPassword',
+						isMasked: true,
+						hasMaskedValue: true
+					}
+				}
+			})
+			.mockResolvedValue({ done: true });
+		const editor = createDatabaseObjectProperties();
+		await editor.onSelectionChange({ selectedValue: ['Project.Sequence.SendMail'] });
+		const [masked] = editor.properties;
+
+		masked.value = '';
+		expect(editor.hasChanges).toBe(true);
+		editor.cancel();
+		expect(editor.hasChanges).toBe(false);
+		masked.value = '';
+		await editor.save();
+		expect(JSON.parse(vi.mocked(call).mock.lastCall[1].props)).toEqual([
+			{ name: 'smtpPassword', value: '' }
+		]);
+		expect(masked.hasMaskedValue).toBe(false);
+
+		for (const replacement of [randomUUID(), '${mail.fixture.secret}']) {
+			masked.value = replacement;
+			await editor.save();
+			expect(JSON.parse(vi.mocked(call).mock.lastCall[1].props)[0].value === replacement).toBe(
+				true
+			);
+			expect(masked.hasMaskedValue).toBe(true);
+			expect(masked.value).toBeUndefined();
+			expect(editor.hasChanges).toBe(false);
+		}
 	});
 });
