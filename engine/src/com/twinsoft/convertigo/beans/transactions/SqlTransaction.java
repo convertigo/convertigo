@@ -75,7 +75,10 @@ public class SqlTransaction extends TransactionWithVariables {
 
 	private static final long serialVersionUID = 5180639998317573920L;
 
-	private static final Pattern SQL_PARAMETER = Pattern.compile("(?<![\\\\{])(?:\\{\\{([a-zA-Z0-9_]+)\\}\\}|([\"']?)\\{([a-zA-Z0-9_]+)\\}\\2)");
+	private static final Pattern SQL_FRAGMENT = Pattern.compile("\\{\\{([a-zA-Z0-9_]+)\\}\\}");
+	private static final Pattern SQL_PARAMETER = Pattern.compile("([\"']?)\\{([a-zA-Z0-9_]+)\\}\\1");
+	private static final int MAX_SQL_FRAGMENT_EXPANSIONS = 1024;
+	private static final long MAX_SQL_EXPANSION_CHARS = 16L * 1024 * 1024;
 	private static final Pattern CRUD_TOKEN = Pattern.compile(
 			"\"(?:[^\"]|\"\")*\"|`(?:[^`]|``)*`|'(?:[^']|'')*'|\\{\\{([a-z_]+)\\}\\}|\\{([a-zA-Z0-9_]+)\\}|[{}]");
 	final private static Pattern p_semicolon = Pattern.compile(".*?(?:;|$)", Pattern.DOTALL);
@@ -249,25 +252,46 @@ public class SqlTransaction extends TransactionWithVariables {
 			if (!crudQuery.isEmpty()) {
 				return prepareCrudParameters(SqlCrudQuery.parse(crudQuery), updateDefinitions);
 			}
-			var matcher = SQL_PARAMETER.matcher(query);
-			var sql = new StringBuilder();
-			while (matcher.find()) {
-				String name = matcher.group(1);
-				String replacement;
-				if (name != null) {
-					updateVariable(updateDefinitions, name);
-					replacement = sqlTransaction.getParameterStringValue(name);
-					if (replacement == null || SQL_PARAMETER.matcher(replacement).find()) {
-						throw new EngineException("Unresolved SQL parameter " + name + ".");
-					}
-					otherParametersList.add(name);
-				} else {
-					bindParameter(matcher.group(3), updateDefinitions, false);
-					replacement = "?";
-				}
-				matcher.appendReplacement(sql, Matcher.quoteReplacement(replacement));
+			var expanded = expandSqlFragments(updateDefinitions);
+			var parameters = SQL_PARAMETER.matcher(expanded);
+			while (parameters.find()) {
+				bindParameter(parameters.group(2), updateDefinitions, false);
 			}
-			return matcher.appendTail(sql).toString();
+			return parameters.replaceAll("?");
+		}
+
+		private String expandSqlFragments(boolean updateDefinitions) throws EngineException {
+			var expanded = query;
+			var fragments = SQL_FRAGMENT.matcher(expanded);
+			var seen = new java.util.HashSet<String>();
+			long expandedChars = 0;
+			while (fragments.find()) {
+				String name = fragments.group(1);
+				if (seen.size() == MAX_SQL_FRAGMENT_EXPANSIONS || !seen.add(expanded)) {
+					throw new EngineException("Circular SQL fragment or too many expansions: " + name + ".");
+				}
+				String marker = fragments.group();
+				String value = sqlTransaction.getParameterStringValue(name);
+				updateVariable(updateDefinitions, name);
+				otherParametersList.add(name);
+
+				long length = expanded.length();
+				if (value.length() > marker.length()) {
+					long growth = value.length() - marker.length();
+					do {
+						if (marker.equals(fragments.group())) {
+							length += growth;
+						}
+					} while (fragments.find());
+				}
+				expandedChars += length;
+				if (expandedChars > MAX_SQL_EXPANSION_CHARS) {
+					throw new EngineException("SQL fragment expansion is too large: " + name + ".");
+				}
+				expanded = expanded.replace(marker, value);
+				fragments.reset(expanded);
+			}
+			return expanded;
 		}
 
 		private String prepareCrudParameters(SqlCrudQuery crud, boolean updateDefinitions) throws EngineException {
