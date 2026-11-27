@@ -525,7 +525,12 @@ public final class JavascriptDebugSession implements Debugger, AutoCloseable {
 			try {
 				var scope = inspect.getParentScope();
 				JavascriptDebugSession.this.inspection.work(false);
-				var value = inspect.call(cx, scope, scope, new Object[] { frame.frameId, action, expression instanceof JavascriptDebugPath ? Context.javaToJS(expression, scope) : expression });
+				Object value; long evaluation = System.nanoTime();
+				try { value = inspect.call(cx, scope, scope, new Object[] { frame.frameId, action, expression instanceof JavascriptDebugPath ? Context.javaToJS(expression, scope) : expression }); }
+				finally {
+					// An administrator evaluation has its own deadline, as a Rhino expression: its run is not inspection work.
+					if ("evaluate".equals(action) || "path".equals(action)) JavascriptDebugSession.this.inspection.exclude(System.nanoTime() - evaluation);
+				}
 				if (!(value instanceof String || value instanceof org.mozilla.javascript.ConsString)) throw new IllegalArgumentException("Participant inspection must return text.");
                 if (!JavascriptDebugSession.this.inspection.budget.check()) return json("result", "Inspection work limit reached.", "partial", true, "reason", JavascriptDebugSession.this.inspection.budget.reason);
                 // A rope can flatten arbitrary work in toString: only a materialized, bounded reply is accepted.

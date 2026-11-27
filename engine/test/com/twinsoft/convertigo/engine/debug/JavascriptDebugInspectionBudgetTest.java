@@ -81,6 +81,23 @@ public class JavascriptDebugInspectionBudgetTest {
             session.resume("go",id);assertEquals(42,((Number)task.get(5,TimeUnit.SECONDS)).intValue());
         }
     }
+    @Test public void participantEvaluationRunTimeIsNotCountedInTheInspectionQuota() throws Exception {
+        try(var pool=Executors.newSingleThreadExecutor();var session=new JavascriptDebugSession()) {
+            session.breakpoint("fake:slow",1,true);
+            var task=pool.submit(()->{try(var lease=session.enter();var suspended=JavascriptDebugger.suspendForFlow()){
+                var cx=Context.getCurrentContext();var scope=cx.initStandardObjects();
+                // The participant's own evaluation outlasts the 50 ms inspection quota, as a cold or loaded JVM can.
+                var inspect=(Function)cx.evaluateString(scope,"(function(id,action,expression){if(action!=='variables'){var t=java.lang.System.nanoTime();"
+                    +"while(java.lang.System.nanoTime()-t<120000000){}}return JSON.stringify(action==='variables'?{scopes:[]}:{result:'42'});})","slow-inspect",1,null);
+                var plugin=JavascriptDebugger.participant("fake",inspect);
+                plugin.enter("x","{\"url\":\"fake:slow\",\"line\":1}");plugin.at("x","before");plugin.leave("x");return 42;
+            }});
+            long id=paused(session);
+            var slow=session.evaluate(0,id,"input");
+            assertEquals(slow.toString(),"42",slow.getString("result"));assertFalse(slow.optBoolean("refused",false));
+            session.resume("go",id);assertEquals(42,((Number)task.get(5,TimeUnit.SECONDS)).intValue());
+        }
+    }
     @Test public void hugeRhinoObjectUsesContinuationAndSkipsSlowGetters() throws Exception {
         try(var pool=Executors.newSingleThreadExecutor();var session=new JavascriptDebugSession()) {
             session.breakpoint("bounded",3,true);
