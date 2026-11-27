@@ -451,6 +451,51 @@ public class SqlCrudContractTest {
 	}
 
 	@Test
+	public void importedLegacyListKeepsItsOrderByInput() throws Exception {
+		execute("CREATE TABLE legacy_notes (label VARCHAR(20))",
+				"INSERT INTO legacy_notes VALUES ('first'), ('second')");
+		var original = connector.newTransaction();
+		original.setName(column("legacy_notes") + "_LIST");
+		original.setSqlQuery("SELECT label FROM legacy_notes ORDER BY {{order_by}}");
+		var document = XMLUtils.getDefaultDocumentBuilder().newDocument();
+		var definition = original.toXml(document);
+		document.appendChild(definition);
+		definition.setAttribute("version", "8.4.7");
+		for (var child = definition.getFirstChild(); child != null; child = child.getNextSibling()) {
+			if (child instanceof Element property && property.getAttribute("name").equals("crudQuery")) {
+				definition.removeChild(child);
+				break;
+			}
+		}
+		var legacy = (SqlTransaction) com.twinsoft.convertigo.beans.core.DatabaseObject.read(definition);
+		connector.add(legacy);
+		transactions.put("LEGACY", legacy);
+		assertEquals(List.of("second", "first"), labels(run("LEGACY", Map.of("order_by", "label DESC"))));
+		var table = SqlTableInfo.read(connector, column("legacy_notes"));
+		var replacement = SqlConnector.createSqlTransactions(connector, table, List.of("LIST"));
+		assertThrows(EngineException.class, () -> SqlCrudGeneration.installTransactions(connector,
+				replacement, true, Accessibility.Public, false, true));
+		assertSame(legacy, connector.getTransactionByName(legacy.getName()));
+	}
+
+	@Test
+	public void legacyWritesAreReportedWhenTheTableNoLongerAllowsThem() throws Exception {
+		execute("CREATE TABLE legacy_notes (label VARCHAR(20))");
+		var table = SqlTableInfo.read(connector, column("legacy_notes"));
+		var legacy = connector.newTransaction();
+		legacy.setName(column("legacy_notes") + "_UPDATE");
+		legacy.setSqlQuery("UPDATE legacy_notes SET label = {label}");
+		connector.add(legacy);
+		var wrapper = SqlCrudGeneration.createSequence(legacy, Accessibility.Public, false);
+		var warnings = SqlCrudGeneration.legacyMigrationWarnings(connector, table);
+		assertEquals(1, warnings.size());
+		assertTrue(warnings.get(0).contains(legacy.getQName()));
+		assertTrue(warnings.get(0).contains(wrapper.getQName()));
+		assertTrue(warnings.get(0).contains("generator omits it"));
+		assertSame(legacy, connector.getTransactionByName(legacy.getName()));
+	}
+
+	@Test
 	public void noWritesAreGeneratedForAKeylessTable() throws Exception {
 		execute("DROP TABLE IF EXISTS logs_review", "CREATE TABLE logs_review (msg VARCHAR(20))",
 				"INSERT INTO logs_review VALUES ('same'), ('same')");
