@@ -127,8 +127,8 @@ public class SqlCrudContractTest {
 	}
 
 	private void useTransactions(List<SqlTransaction> generated) throws Exception {
+		SqlCrudGeneration.installTransactions(connector, generated, false, null, false, false);
 		for (var transaction : generated) {
-			connector.add(transaction);
 			transactions.put(transaction.getName().substring(transaction.getName().lastIndexOf('_') + 1), transaction);
 		}
 	}
@@ -224,6 +224,38 @@ public class SqlCrudContractTest {
 		transaction.variables.put("predicate", "{{column}}");
 		transaction.variables.put("column", "{{predicate}}");
 		assertThrows(EngineException.class, () -> transaction.initializeQueries(false));
+	}
+
+	@Test
+	public void overridePreservesCustomizedTransactionWithOrWithoutWrapperGeneration() throws Exception {
+		var update = transactions.get("UPDATE");
+		var wrapper = SqlCrudGeneration.createSequence(update, Accessibility.Public, false);
+		var query = update.getSqlQuery() + " AND 1 = 0";
+		update.setSqlQuery(query);
+
+		for (var accessibility : new Accessibility[] {Accessibility.Public, null}) {
+			var replacement = SqlConnector.createSqlTransaction(connector, column("items"), List.of("UPDATE")).get(0);
+			assertThrows(EngineException.class, () -> SqlCrudGeneration.installTransactions(connector,
+					List.of(replacement), true, accessibility, false, accessibility != null));
+			assertSame(update, connector.getTransactionByName(update.getName()));
+			assertSame(wrapper, update.getProject().getSequenceByName(update.getName()));
+			assertEquals(query, update.getSqlQuery());
+		}
+	}
+
+	@Test
+	public void overridePreservesChangedTransactionVariablesAndSettings() throws Exception {
+		var update = transactions.get("UPDATE");
+		var replacement = SqlConnector.createSqlTransaction(connector, column("items"), List.of("UPDATE")).get(0);
+		var variable = update.getVariable("crud_fields");
+		variable.setValueOrNull("label");
+		assertThrows(EngineException.class, () -> SqlCrudGeneration.installTransactions(connector,
+				List.of(replacement), true, null, false, false));
+		variable.setValueOrNull(replacement.getVariable("crud_fields").getValueOrNull());
+		update.setMaxResult("1");
+		assertThrows(EngineException.class, () -> SqlCrudGeneration.installTransactions(connector,
+				List.of(replacement), true, null, false, false));
+		assertSame(update, connector.getTransactionByName(update.getName()));
 	}
 
 	@Test
