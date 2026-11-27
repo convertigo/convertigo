@@ -8,7 +8,6 @@ import com.twinsoft.convertigo.engine.util.JsonValues;
 import static org.junit.Assert.*;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Map;
 import org.codehaus.jettison.json.JSONObject;
@@ -25,8 +24,7 @@ public class RowProducerRuntimeTest {
 		com.twinsoft.convertigo.engine.Engine.logBeans = com.twinsoft.convertigo.engine.Engine.logEngine;
 	}
 	private String bootstrap() throws Exception {
-		var root = System.getenv("FLOW_ENGINE_RESOURCE_ROOT");
-		return Files.readString((root == null ? Path.of("../../lib_flow_engine/_flow") : Path.of(root)).resolve("modules/row-producer-runtime.js"));
+		return EngineTestFixture.readModule("row-producer-runtime.js");
 	}
 	private RowProducerRuntime runtime(String code, Map<String, Object> input) throws Exception {
 		return runtime(code,input,new ResultDocumentTest.Source());

@@ -893,6 +893,18 @@ tasks.register('jsonDataTest', JavaExec) {
  args 'com.twinsoft.convertigo.engine.flow.JsonDataTest'
 }
 tasks.named('check') { dependsOn 'jsonDataTest' }
+
+// Supply the required modules without enabling the opt-in cross-project integration tests.
+def engineTestFixture = providers.gradleProperty('engineTestFixture')
+['test', 'jsonDataTest', 'rowStreamingTest', 'sanitizedResultBoundaryTest'].each { name ->
+	tasks.named(name) {
+		if (engineTestFixture.isPresent()) {
+			inputs.dir(engineTestFixture)
+			systemProperty 'engine.test.fixture', engineTestFixture.get()
+		}
+	}
+}
+
 // Exercise the shipped JARs with an isolated loader, not the source output tree.
 tasks.register('jsonRepresentationPackagingTest', JavaExec) {
 	group = 'verification'

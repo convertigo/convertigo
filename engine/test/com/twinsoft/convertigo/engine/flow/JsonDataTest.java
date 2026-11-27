@@ -2,7 +2,6 @@
 package com.twinsoft.convertigo.engine.flow;
 
 import static org.junit.Assert.*;
-import java.nio.file.*;
 import java.util.List;
 import org.junit.Test;
 import org.mozilla.javascript.*;
@@ -13,9 +12,7 @@ public class JsonDataTest {
 	private Scriptable scope(Context cx) throws Exception {
 		cx.setLanguageVersion(Context.VERSION_ES6);
 		var s = cx.initStandardObjects();
-		var root = System.getenv("FLOW_ENGINE_RESOURCE_ROOT");
-		var src = Files.readString(Path.of(root == null ? "../../lib_flow_engine/_flow" : root)
-				.resolve("modules/runtime-handle-utils.js"));
+		var src = EngineTestFixture.readModule("runtime-handle-utils.js");
 		ScriptableObject.putProperty(s, "handles", cx.evaluateString(s, src, "handles", 1, null));
 		cx.evaluateString(s,
 				"var env={raise:function(c,m){throw Error(c);},NativeJavaObject:Packages.org.mozilla.javascript.NativeJavaObject,JavaObject:java.lang.Object,JavaString:java.lang.String,JavaNumber:java.lang.Number,JavaBoolean:java.lang.Boolean};var policy=function(v){return handles.sanitizeSerializable(v,'result',env);};",

@@ -65,6 +65,11 @@ function signJarNatives(buildPath, identity) {
 	}
 }
 
+function signPouchDb(bundle, identity) {
+	const webInf = path.join(bundle, 'Contents', 'Resources', 'engine', 'war', 'WEB-INF');
+	run('python3', [path.join(repoDir, 'installers', 'sign-pouchdb-macos.py'), webInf, path.join(webInf, 'lib'), identity]);
+}
+
 /**
  * @param {string} target
  * @returns {Partial<import('@electron/packager').Options>} the signature and the notarization of a macOS
@@ -80,12 +85,16 @@ function macSigning(target) {
 		console.log(`${target}: no APPLE_ID, APPLE_PASSWORD or APPLE_TEAM_ID, the application is not notarized`);
 	}
 	return {
-		afterCopyExtraResources: [({ buildPath }) => signJarNatives(buildPath, identity)],
+		afterCopyExtraResources: [({ buildPath }) => {
+			signJarNatives(buildPath, identity);
+			signPouchDb(path.join(buildPath, `${NAME}.app`), identity);
+		}],
 		osxSign: {
 			identity,
 			continueOnError: false,
-			// the Mach-O binaries only, rather than every file of the engine
-			ignore: (file) => fs.statSync(file).isFile() && !isMachO(file),
+			// The PouchDB addon is already signed and its digest sealed in the provider.
+			ignore: (file) => file.endsWith('/pouchdb/prebuilds/darwin-x64+arm64/node.napi.node')
+				|| (fs.statSync(file).isFile() && !isMachO(file)),
 			optionsForFile: (file) =>
 				file.includes(`${path.sep}Contents${path.sep}Resources${path.sep}jre${path.sep}`) ||
 				file.endsWith(`${path.sep}WEB-INF${path.sep}node${path.sep}bin${path.sep}node`)
@@ -122,6 +131,7 @@ function signAdHoc(bundle) {
 	}
 	run('codesign', ['--force', '--sign', '-', '--entitlements', JAVA_ENTITLEMENTS,
 		path.join(bundle, 'Contents', 'Resources', 'engine', 'war', 'WEB-INF', 'node', 'bin', 'node')]);
+	signPouchDb(bundle, '-');
 	run('codesign', ['--force', '--deep', '--sign', '-', bundle]);
 }
 

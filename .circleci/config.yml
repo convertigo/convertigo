@@ -296,9 +296,14 @@ jobs:
         command: |
           result_dir=engine/build/ci-test-results
           mkdir -p "$result_dir"
+          fixture_dir="$PWD/engine/build/ci-library-fixture"
           status=0
-          ./gradlew --console=plain --no-configuration-cache --max-workers=2 --continue \
-            --init-script .circleci/engine_check_reports.gradle :engine:check || status=$?
+          sh .circleci/fetch-engine-test-fixture.sh "$fixture_dir" || status=$?
+          if [ "$status" -eq 0 ]; then
+            ./gradlew --console=plain --no-configuration-cache --max-workers=2 --continue \
+              -PengineTestFixture="$fixture_dir/_flow" \
+              --init-script .circleci/engine_check_reports.gradle :engine:check || status=$?
+          fi
           for report in engine/build/test-results/test/TEST-*.xml; do
             if [ -f "$report" ]; then
               cp "$report" "$result_dir/"
@@ -1017,7 +1022,7 @@ jobs:
           source /tmp/build.env
           openssl enc -aes-256-cbc -d -md md5 -in installers/convertigo.gpg.aes -out installers/convertigo.gpg -k $PFX_AES
           cp installers/convertigo.gpg for_mac/
-          cp installers/entitlements.plist for_mac/
+          cp installers/entitlements.plist installers/sign-pouchdb-macos.py for_mac/
           mkdir -p ~/.gnupg
           tar -xvf installers/convertigo.gpg -C ~/.gnupg
           find $CONVERTIGO_DIST -type f -exec gpg -ab {} \;
@@ -1106,14 +1111,14 @@ jobs:
           sed -e "s,.studio<,.studio.arm64<," -i.bak for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx-arm/ConvertigoStudio.app/Contents/Info.plist
           rm for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx-arm/ConvertigoStudio.app/Contents/Info.plist.bak
           codesign --entitlements for_mac/entitlements.plist --options=runtime -f --sign "Developer ID Application: Convertigo (${APPLE_TEAM_ID})" for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx-arm/ConvertigoStudio.app/Contents/Eclipse/plugins/com.twinsoft.convertigo.studio_*/tomcat/webapps/convertigo/WEB-INF/node/bin/node
-          codesign --options=runtime -f --sign "Developer ID Application: Convertigo (${APPLE_TEAM_ID})" for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx-arm/ConvertigoStudio.app/Contents/Eclipse/plugins/com.twinsoft.convertigo.studio_*/tomcat/webapps/convertigo/WEB-INF/pouchdb/prebuilds/darwin-x64+arm64/node.napi.node
+          python3 for_mac/sign-pouchdb-macos.py for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx-arm/ConvertigoStudio.app/Contents/Eclipse/plugins/com.twinsoft.convertigo.studio_*/tomcat/webapps/convertigo/WEB-INF for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx-arm/ConvertigoStudio.app/Contents/Eclipse/plugins/com.twinsoft.convertigo.studio_*/lib "Developer ID Application: Convertigo (${APPLE_TEAM_ID})"
           codesign --entitlements for_mac/entitlements.plist --options=runtime --deep -vvv -f --sign "Developer ID Application: Convertigo (${APPLE_TEAM_ID})" for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx-arm/ConvertigoStudio.app
           productbuild --component for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx-arm/ConvertigoStudio.app "/Applications" --sign "Developer ID Installer: Convertigo (${APPLE_TEAM_ID})" ${OUTPUT_DIR}/convertigo-studio-${CONVERTIGO_VERSION}-macosx-arm.pkg
           
           sed -e "s,.studio<,.studio.x86_64<," -i.bak for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx/ConvertigoStudio.app/Contents/Info.plist
           rm for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx/ConvertigoStudio.app/Contents/Info.plist.bak
           codesign --entitlements for_mac/entitlements.plist --options=runtime -f --sign "Developer ID Application: Convertigo (${APPLE_TEAM_ID})" for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx/ConvertigoStudio.app/Contents/Eclipse/plugins/com.twinsoft.convertigo.studio_*/tomcat/webapps/convertigo/WEB-INF/node/bin/node
-          codesign --options=runtime -f --sign "Developer ID Application: Convertigo (${APPLE_TEAM_ID})" for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx/ConvertigoStudio.app/Contents/Eclipse/plugins/com.twinsoft.convertigo.studio_*/tomcat/webapps/convertigo/WEB-INF/pouchdb/prebuilds/darwin-x64+arm64/node.napi.node
+          python3 for_mac/sign-pouchdb-macos.py for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx/ConvertigoStudio.app/Contents/Eclipse/plugins/com.twinsoft.convertigo.studio_*/tomcat/webapps/convertigo/WEB-INF for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx/ConvertigoStudio.app/Contents/Eclipse/plugins/com.twinsoft.convertigo.studio_*/lib "Developer ID Application: Convertigo (${APPLE_TEAM_ID})"
           codesign --entitlements for_mac/entitlements.plist --options=runtime --deep -vvv -f --sign "Developer ID Application: Convertigo (${APPLE_TEAM_ID})" for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx/ConvertigoStudio.app
           productbuild --component for_mac/convertigo-studio-${CONVERTIGO_VERSION}-macosx/ConvertigoStudio.app "/Applications" --sign "Developer ID Installer: Convertigo (${APPLE_TEAM_ID})" ${OUTPUT_DIR}/convertigo-studio-${CONVERTIGO_VERSION}-macosx-x86_64.pkg
           

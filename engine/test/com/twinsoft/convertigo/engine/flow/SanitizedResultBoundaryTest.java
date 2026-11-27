@@ -4,7 +4,6 @@
 package com.twinsoft.convertigo.engine.flow;
 
 import static org.junit.Assert.*;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import org.codehaus.jettison.json.JSONObject;
@@ -21,8 +20,7 @@ public class SanitizedResultBoundaryTest {
 	private Scriptable scope(Context cx) throws Exception {
 		cx.setLanguageVersion(Context.VERSION_ES6);
 		var scope = cx.initStandardObjects();
-		var root = System.getenv("FLOW_ENGINE_RESOURCE_ROOT");
-		var source = Files.readString((root == null ? Path.of("../../lib_flow_engine/_flow") : Path.of(root)).resolve("modules/runtime-handle-utils.js"));
+		var source = EngineTestFixture.readModule("runtime-handle-utils.js");
 		ScriptableObject.putProperty(scope, "handles", cx.evaluateString(scope, source, "runtime-handle-utils.js", 1, null));
 		cx.evaluateString(scope, "var reads=0;var env={raise:function(code,message){var e=new Error(message);e.code=code;throw e;},"
 				+ "NativeJavaObject:Packages.org.mozilla.javascript.NativeJavaObject,JavaObject:java.lang.Object,"

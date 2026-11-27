@@ -169,7 +169,11 @@ allprojects {
 	version = convertigoVersionFull
 	
 	repositories {
-		mavenLocal()
+		mavenLocal {
+			if (System.getenv('CI') == 'true') {
+				content { excludeModule 'com.convertigo.provider', 'convertigo-provider-couchdb' }
+			}
+		}
 		maven {
 			url = "https://m2.convertigo.com"
 		}
