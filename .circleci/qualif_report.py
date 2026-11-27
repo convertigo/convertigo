@@ -9,7 +9,10 @@ import re
 import subprocess
 from xml.etree import ElementTree
 
-SUITES = ("qualif-jmx-1", "qualif-jmx-2", "qualif-jmx-3", "qualif-jmx-mobile")
+REQUIRED_SUITES = ("qualif-jmx-1", "qualif-jmx-2", "qualif-jmx-3")
+REDIS_SUITE = "qualif-jmx-4"
+MOBILE_SUITE = "qualif-jmx-mobile"
+SUITES = (*REQUIRED_SUITES, REDIS_SUITE, MOBILE_SUITE)
 
 
 def count_samples(path):
@@ -42,8 +45,9 @@ def count_samples(path):
 def collect(suite, repo, status, output):
     plans = sorted((repo / "jmx").glob("*.jmx"))
     tests = failures = missing = 0
-    # The suite must complete initialization and produce samples for every selected plan.
-    for name in ["A_init", *(plan.stem for plan in plans)]:
+    # The Redis runner checks readiness of both nodes before running its plans.
+    init_plans = [] if suite == REDIS_SUITE else ["A_init"]
+    for name in [*init_plans, *(plan.stem for plan in plans)]:
         try:
             count, failed = count_samples(repo / "out" / "jtl" / f"{name}.jtl")
         except (OSError, ValueError, ElementTree.ParseError):
@@ -60,8 +64,9 @@ def collect(suite, repo, status, output):
     output.mkdir(parents=True, exist_ok=True)
     report = dict(tests=tests, failures=failures, missingPlans=missing, status=verdict)
     (output / f"{suite}.json").write_text(json.dumps(report) + "\n")
-    print(f"{suite}: {verdict}")
-    return verdict != "passed" and suite != "qualif-jmx-mobile"
+    warning = "Warning: " if verdict != "passed" and suite == REDIS_SUITE else ""
+    print(f"{warning}{suite}: {verdict}")
+    return verdict != "passed" and suite in REQUIRED_SUITES
 
 
 def read_suite(path, name):
@@ -89,13 +94,15 @@ def summarize(source, output):
     if re.fullmatch(r"[0-9]{1,3}", exit_code):
         engine = "failed" if int(exit_code) else "passed"
     reports = [read_suite(source / "qualif-reports" / f"{name}.json", name) for name in SUITES]
-    required = {report["status"] for report in reports[:-1]}
+    required = {report["status"] for report in reports if report["name"] in REQUIRED_SUITES}
     suites = "failed" if "failed" in required else "passed" if required == {"passed"} else "incomplete"
     mobile = reports[-1]["status"]
+    redis = next(report["status"] for report in reports if report["name"] == REDIS_SUITE)
     qualification = ("failed" if "failed" in (engine, suites)
                      else "passed" if engine == suites == "passed" else "incomplete")
     build = re.sub(r"[^a-zA-Z0-9._-]", "-", os.environ["CONVERTIGO_BUILD_NAME"])
-    subject = f"Engine {engine} | Suites {suites} | Mobile {mobile} | {build}"[:100]
+    redis_label = "passed" if redis == "passed" else "warning"
+    subject = f"Engine {engine} | Suites {suites} | Redis {redis_label} | Mobile {mobile} | {build}"[:100]
     lines = [subject, f"Qualification: {qualification} (engine and suites 1–3 required)", ""]
     lines.extend(f"{r['name']}: {r['status']} (samples={r['tests']}, failures={r['failures']}, "
                  f"missing plans={r['missingPlans']})" for r in reports)
@@ -103,7 +110,7 @@ def summarize(source, output):
     output.mkdir(parents=True, exist_ok=True)
     (output / "qualif-summary.txt").write_text(message)
     (output / "qualif-summary.json").write_text(json.dumps(dict(
-        buildName=build, engineCheck=engine, suites=suites, mobile=mobile,
+        buildName=build, engineCheck=engine, suites=suites, redis=redis, mobile=mobile,
         status=qualification, totalFailures=sum(r["failures"] or 0 for r in reports),
         subject=subject, reports=reports), indent=2) + "\n")
     topic = os.environ.get("QUALIF_NOTIFY_SNS_TOPIC_ARN")

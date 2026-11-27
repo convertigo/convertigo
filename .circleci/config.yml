@@ -30,6 +30,9 @@ commands:
         type: integer
       branch:
         type: string
+      optional:
+        type: boolean
+        default: false
     steps:
     - run:
         name: Checkout the qualification suite
@@ -42,12 +45,18 @@ commands:
           chmod 700 "$askpass"
           mkdir -p /tmp/qualification-sources
           cd /tmp/qualification-sources
-          GIT_ASKPASS="$askpass" GIT_TERMINAL_PROMPT=0 \
+          # Docker images copy the suites' workspace files for an unprivileged engine user.
+          if (umask 022; GIT_ASKPASS="$askpass" GIT_TERMINAL_PROMPT=0 \
             git -c credential.helper= -c credential.username=x-access-token clone \
               --depth 1 --branch "<< parameters.branch >>" --single-branch \
-              "https://github.com/convertigo/convertigo-qualif-jmx-<< parameters.suite >>.git"
-          git -C "convertigo-qualif-jmx-<< parameters.suite >>" rev-parse HEAD
-          rm -rf -- "convertigo-qualif-jmx-<< parameters.suite >>/.git"
+              "https://github.com/convertigo/convertigo-qualif-jmx-<< parameters.suite >>.git"); then
+            git -C "convertigo-qualif-jmx-<< parameters.suite >>" rev-parse HEAD
+            rm -rf -- "convertigo-qualif-jmx-<< parameters.suite >>/.git"
+          elif << parameters.optional >>; then
+            echo "Warning: optional qualification sources are unavailable"
+          else
+            exit 1
+          fi
 
   docker_build_push:
     description: >
@@ -602,6 +611,10 @@ jobs:
     - checkout-qualif:
         suite: 3
         branch: "8.4.x"
+    - checkout-qualif:
+        suite: 4
+        branch: "8.4.x"
+        optional: true
     - persist_to_workspace:
         root: /tmp
         paths:
@@ -735,6 +748,31 @@ jobs:
     - run:
         name: Report qualification status
         command: exit "$(cat /tmp/qualif-verdict)"
+
+  qualif_jmx_4:
+    <<: *defaults
+    steps:
+    - checkout
+    - attach_workspace:
+        at: /tmp
+    - setup_remote_docker:
+        version: default
+    - run:
+        name: Run Redis qualification and collect counters
+        no_output_timeout: 40m
+        command: |
+          source /tmp/build.env
+          suite_repo=/tmp/qualification-sources/convertigo-qualif-jmx-4
+          export C8O_IMAGE="$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE"
+          status=0
+          if [ -f "$suite_repo/run.sh" ]; then
+            (cd "$suite_repo" && unset QUALIF_GITHUB_TOKEN && sh run.sh) >/dev/null 2>&1 || status=$?
+          fi
+          python3 .circleci/qualif_report.py collect qualif-jmx-4 "$suite_repo" "$status" /tmp/qualif-reports
+    - persist_to_workspace:
+        root: /tmp
+        paths:
+        - qualif-reports/qualif-jmx-4.json
 
   qualif_summary:
     <<: *defaults
@@ -1233,6 +1271,14 @@ workflows:
         filters:
           tags:
             only: /^\d+\..*$/
+    - qualif_jmx_4:
+        context: qualif-runtime
+        requires:
+        - qualif_sources
+        - build_docker_default
+        filters:
+          tags:
+            only: /^\d+\..*$/
     - qualif_summary:
         requires:
         - engine_check: terminal
@@ -1240,6 +1286,7 @@ workflows:
         - qualif_jmx_mobile: terminal
         - qualif_jmx_2: terminal
         - qualif_jmx_3: terminal
+        - qualif_jmx_4: terminal
         filters:
           tags:
             only: /^\d+\..*$/

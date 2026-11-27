@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from qualif_report import SUITES, collect, summarize
+from qualif_report import REDIS_SUITE, REQUIRED_SUITES, SUITES, collect, summarize
 
 
 class QualificationReportTest(unittest.TestCase):
@@ -64,11 +64,27 @@ class QualificationReportTest(unittest.TestCase):
         self.assertEqual(result["suites"], "failed")
         self.assertEqual(result["mobile"], "failed")
         self.assertEqual([r["status"] for r in result["reports"]],
-                         ["failed", "incomplete", "unavailable", "failed"])
+                         ["failed", "incomplete", "unavailable", "unavailable", "failed"])
         (self.reports / f"{SUITES[0]}.json").unlink()
         result = self.summary()
         self.assertEqual(result["status"], "incomplete")
         self.assertEqual(result["suites"], "incomplete")
+
+    def test_redis_is_reported_without_affecting_required_qualification(self):
+        self.write_result("A_init", "true")
+        self.write_result("main", "true")
+        for suite in REQUIRED_SUITES:
+            self.assertFalse(collect(suite, self.repo, 0, self.reports))
+        (self.root / "qualif-engine-check.exit").write_text("0\n")
+        (self.jtl / "A_init.jtl").unlink()
+        self.assertFalse(collect(REDIS_SUITE, self.repo, 0, self.reports))
+        self.assertEqual(self.summary()["redis"], "passed")
+        self.write_result("main", "false")
+        self.assertFalse(collect(REDIS_SUITE, self.repo, 1, self.reports))
+        result = self.summary()
+        self.assertEqual(result["redis"], "failed")
+        self.assertEqual(result["status"], "passed")
+        self.assertIn("Redis warning", result["subject"])
 
 
 if __name__ == "__main__":
