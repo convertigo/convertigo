@@ -1,10 +1,11 @@
-"""Render the public qualification data as email-ready HTML and plain text."""
+"""Render qualification pages and the short email in HTML and plain text."""
 
 from html import escape
 import re
 from urllib.parse import quote
 
 S3 = "https://convertigo-ci.s3-eu-west-3.amazonaws.com"
+S3_CONSOLE = "https://s3.console.aws.amazon.com/s3"
 STATUSES = {
     "passed": "Passed",
     "failed": "Failed",
@@ -56,7 +57,8 @@ INFRASTRUCTURE_LABELS = {
     "runner_launch_failed": "Runner could not start",
 }
 DIAGNOSTICS = {"complete": "Complete", "partial": "Partial", "unavailable": "Unavailable"}
-PRIVATE_NOTE = "Private diagnostics (when available): S3 access required."
+PRIVATE_NOTE = "Each suite report links to private diagnostics when available. S3 access required."
+PRIVATE_LOGIN = "Connexion AWS requise"
 MISSING = "—"
 LINK_STYLE = "color:#1554AD;text-decoration:underline;"
 DETAIL_STYLE = "display:block;line-height:1.5;"
@@ -96,11 +98,18 @@ def report_links(data):
     ]
 
 
+def public_url(data, filename):
+    build = quote(data["buildName"], safe="")
+    return f"{S3}/convertigo-{build}/qualif/{filename}"
+
+
 def published_suite_url(data, suite):
-    build = quote(data["buildName"], safe="/")
     name = quote(suite["name"], safe="")
-    url = f"{S3}/convertigo-{build}/qualif/{name}_result.html"
-    return url if suite.get("reportUrl") == url else None
+    for filename in (f"{name}.html", f"{name}_result.html"):
+        url = public_url(data, filename)
+        if suite.get("reportUrl") == url:
+            return url
+    return None
 
 
 def suite_status(suite):
@@ -159,14 +168,13 @@ def render_text(data, published):
         lines.append(checks)
     lines.extend([f"Recorded test failures: {data['totalFailures']}", ""])
     if published:
-        build = quote(data["buildName"], safe="/")
-        lines.append(f"HTML report: {S3}/convertigo-{build}/qualif/qualif-summary.html")
+        lines.append(f"HTML report: {public_url(data, 'qualif-summary.html')}")
     lines.extend(f"{label}: {url}" for label, url in report_links(data) if url)
     lines.append("")
     for suite in data["reports"]:
         details = [f"{label}: {display_value(value)}" for label, value in suite_results(suite) + suite_details(suite)]
         if url := published_suite_url(data, suite):
-            details.append(f"JMeter report: {url}")
+            details.append(f"{suite_link_label(url)}: {url}")
         lines.append(f"{suite['name']} · {STATUSES[suite_status(suite)]} | " + " | ".join(details))
     if published or any("diagnostics" in suite for suite in data["reports"]):
         lines.extend(["", PRIVATE_NOTE])
@@ -177,11 +185,46 @@ def link(label, url):
     return f'<a class="link" style="{LINK_STYLE}" href="{escape(url)}">{escape(label)}</a>'
 
 
+def private_prefix(data, suite):
+    return f"convertigo-{data['buildName']}/qualif/private/{suite['name']}/"
+
+
+def private_links(data, suite):
+    prefix = private_prefix(data, suite)
+    folder = f"{S3_CONSOLE}/buckets/convertigo-ci?region=eu-west-3&prefix={quote(prefix, safe='/')}"
+    objects = f"{S3_CONSOLE}/object/convertigo-ci?region=eu-west-3&prefix="
+    files = sorted(suite.get("privateFiles", ()), key=lambda name: (name != "run.log", name))
+    return [
+        ("S3 folder", folder),
+        *((name.removeprefix("out/"), objects + quote(prefix + name, safe="/")) for name in files),
+    ]
+
+
+def private_links_html(data, suite):
+    return " · ".join(link(label, url) for label, url in private_links(data, suite))
+
+
+def private_section_html(data):
+    groups = "".join(
+        f'<p style="margin:6px 0;"><strong>{escape(suite["name"])}</strong> · {private_links_html(data, suite)}</p>'
+        for suite in data["reports"]
+    )
+    return (
+        '<section style="margin-top:16px;font-size:13px;line-height:1.7;overflow-wrap:anywhere;">'
+        f'<h2 style="font-size:14px;margin:0;">Private diagnostics · <span lang="fr">{PRIVATE_LOGIN}</span></h2>'
+        f"{groups}</section>"
+    )
+
+
 def detail_html(fields):
     return "".join(
         f'<span style="{DETAIL_STYLE}"><strong>{escape(label)}</strong> {escape(display_value(value))}</span>'
         for label, value in fields
     )
+
+
+def suite_link_label(url):
+    return "JMeter report" if url.endswith("_result.html") else "Suite report"
 
 
 def row_html(data, suite):
@@ -191,7 +234,7 @@ def row_html(data, suite):
     border = f"border-left:4px solid {accent};"
     cell = CELL_STYLE + fill
     url = published_suite_url(data, suite)
-    jmeter = f'<br><span class="suite-report">{link("JMeter report", url)}</span>' if url else ""
+    jmeter = f'<br><span class="suite-report">{link(suite_link_label(url), url)}</span>' if url else ""
     return (
         f'<tr class="suite-{status}" style="{fill}{border}">'
         f'<th scope="row" style="{cell}{border}">{escape(suite["name"])}'
@@ -217,7 +260,7 @@ def render_html(data, published):
     )
     footer = ""
     if published or any("diagnostics" in suite for suite in data["reports"]):
-        footer = f'<p style="margin:14px 0 0;">{escape(PRIVATE_NOTE)}</p>'
+        footer = private_section_html(data)
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -271,7 +314,153 @@ def render_html(data, published):
 """
 
 
-def write_reports(data, output, published=False):
+def mail_fields(suite):
+    results = dict(suite_results(suite))
+    return [display_value(results[key]) for key in ("Tests", "Failures", "Total time")] + [
+        STATUSES[suite_status(suite)]
+    ]
+
+
+def mail_links(data):
+    return [("Full qualification report", public_url(data, "qualif-summary.html")), *report_links(data)]
+
+
+def render_mail(data, html=False, suite_links=None):
+    if suite_links is None:
+        suite_links = {suite["name"]: published_suite_url(data, suite) for suite in data["reports"]}
+    links = [(label, url) for label, url in mail_links(data) if url]
+    headings = ("Suite", "Tests", "Failures", "Duration", "Status")
+    title = report_subject(data)
+    if not html:
+        lines = [title, "", " | ".join(headings)]
+        for suite in data["reports"]:
+            name = suite["name"]
+            url = suite_links.get(name)
+            lines.append(" | ".join([name, *mail_fields(suite), *([url] if url else [])]))
+        lines.extend(["", *(f"{label}: {url}" for label, url in links)])
+        lines.extend(["", PRIVATE_LOGIN])
+        for suite in data["reports"]:
+            lines.extend(["", suite["name"]])
+            lines.extend(f"{label} · {url}" for label, url in private_links(data, suite))
+        return "\n".join(lines) + "\n"
+
+    cells = "".join(f'<th scope="col" style="{CELL_STYLE}">{heading}</th>' for heading in headings)
+    rows = []
+    for suite in data["reports"]:
+        name = suite["name"]
+        url = suite_links.get(name)
+        label = link(name, url) if url else escape(name)
+        fields = "".join(f'<td style="{CELL_STYLE}">{escape(value)}</td>' for value in mail_fields(suite))
+        rows.append(f'<tr><th scope="row" style="{CELL_STYLE}">{label}</th>{fields}</tr>')
+    navigation = " · ".join(link(label, url) for label, url in links)
+    foreground, background = BANNERS[display_status(data)]
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{escape(title)}</title>
+</head>
+<body style="margin:12px;font-family:Arial,sans-serif;color:#17253A;background:#fff;">
+  <h1 style="font-size:18px;padding:10px;color:{foreground};background:{background};">{escape(title)}</h1>
+  <table style="border-collapse:collapse;table-layout:fixed;width:100%;max-width:680px;font-size:13px;">
+    <colgroup><col style="width:28%;"><col style="width:13%;"><col style="width:17%;">
+              <col style="width:21%;"><col style="width:21%;"></colgroup>
+    <thead><tr>{cells}</tr></thead>
+    <tbody>{"".join(rows)}</tbody>
+  </table>
+  <p style="font-size:13px;line-height:1.6;">{navigation}</p>
+  {private_section_html(data)}
+</body>
+</html>
+"""
+
+
+def sample_table(samples):
+    rows = []
+    for sample in samples:
+        message = "<br>".join(escape(value) for value in sample["assertions"])
+        status = "Passed" if sample["passed"] else "Failed"
+        duration = sample["duration"]
+        values = [sample["plan"], sample["label"], sample["code"], None if duration is None else f"{duration:,} ms"]
+        cells = "".join(f"<td>{escape(display_value(value))}</td>" for value in values)
+        rows.append(f"<tr>{cells}<td>{status}</td><td>{message or MISSING}</td></tr>")
+    return (
+        '<div class="table-scroll"><table><thead><tr><th scope="col">Plan</th><th scope="col">Test</th>'
+        '<th scope="col">Code</th><th scope="col">Duration</th><th scope="col">Status</th>'
+        '<th scope="col">Assertion messages</th></tr></thead>'
+        f'<tbody>{"".join(rows)}</tbody></table></div>'
+    )
+
+
+def render_suite(data, suite, samples):
+    name = suite["name"]
+    title = f"{name} · {data['buildName']}"
+    failures = [row for row in samples if not row["passed"]]
+    others = [row for row in samples if row["passed"]]
+    summary = " · ".join(f"{label} {display_value(value)}" for label, value in suite_results(suite) + suite_details(suite)
+                         if value is not None)
+    overview = link("Full qualification report", public_url(data, "qualif-summary.html"))
+    prefix = private_prefix(data, suite)
+    private = private_links_html(data, suite)
+    presign = f"aws s3 presign s3://convertigo-ci/{prefix}run.log --region eu-west-3"
+    if failures:
+        failed = sample_table(failures)
+    elif samples:
+        failed = "<p>No failed samples recorded.</p>"
+    else:
+        failed = "<p>No sample details available.</p>"
+    passed = (f"<details><summary>Other samples ({len(others)})</summary>{sample_table(others)}</details>"
+              if others else "")
+    counts = suite.get("tests")
+    note = ("<p>The tables include setup or teardown samples outside the suite totals.</p>"
+            if isinstance(counts, int) and len(samples) > counts else "")
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>{escape(title)}</title>
+  <style>
+    body {{ font: 15px/1.5 system-ui, sans-serif; max-width: 1100px; margin: 24px auto; padding: 0 16px; }}
+    table {{ border-collapse: collapse; width: 100%; }}
+    th, td {{ padding: 8px; border-bottom: 1px solid GrayText; text-align: left; vertical-align: top; }}
+    th:first-child, td:first-child {{ overflow-wrap: anywhere; }}
+    td:last-child, code {{ overflow-wrap: anywhere; }}
+    summary {{ cursor: pointer; font-weight: bold; }}
+    .table-scroll {{ overflow-x: auto; }}
+    .table-scroll table {{ min-width: 560px; }}
+    section {{ margin-block: 24px; }}
+  </style>
+</head>
+<body>
+  <nav>{overview}</nav>
+  <h1>{escape(name)} · {STATUSES[suite_status(suite)]}</h1>
+  <p>{escape(summary)}</p>
+  <section>
+    <h2>Failed samples ({len(failures)})</h2>
+    {failed}
+    {passed}
+    {note}
+  </section>
+  <section>
+    <h2>Private diagnostics</h2>
+    <p style="overflow-wrap:anywhere;"><strong lang="fr">{PRIVATE_LOGIN}</strong> · {private}</p>
+    <p>To open the runner log with a temporary URL, use <code>{escape(presign)}</code>.</p>
+  </section>
+</body>
+</html>
+"""
+
+
+def write_reports(data, output, samples):
     output.mkdir(parents=True, exist_ok=True)
-    (output / "qualif-summary.txt").write_text(render_text(data, published), encoding="utf-8")
-    (output / "qualif-summary.html").write_text(render_html(data, published), encoding="utf-8")
+    for suite in data["reports"]:
+        filename = suite["name"] + ".html"
+        suite["reportUrl"] = public_url(data, filename)
+        (output / filename).write_text(render_suite(data, suite, samples[suite["name"]]), encoding="utf-8")
+    (output / "qualif-summary.txt").write_text(render_text(data, published=True), encoding="utf-8")
+    (output / "qualif-summary.html").write_text(render_html(data, published=True), encoding="utf-8")
+    (output / "qualif-mail.txt").write_text(render_mail(data), encoding="utf-8")
+    (output / "qualif-mail.html").write_text(render_mail(data, html=True), encoding="utf-8")

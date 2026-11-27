@@ -26,7 +26,8 @@ class QualificationReportTest(unittest.TestCase):
 
     def write_result(self, name, success, duration="20"):
         (self.jtl / f"{name}.jtl").write_text(
-            f'<testResults><httpSample s="{success}" t="{duration}" lb="REQUEST_DATA_MARKER">'
+            f'<testResults><httpSample s="{success}" t="{duration}" lb="Sample label">'
+            '<samplerData>REQUEST_DATA_MARKER</samplerData>'
             '<responseData>PRIVATE_RESPONSE_MARKER</responseData>'
             '</httpSample></testResults>'
         )
@@ -47,7 +48,7 @@ class QualificationReportTest(unittest.TestCase):
         ], capture_output=True, text=True, check=True)
         self.assertIn(f"Warning: {suite}", result.stdout)
 
-    def test_only_counters_cross_the_workspace_and_publication_boundary(self):
+    def test_suite_verdicts_preserve_engine_status(self):
         self.write_result("A_init", "true")
         self.write_result("main", "true")
         self.write_result("mobileAppBuild", "true")
@@ -134,12 +135,12 @@ class QualificationReportTest(unittest.TestCase):
             self.assertIn("30 ms", output)
             self.assertIn("60 ms", output)
             self.assertIn("JMeter finished", output)
-            self.assertIn("S3 access required", output)
             self.assertIn(f"{S3}/index.html?prefix=convertigo-123-develop/qualif/", output)
             self.assertIn(f"https://app.circleci.com/pipelines/workflows/{workflow}", output)
             self.assertIn(f"https://github.com/convertigo/convertigo/commit/{sha}", output)
             self.assertNotIn("_result.html", output)
-            self.assertNotIn("/qualif/private/", output)
+        self.assertIn("S3 access required", text)
+        self.assertIn("Connexion AWS requise", html)
         self.assertIn(f"{S3}/convertigo-123-develop/qualif/qualif-summary.html", text)
         self.assertEqual(html.count('<th scope="row"'), len(SUITES))
 
@@ -198,6 +199,153 @@ class QualificationReportTest(unittest.TestCase):
         self.assertIn(f"JMeter report: {url}", text)
         self.assertIn("Average time: 240 ms | Total time: 96268 ms", text)
 
+    def test_suite_page_lists_failures_first_and_only_public_sample_fields(self):
+        (self.repo / "jmx" / "main.jmx").write_text(
+            '<plan><stringProp name="XPath.xpath">/result[@status="ready"]</stringProp>'
+            '<stringProp name="script">AssertionResult.setFailureMessage("Static assertion detail")</stringProp></plan>'
+        )
+        self.write_result("A_init", "true")
+        self.write_result("setup", "true")
+        (self.jtl / "main.jtl").write_text(
+            """<testResults>
+              <httpSample s="true" lb="First passing sample" rc="200" t="10"/>
+              <sample s="false" lb="Failed &amp; recorded" rc="200" t="42" rm="PRIVATE_RESPONSE_MESSAGE">
+                <httpSample s="true" lb="Nested passing sample" rc="302" t="2"/>
+                <assertionResult><failure>true</failure><error>false</error>
+                  <failureMessage>No Nodes Matched /result[@status="ready"]</failureMessage>
+                </assertionResult>
+                <assertionResult><failure>false</failure><error>true</error>
+                  <failureMessage>Test failed: text expected to contain PRIVATE_BODY_DIFF</failureMessage>
+                </assertionResult>
+                <assertionResult><failure>true</failure><error>false</error>
+                  <failureMessage>Unknown message PRIVATE_LICENSE_VALUE</failureMessage>
+                </assertionResult>
+                <assertionResult><failure>true</failure><error>false</error>
+                  <failureMessage>No Nodes Matched /PRIVATE_DYNAMIC_XPATH</failureMessage>
+                </assertionResult>
+                <assertionResult><failure>true</failure><error>false</error>
+                  <failureMessage>Static assertion detail</failureMessage>
+                </assertionResult>
+                <responseData>PRIVATE_RESPONSE_MARKER</responseData>
+                <requestHeader>PRIVATE_HEADER</requestHeader><queryString>PRIVATE_PARAMETERS</queryString>
+                <samplerData>REQUEST_DATA_MARKER</samplerData>
+              </sample>
+              <sample s="true" lb="https://example.test/?id=PRIVATE_QUERY" rc="200" t="0"/>
+              <sample s="true" lb="PRIVATE_GITHUB_VALUE" rc="200"/>
+            </testResults>"""
+        )
+        with patch.dict(os.environ, {
+            "QUALIF_GITHUB_TOKEN": "PRIVATE_GITHUB_VALUE",
+            "QUALIF_LAB_KEYS_XML": "<keys>PRIVATE_LICENSE_VALUE</keys>",
+        }):
+            collect(SUITES[0], self.repo, 1, self.reports)
+        result = self.summary()
+        self.assertEqual(result["reports"][0]["tests"], 6)
+        self.assertEqual(result["reports"][0]["failures"], 1)
+        self.assertNotIn("totalTimeMs", result["reports"][0])
+        html = (self.public / f"{SUITES[0]}.html").read_text()
+        self.assertIn("<h2>Failed samples (1)</h2>", html)
+        self.assertIn("<td>main</td><td>Failed &amp; recorded</td><td>200</td><td>42 ms</td>", html)
+        self.assertIn("No Nodes Matched /result[@status=&quot;…&quot;]", html)
+        self.assertIn("Test failed: text expected to contain …", html)
+        self.assertIn("Assertion failed (details in private JTL)", html)
+        self.assertNotIn("Static assertion detail", html)
+        self.assertIn("<details><summary>Other samples (6)</summary>", html)
+        self.assertLess(html.index("Failed &amp; recorded"), html.index("First passing sample"))
+        self.assertIn("Nested passing sample", html)
+        self.assertIn("setup or teardown", html)
+        self.assertIn("S3 folder", html)
+        self.assertIn("aws s3 presign", html)
+        receipt = (self.reports / f"{SUITES[0]}-samples.json").read_text()
+        for output in (html, receipt):
+            self.assertNotIn("PRIVATE_", output)
+            self.assertNotIn("REQUEST_DATA_MARKER", output)
+        overview = (self.public / "qualif-summary.html").read_text()
+        for suite in result["reports"]:
+            self.assertIn(f'href="{suite["reportUrl"]}"', overview)
+            self.assertTrue((self.public / (suite["name"] + ".html")).exists())
+
+    def test_public_suite_masks_literals_and_expected_or_actual_values(self):
+        expression = '''/screen/field[@name="PRIVATE_DOUBLE's text" and @value='PRIVATE_SINGLE "text"' and @code]'''
+        (self.repo / "jmx" / "main.jmx").write_text(
+            f'<plan><stringProp name="XPath.xpath">{expression}</stringProp></plan>'
+        )
+        messages = (
+            f"No Nodes Matched {expression}",
+            'Expected: PRIVATE_EXPECTED but got "PRIVATE_ACTUAL"',
+            'Actual: PRIVATE_ACTUAL_ONLY',
+            'Test failed: text expected to equal "PRIVATE_COMPARISON" but was PRIVATE_RESPONSE',
+        )
+        assertions = "".join(
+            f"<assertionResult><failure>true</failure><failureMessage>{message}</failureMessage></assertionResult>"
+            for message in messages
+        )
+        jtl = self.jtl / "main.jtl"
+        source = f'<testResults><sample s="false">{assertions}</sample></testResults>'
+        jtl.write_text(source)
+        collect(SUITES[0], self.repo, 1, self.reports)
+        self.summary()
+        rows = json.loads((self.reports / f"{SUITES[0]}-samples.json").read_text())
+        self.assertEqual(rows[0]["assertions"], [
+            '''No Nodes Matched /screen/field[@name="…" and @value='…' and @code]''',
+            "Expected …, actual …",
+            "Actual …",
+            "Test failed: text expected to equal …",
+        ])
+        html = (self.public / f"{SUITES[0]}.html").read_text()
+        self.assertIn('@name=&quot;…&quot; and @value=&#x27;…&#x27; and @code', html)
+        self.assertNotIn("PRIVATE_", html)
+        self.assertEqual(jtl.read_text(), source)
+
+    def test_short_mail_has_one_row_per_suite_and_links_only(self):
+        self.write_result("A_init", "true", "10")
+        self.write_result("main", "false", "40")
+        (self.root / "qualif-engine-check.exit").write_text("0")
+        collect(SUITES[0], self.repo, 1, self.reports,
+                outcome={"phase": "jmeter_exited", "license": "licensed", "diagnostics": "complete"})
+        result = self.summary()
+        html = (self.public / "qualif-mail.html").read_text()
+        text = (self.public / "qualif-mail.txt").read_text()
+        self.assertEqual(html.count('<th scope="row"'), len(SUITES))
+        self.assertIn("qualif-jmx-1 | 2 | 1 | 50 ms | Failed", text)
+        for suite in result["reports"]:
+            for output in (html, text):
+                self.assertEqual(output.count(suite["reportUrl"]), 1)
+        for output in (html, text):
+            self.assertIn("qualification warning", output)
+            self.assertIn("Full qualification report", output)
+            for detail in ("JMeter finished", "Success rate", "License", "Missing plans",
+                           "Recorded test failures", "Sample label"):
+                self.assertNotIn(detail, output)
+
+    def test_private_console_links_use_only_the_encoded_keys_and_region(self):
+        uploads = self.root / "qualif-uploads"
+        uploads.mkdir()
+        paths = [
+            "./run.log", "./out/engine.log", "./out/jtl/plan é & # +.jtl", "./out/result.html",
+            "./run.log", "./../INVALID_PARENT.log", "/INVALID_ABSOLUTE.log", "./INVALID\nCONTROL.log",
+        ]
+        (uploads / f"{SUITES[0]}.files").write_bytes(("\x00".join(paths) + "\x00").encode("utf-8"))
+        self.summary()
+        console = "https://s3.console.aws.amazon.com/s3"
+        prefix = "convertigo-123-develop/qualif/private/qualif-jmx-1/"
+        folder = f"{console}/buckets/convertigo-ci?region=eu-west-3&prefix={prefix}"
+        objects = [f"{console}/object/convertigo-ci?region=eu-west-3&prefix={prefix}{name}"
+                   for name in ("run.log", "out/engine.log", "out/jtl/plan%20%C3%A9%20%26%20%23%20%2B.jtl",
+                                "out/result.html")]
+        for filename in ("qualif-jmx-1.html", "qualif-summary.html", "qualif-mail.html", "qualif-mail.txt"):
+            with self.subTest(filename=filename):
+                result = (self.public / filename).read_text(encoding="utf-8")
+                self.assertIn("Connexion AWS requise", result)
+                for url in (folder, *objects):
+                    expected = f'href="{url.replace("&", "&amp;")}"' if filename.endswith(".html") else url
+                    self.assertEqual(result.count(expected), 1)
+                self.assertNotIn("INVALID", result)
+                self.assertNotIn("X-Amz-", result)
+        other_suite = (self.public / "qualif-jmx-2.html").read_text(encoding="utf-8")
+        self.assertIn("/qualif/private/qualif-jmx-2/", other_suite)
+        self.assertNotIn("/s3/object/", other_suite)
+
     def test_ses_sends_both_formats_with_sns_as_a_transport_fallback(self):
         result = self.summary()
         env = dict(QUALIF_NOTIFY_SES_FROM="ci@example.test", QUALIF_NOTIFY_SES_TO="a@example.test, b@example.test",
@@ -210,7 +358,7 @@ class QualificationReportTest(unittest.TestCase):
             self.assertEqual(request["Message"]["Subject"]["Data"], result["subject"])
             for part, extension in (("Text", "txt"), ("Html", "html")):
                 self.assertEqual(request["Message"]["Body"][part]["Data"],
-                                 (self.public / f"qualif-summary.{extension}").read_text())
+                                 (self.public / f"qualif-mail.{extension}").read_text())
             return True
 
         with patch.dict(os.environ, env, clear=True), patch("qualif_report.aws_succeeded") as aws:
@@ -223,7 +371,7 @@ class QualificationReportTest(unittest.TestCase):
             self.assertEqual(aws.call_count, 2)
             self.assertEqual(aws.call_args, call("sns", "publish", "--topic-arn", "test-topic",
                                                "--subject", result["subject"], "--message",
-                                               f"file://{self.public / 'qualif-summary.txt'}"))
+                                               f"file://{self.public / 'qualif-mail.txt'}"))
             aws.reset_mock(side_effect=True)
             os.environ["QUALIF_NOTIFY_SES_REGION"] = "us-east-1"
             aws.side_effect = None

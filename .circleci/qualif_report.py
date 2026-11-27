@@ -8,9 +8,11 @@ from pathlib import Path
 import re
 import subprocess
 from tempfile import NamedTemporaryFile
-from xml.etree import ElementTree
 
-from qualif_render import DIAGNOSTICS, INFRASTRUCTURE_LABELS, LICENSES, PHASES, ci_links, report_subject, write_reports
+from qualif_render import (
+    DIAGNOSTICS, INFRASTRUCTURE_LABELS, LICENSES, PHASES, ci_links, report_subject, write_reports,
+)
+from qualif_samples import plan_samples, secret_values
 
 REQUIRED_SUITES = ("qualif-jmx-1", "qualif-jmx-2", "qualif-jmx-3")
 REDIS_SUITE = "qualif-jmx-4"
@@ -29,61 +31,32 @@ REPORT_FIELDS = {
 }
 
 
-def count_samples(path, allow_partial):
-    tests = failures = 0
-    elapsed = 0
-    has_timings = True
-    try:
-        with path.open("rb") as source:
-            events = ElementTree.iterparse(source, events=("start", "end"))
-            _, root = next(events)
-            if root.tag != "testResults":
-                raise ValueError
-            depth = 1
-            for event, element in events:
-                if event == "start":
-                    depth += 1
-                    continue
-                if element.tag in ("httpSample", "sample"):
-                    result = element.get("s")
-                    if result not in ("true", "false"):
-                        raise ValueError
-                    tests += 1
-                    failures += result == "false"
-                    duration = element.get("t", "")
-                    if re.fullmatch(r"[0-9]{1,19}", duration):
-                        elapsed += int(duration)
-                    else:
-                        has_timings = False
-                depth -= 1
-                element.clear()
-                if depth == 1:
-                    root.clear()
-    except (OSError, ValueError, ElementTree.ParseError):
-        if not allow_partial:
-            return 0, 0, 0, False
-        return tests, failures, elapsed if has_timings else None, False
-    return tests, failures, elapsed if has_timings else None, bool(tests)
-
-
 def collect(suite, repo, status, output, outcome=None):
+    plan_dir = repo / "jmx"
     plans = (["mobileAppBuild"] if suite == MOBILE_SUITE
-             else sorted(plan.stem for plan in (repo / "jmx").glob("*.jmx")))
-    tests = failures = missing = 0
-    total_time = 0
+             else sorted(plan.stem for plan in plan_dir.glob("*.jmx")))
     # The Redis runner checks readiness of both nodes before running its plans.
-    init_plans = [] if suite == REDIS_SUITE else ["A_init"]
+    counted = set(plans if suite == REDIS_SUITE else ["A_init", *plans])
     allow_partial = outcome is not None and outcome["phase"] == "deadline_exceeded"
-    for name in [*init_plans, *plans]:
-        if status is None:
-            missing += 1
-        else:
-            count, failed, elapsed, complete = count_samples(repo / "out" / "jtl" / f"{name}.jtl", allow_partial)
-            tests += count
-            failures += failed
-            missing += not complete
+    secrets = secret_values(os.environ)
+    jtl_dir = repo / "out" / "jtl"
+    rows = []
+    missing_plans = []
+    tests = failures = 0
+    total_time = 0
+    auxiliary = {path.stem for path in jtl_dir.glob("*.jtl")} if status is not None else set()
+    for name in sorted(counted | auxiliary):
+        samples, elapsed, complete = (plan_samples(jtl_dir / f"{name}.jtl", plan_dir, allow_partial, secrets)
+                                      if status is not None else ([], 0, False))
+        rows.extend(samples)
+        if name in counted:
+            tests += len(samples)
+            failures += sum(not row["passed"] for row in samples)
+            if not complete:
+                missing_plans.append(name)
             total_time = total_time + elapsed if total_time is not None and elapsed is not None else None
 
+    missing = len(missing_plans)
     fields = {key: outcome.get(key) for key in REPORT_FIELDS} if outcome is not None else {}
     phase = fields.get("phase")
     if failures or (status and phase in (None, "jmeter_exited")):
@@ -98,6 +71,7 @@ def collect(suite, repo, status, output, outcome=None):
     if tests and total_time is not None:
         report["totalTimeMs"] = total_time
     (output / f"{suite}.json").write_text(json.dumps(report) + "\n")
+    (output / f"{suite}-samples.json").write_text(json.dumps(rows) + "\n", encoding="utf-8")
     warning = "Warning: " if verdict != "passed" or fields.get("diagnostics") in ("partial", "unavailable") else ""
     print(f"{warning}{suite}: {verdict}")
 
@@ -126,6 +100,18 @@ def read_suite(path, name):
     return dict(name=name, status="unavailable", tests=None, failures=None, missingPlans=None)
 
 
+def read_private_files(path):
+    try:
+        paths = path.read_bytes().decode("utf-8", errors="surrogateescape").split("\x00")
+    except OSError:
+        return []
+    return sorted({
+        key for entry in paths
+        if entry.startswith("./") and (key := entry[2:]).isprintable()
+        and all(part not in ("", ".", "..") for part in key.split("/"))
+    })
+
+
 def summarize(source, output):
     try:
         exit_code = (source / "qualif-engine-check.exit").read_text().strip()
@@ -148,7 +134,15 @@ def summarize(source, output):
         reports=reports, **ci_links(os.environ.get("CIRCLE_WORKFLOW_ID"), os.environ.get("CIRCLE_SHA1")),
     )
     data["subject"] = report_subject(data)
-    write_reports(data, output, published=True)
+    samples = {}
+    for report in reports:
+        name = report["name"]
+        report["privateFiles"] = read_private_files(source / "qualif-uploads" / f"{name}.files")
+        try:
+            samples[name] = json.loads((source / "qualif-reports" / f"{name}-samples.json").read_text())
+        except (OSError, ValueError):
+            samples[name] = []
+    write_reports(data, output, samples)
     (output / "qualif-summary.json").write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
     print(data["subject"])
 
@@ -163,7 +157,7 @@ def aws_succeeded(*args):
 
 def notify(output):
     subject = json.loads((output / "qualif-summary.json").read_text(encoding="utf-8"))["subject"]
-    text_file = output / "qualif-summary.txt"
+    text_file = output / "qualif-mail.txt"
     sender = os.environ.get("QUALIF_NOTIFY_SES_FROM", "").strip()
     recipients = [address.strip() for address in os.environ.get("QUALIF_NOTIFY_SES_TO", "").split(",")
                   if address.strip()]
@@ -175,7 +169,7 @@ def notify(output):
                 "Subject": {"Data": subject, "Charset": "UTF-8"},
                 "Body": {
                     "Text": {"Data": text_file.read_text(encoding="utf-8"), "Charset": "UTF-8"},
-                    "Html": {"Data": (output / "qualif-summary.html").read_text(encoding="utf-8"), "Charset": "UTF-8"},
+                    "Html": {"Data": (output / "qualif-mail.html").read_text(encoding="utf-8"), "Charset": "UTF-8"},
                 },
             },
         }
