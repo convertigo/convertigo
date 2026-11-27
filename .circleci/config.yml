@@ -757,6 +757,12 @@ jobs:
           source /tmp/build.env
           aws s3 cp --storage-class REDUCED_REDUNDANCY --acl public-read /tmp/qualif-summary/qualif-summary.txt s3://convertigo-ci/convertigo-$CONVERTIGO_BUILD_NAME/qualif/qualif-summary.txt
           aws s3 cp --storage-class REDUCED_REDUNDANCY --acl public-read /tmp/qualif-summary/qualif-summary.json s3://convertigo-ci/convertigo-$CONVERTIGO_BUILD_NAME/qualif/qualif-summary.json
+          aws s3 cp --storage-class REDUCED_REDUNDANCY --acl public-read --content-type 'text/html; charset=utf-8' \
+            /tmp/qualif-summary/qualif-summary.html "s3://convertigo-ci/convertigo-$CONVERTIGO_BUILD_NAME/qualif/qualif-summary.html"
+
+    - run:
+        name: Notify qualification results
+        command: python3 .circleci/qualif_report.py notify /tmp/qualif-summary
 
     - store_artifacts:
         path: /tmp/qualif-summary

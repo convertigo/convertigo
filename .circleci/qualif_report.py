@@ -7,7 +7,10 @@ import os
 from pathlib import Path
 import re
 import subprocess
+from tempfile import NamedTemporaryFile
 from xml.etree import ElementTree
+
+from qualif_render import DIAGNOSTICS, INFRASTRUCTURE_LABELS, LICENSES, PHASES, ci_links, report_subject, write_reports
 
 REQUIRED_SUITES = ("qualif-jmx-1", "qualif-jmx-2", "qualif-jmx-3")
 REDIS_SUITE = "qualif-jmx-4"
@@ -16,25 +19,20 @@ SUITES = (*REQUIRED_SUITES, REDIS_SUITE, MOBILE_SUITE)
 RUN_PHASES = {
     "image_preparing", "compose_starting", "compose_started", "jmeter_started", "jmeter_exited",
 }
-INFRASTRUCTURE = {
-    "docker_unreachable", "image_pull_failed", "image_lookup_failed", "engine_lookup_failed",
-    "compose_up_failed", "jmeter_lookup_failed", "jmeter_not_started", "jmeter_wait_failed",
-    "cleanup_failed", "runner_launch_failed",
-}
-PRECONDITIONS = {
-    "image_unconfigured", "mobile_plan_missing", "optional_source_unavailable", "runner_missing",
-}
-LICENSE_MODES = {"evaluation", "licensed", "indeterminate"}
+INFRASTRUCTURE = set(INFRASTRUCTURE_LABELS)
+LICENSE_MODES = set(LICENSES)
 REPORT_FIELDS = {
     "license": LICENSE_MODES,
-    "phase": RUN_PHASES | PRECONDITIONS | {"deadline_exceeded", "runner_unreported", "runner_launch_failed"},
+    "phase": PHASES,
     "infrastructure": INFRASTRUCTURE,
-    "diagnostics": {"complete", "partial", "unavailable"},
+    "diagnostics": DIAGNOSTICS,
 }
 
 
 def count_samples(path, allow_partial):
     tests = failures = 0
+    elapsed = 0
+    has_timings = True
     try:
         with path.open("rb") as source:
             events = ElementTree.iterparse(source, events=("start", "end"))
@@ -52,19 +50,27 @@ def count_samples(path, allow_partial):
                         raise ValueError
                     tests += 1
                     failures += result == "false"
+                    duration = element.get("t", "")
+                    if re.fullmatch(r"[0-9]{1,19}", duration):
+                        elapsed += int(duration)
+                    else:
+                        has_timings = False
                 depth -= 1
                 element.clear()
                 if depth == 1:
                     root.clear()
     except (OSError, ValueError, ElementTree.ParseError):
-        return (tests, failures, False) if allow_partial else (0, 0, False)
-    return tests, failures, bool(tests)
+        if not allow_partial:
+            return 0, 0, 0, False
+        return tests, failures, elapsed if has_timings else None, False
+    return tests, failures, elapsed if has_timings else None, bool(tests)
 
 
 def collect(suite, repo, status, output, outcome=None):
     plans = (["mobileAppBuild"] if suite == MOBILE_SUITE
              else sorted(plan.stem for plan in (repo / "jmx").glob("*.jmx")))
     tests = failures = missing = 0
+    total_time = 0
     # The Redis runner checks readiness of both nodes before running its plans.
     init_plans = [] if suite == REDIS_SUITE else ["A_init"]
     allow_partial = outcome is not None and outcome["phase"] == "deadline_exceeded"
@@ -72,10 +78,11 @@ def collect(suite, repo, status, output, outcome=None):
         if status is None:
             missing += 1
         else:
-            count, failed, complete = count_samples(repo / "out" / "jtl" / f"{name}.jtl", allow_partial)
+            count, failed, elapsed, complete = count_samples(repo / "out" / "jtl" / f"{name}.jtl", allow_partial)
             tests += count
             failures += failed
             missing += not complete
+            total_time = total_time + elapsed if total_time is not None and elapsed is not None else None
 
     fields = {key: outcome.get(key) for key in REPORT_FIELDS} if outcome is not None else {}
     phase = fields.get("phase")
@@ -88,6 +95,8 @@ def collect(suite, repo, status, output, outcome=None):
         verdict = "passed"
     output.mkdir(parents=True, exist_ok=True)
     report = dict(tests=tests, failures=failures, missingPlans=missing, status=verdict, **fields)
+    if tests and total_time is not None:
+        report["totalTimeMs"] = total_time
     (output / f"{suite}.json").write_text(json.dumps(report) + "\n")
     warning = "Warning: " if verdict != "passed" or fields.get("diagnostics") in ("partial", "unavailable") else ""
     print(f"{warning}{suite}: {verdict}")
@@ -104,6 +113,9 @@ def read_suite(path, name):
                 and (status != "passed" or counts["tests"] > 0
                      and not counts["failures"] and not counts["missingPlans"])):
             report = dict(name=name, status=status, **counts)
+            elapsed = data.get("totalTimeMs")
+            if counts["tests"] and type(elapsed) is int and elapsed >= 0:
+                report["totalTimeMs"] = elapsed
             for field, allowed in REPORT_FIELDS.items():
                 value = data.get(field)
                 if isinstance(value, str) and value in allowed:
@@ -130,30 +142,60 @@ def summarize(source, output):
     qualification = engine
     if engine == "passed" and suites != "passed":
         qualification = "warning"
-    build = re.sub(r"[^a-zA-Z0-9._-]", "-", os.environ["CONVERTIGO_BUILD_NAME"])
-    redis_label = "passed" if redis == "passed" else "warning"
-    suites_label = "passed" if suites == "passed" else "warning"
-    mobile_label = "passed" if mobile == "passed" else "warning"
-    subject = f"Engine {engine} | Suites {suites_label} | Redis {redis_label} | Mobile {mobile_label} | {build}"[:100]
-    lines = [subject, f"Qualification: {qualification}", ""]
-    for report in reports:
-        details = [f"samples={report['tests']}", f"failures={report['failures']}",
-                   f"missing plans={report['missingPlans']}"]
-        details.extend(f"{key}={report[key]}" for key in REPORT_FIELDS if key in report)
-        lines.append(f"{report['name']}: {report['status']} ({', '.join(details)})")
-    message = "\n".join(lines) + "\n"
-    output.mkdir(parents=True, exist_ok=True)
-    (output / "qualif-summary.txt").write_text(message)
-    (output / "qualif-summary.json").write_text(json.dumps(dict(
-        buildName=build, engineCheck=engine, suites=suites, redis=redis, mobile=mobile,
+    data = dict(
+        buildName=os.environ["CONVERTIGO_BUILD_NAME"], engineCheck=engine, suites=suites, redis=redis, mobile=mobile,
         status=qualification, totalFailures=sum(r["failures"] or 0 for r in reports),
-        subject=subject, reports=reports), indent=2) + "\n")
+        reports=reports, **ci_links(os.environ.get("CIRCLE_WORKFLOW_ID"), os.environ.get("CIRCLE_SHA1")),
+    )
+    data["subject"] = report_subject(data)
+    write_reports(data, output, published=True)
+    (output / "qualif-summary.json").write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    print(data["subject"])
+
+
+def aws_succeeded(*args):
+    try:
+        return subprocess.run(["aws", *args], check=False, timeout=60,
+                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+
+
+def notify(output):
+    subject = json.loads((output / "qualif-summary.json").read_text(encoding="utf-8"))["subject"]
+    text_file = output / "qualif-summary.txt"
+    sender = os.environ.get("QUALIF_NOTIFY_SES_FROM", "").strip()
+    recipients = [address.strip() for address in os.environ.get("QUALIF_NOTIFY_SES_TO", "").split(",")
+                  if address.strip()]
+    if sender and recipients:
+        request = {
+            "Source": sender,
+            "Destination": {"ToAddresses": recipients},
+            "Message": {
+                "Subject": {"Data": subject, "Charset": "UTF-8"},
+                "Body": {
+                    "Text": {"Data": text_file.read_text(encoding="utf-8"), "Charset": "UTF-8"},
+                    "Html": {"Data": (output / "qualif-summary.html").read_text(encoding="utf-8"), "Charset": "UTF-8"},
+                },
+            },
+        }
+        with NamedTemporaryFile(mode="w", encoding="utf-8") as source:
+            json.dump(request, source)
+            source.flush()
+            command = ["ses", "send-email", "--cli-input-json", f"file://{source.name}"]
+            if region := os.environ.get("QUALIF_NOTIFY_SES_REGION", "").strip():
+                command += ["--region", region]
+            if aws_succeeded(*command):
+                return
+        print("Warning: qualification SES notification failed")
+    elif sender or recipients:
+        print("Warning: qualification SES notification needs both a sender and recipients")
+
     topic = os.environ.get("QUALIF_NOTIFY_SNS_TOPIC_ARN")
-    if topic:
-        if subprocess.run(["aws", "sns", "publish", "--topic-arn", topic,
-                           "--subject", subject, "--message", message], check=False).returncode:
-            print("Warning: qualification notification failed")
-    print(subject)
+    if topic and not aws_succeeded("sns", "publish", "--topic-arn", topic,
+                                   "--subject", subject.encode("utf-8")[:99].decode("utf-8", errors="ignore"),
+                                   "--message", f"file://{text_file}"):
+        print("Warning: qualification SNS notification failed")
 
 
 def main():
@@ -167,11 +209,15 @@ def main():
     summary_parser = commands.add_parser("summary")
     summary_parser.add_argument("source", type=Path)
     summary_parser.add_argument("output", type=Path)
+    notify_parser = commands.add_parser("notify")
+    notify_parser.add_argument("output", type=Path)
     args = parser.parse_args()
     if args.command == "collect":
         collect(args.suite, args.repo, args.status, args.output)
-    else:
+    elif args.command == "summary":
         summarize(args.source, args.output)
+    else:
+        notify(args.output)
     return 0
 
 
