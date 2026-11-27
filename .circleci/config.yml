@@ -521,8 +521,7 @@ jobs:
   qualif_jmx_1:
     <<: *defaults
     steps:
-    - aws-cli/setup
-
+    - checkout
     - attach_workspace:
         at: /tmp
         
@@ -547,25 +546,27 @@ jobs:
           docker pull convertigo/qualif-jmeter:v4
           
     - run:
-        name: Run the qualif
+        name: Run qualification and collect counters
+        no_output_timeout: 40m
         command: |
-          source /tmp/build.env
-          cd convertigo-qualif-jmx-1
-          sh run.sh
-          mkdir -p $CONVERTIGO_DIST
-          mv out $CONVERTIGO_DIST/qualif
-          
+          suite_repo="$PWD/convertigo-qualif-jmx-1"
+          status=0
+          (cd "$suite_repo" && sh run.sh) >/dev/null 2>&1 || status=$?
+          verdict=0
+          python3 .circleci/qualif_report.py collect qualif-jmx-1 "$suite_repo" "$status" /tmp/qualif-reports || verdict=$?
+          printf '%s\n' "$verdict" > /tmp/qualif-verdict
+    - persist_to_workspace:
+        root: /tmp
+        paths:
+        - qualif-reports/qualif-jmx-1.json
     - run:
-        name: Sync results to S3
-        command: |
-          source /tmp/build.env
-          aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/.. s3://convertigo-ci/
+        name: Report qualification status
+        command: exit "$(cat /tmp/qualif-verdict)"
           
   qualif_jmx_2:
     <<: *defaults
     steps:
-    - aws-cli/setup
-
+    - checkout
     - attach_workspace:
         at: /tmp
     
@@ -590,25 +591,27 @@ jobs:
           docker pull convertigo/qualif-jmeter:v2
           
     - run:
-        name: Run the qualif
+        name: Run qualification and collect counters
+        no_output_timeout: 40m
         command: |
-          source /tmp/build.env
-          cd convertigo-qualif-jmx-2
-          sh run.sh
-          mkdir -p $CONVERTIGO_DIST
-          mv out $CONVERTIGO_DIST/qualif
-          
+          suite_repo="$PWD/convertigo-qualif-jmx-2"
+          status=0
+          (cd "$suite_repo" && sh run.sh) >/dev/null 2>&1 || status=$?
+          verdict=0
+          python3 .circleci/qualif_report.py collect qualif-jmx-2 "$suite_repo" "$status" /tmp/qualif-reports || verdict=$?
+          printf '%s\n' "$verdict" > /tmp/qualif-verdict
+    - persist_to_workspace:
+        root: /tmp
+        paths:
+        - qualif-reports/qualif-jmx-2.json
     - run:
-        name: Sync results to S3
-        command: |
-          source /tmp/build.env
-          aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/.. s3://convertigo-ci/
+        name: Report qualification status
+        command: exit "$(cat /tmp/qualif-verdict)"
           
   qualif_jmx_3:
     <<: *defaults
     steps:
-    - aws-cli/setup
-
+    - checkout
     - attach_workspace:
         at: /tmp
     
@@ -633,19 +636,22 @@ jobs:
           docker pull convertigo/qualif-jmeter:v2
           
     - run:
-        name: Run the qualif
+        name: Run qualification and collect counters
+        no_output_timeout: 40m
         command: |
-          source /tmp/build.env
-          cd convertigo-qualif-jmx-3
-          sh run.sh
-          mkdir -p $CONVERTIGO_DIST
-          mv out $CONVERTIGO_DIST/qualif
-          
+          suite_repo="$PWD/convertigo-qualif-jmx-3"
+          status=0
+          (cd "$suite_repo" && sh run.sh) >/dev/null 2>&1 || status=$?
+          verdict=0
+          python3 .circleci/qualif_report.py collect qualif-jmx-3 "$suite_repo" "$status" /tmp/qualif-reports || verdict=$?
+          printf '%s\n' "$verdict" > /tmp/qualif-verdict
+    - persist_to_workspace:
+        root: /tmp
+        paths:
+        - qualif-reports/qualif-jmx-3.json
     - run:
-        name: Sync results to S3
-        command: |
-          source /tmp/build.env
-          aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/.. s3://convertigo-ci/
+        name: Report qualification status
+        command: exit "$(cat /tmp/qualif-verdict)"
 
   qualif_summary:
     <<: *defaults
@@ -659,17 +665,17 @@ jobs:
         name: Generate qualif summary
         command: |
           source /tmp/build.env
-          sh ./.circleci/qualif_summary.sh "$CONVERTIGO_DIST/qualif"
+          python3 .circleci/qualif_report.py summary /tmp /tmp/qualif-summary
 
     - run:
         name: Sync summary to S3
         command: |
           source /tmp/build.env
-          aws s3 cp --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/qualif/qualif-summary.txt s3://convertigo-ci/convertigo-$CONVERTIGO_BUILD_NAME/qualif/qualif-summary.txt
-          aws s3 cp --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/qualif/qualif-summary.json s3://convertigo-ci/convertigo-$CONVERTIGO_BUILD_NAME/qualif/qualif-summary.json
+          aws s3 cp --storage-class REDUCED_REDUNDANCY --acl public-read /tmp/qualif-summary/qualif-summary.txt s3://convertigo-ci/convertigo-$CONVERTIGO_BUILD_NAME/qualif/qualif-summary.txt
+          aws s3 cp --storage-class REDUCED_REDUNDANCY --acl public-read /tmp/qualif-summary/qualif-summary.json s3://convertigo-ci/convertigo-$CONVERTIGO_BUILD_NAME/qualif/qualif-summary.json
 
     - store_artifacts:
-        path: /home/circleci/s3
+        path: /tmp/qualif-summary
         destination: qualif-summary
           
   build_studio:
