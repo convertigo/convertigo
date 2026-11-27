@@ -21,7 +21,7 @@ The databases, `config.json` and `log.txt` are always in `<workspace>/pouchdb`. 
 `node_modules` directory in that workspace is left in place.
 
 When a separate account runs Convertigo, keep the provider JAR, the installed bundle and their parent
-directories owned by the deployment account, and give the service account read and traversal access.
+directories owned by the deployment account, and let the service account read the files and access them through each parent directory.
 
 ## Packaging
 
