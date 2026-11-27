@@ -1449,26 +1449,11 @@ workflows:
             only: /^\d+\..*$/
     - qualif_summary:
         requires:
-        - engine_check:
-          - success
-          - failed
-          - canceled
-        - qualif_jmx_1:
-          - success
-          - failed
-          - canceled
-        - qualif_jmx_mobile:
-          - success
-          - failed
-          - canceled
-        - qualif_jmx_2:
-          - success
-          - failed
-          - canceled
-        - qualif_jmx_3:
-          - success
-          - failed
-          - canceled
+        - engine_check: terminal
+        - qualif_jmx_1: terminal
+        - qualif_jmx_mobile: terminal
+        - qualif_jmx_2: terminal
+        - qualif_jmx_3: terminal
         filters:
           tags:
             only: /^\d+\..*$/
