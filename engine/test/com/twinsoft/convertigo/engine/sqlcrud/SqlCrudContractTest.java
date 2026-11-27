@@ -452,7 +452,7 @@ public class SqlCrudContractTest {
 
 	@Test
 	public void importedLegacyListKeepsItsOrderByInput() throws Exception {
-		execute("CREATE TABLE legacy_notes (label VARCHAR(20))",
+		execute("DROP TABLE IF EXISTS legacy_notes", "CREATE TABLE legacy_notes (label VARCHAR(20))",
 				"INSERT INTO legacy_notes VALUES ('first'), ('second')");
 		var original = connector.newTransaction();
 		original.setName(column("legacy_notes") + "_LIST");
@@ -480,7 +480,7 @@ public class SqlCrudContractTest {
 
 	@Test
 	public void legacyWritesAreReportedWhenTheTableNoLongerAllowsThem() throws Exception {
-		execute("CREATE TABLE legacy_notes (label VARCHAR(20))");
+		execute("DROP TABLE IF EXISTS legacy_notes", "CREATE TABLE legacy_notes (label VARCHAR(20))");
 		var table = SqlTableInfo.read(connector, column("legacy_notes"));
 		var legacy = connector.newTransaction();
 		legacy.setName(column("legacy_notes") + "_UPDATE");
