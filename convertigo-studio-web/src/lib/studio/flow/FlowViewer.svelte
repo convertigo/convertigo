@@ -34,8 +34,12 @@
 	import FlowTerminalReturnEdge from './FlowTerminalReturnEdge.svelte';
 	import { loadFlowGraph, loadSequenceFlow } from './sequenceLoader';
 	import { toXyFlow } from './xyflow';
-	import '@xyflow/svelte/dist/style.css';
+	import '@xyflow/svelte/style.css';
 	import Button from '#lib/admin/components/Button.svelte';
+
+	// Svelte Flow 2 uses a percentage of the viewport for each side.
+	const diagramPadding = '7.63%';
+	const selectionPadding = '9.68%';
 
 	/**
 	 * @typedef {Object} SequenceLike
@@ -1576,7 +1580,7 @@
 				fitHeight,
 				0.15,
 				nodeIds?.size ? 0.82 : 0.92,
-				nodeIds?.size ? 0.24 : 0.18
+				nodeIds?.size ? selectionPadding : diagramPadding
 			)
 		);
 	}
@@ -1671,7 +1675,8 @@
 					nodesConnectable={false}
 					elementsSelectable={true}
 					defaultEdgeOptions={{ type: 'smoothstep', zIndex: 0 }}
-					fitViewOptions={{ padding: 0.18, maxZoom: 0.92 }}
+					fitViewOptions={{ padding: diagramPadding, maxZoom: 0.92 }}
+					forceColorMode="light"
 					onnodeclick={handleNodeClick}
 				>
 					<Background />
