@@ -96,6 +96,10 @@ configurations.compileFlat {
 			// Force Redisson transitive dependencies to the security-fixed Netty version.
 			details.useVersion '4.2.21.Final'
 		}
+		if (details.requested.group == 'org.testng' && details.requested.name == 'testng') {
+			details.useVersion '7.5.1'
+			details.because 'Use the maintenance release of the TestNG dependency brought in by SoapUI'
+		}
 	}
 }
 
@@ -348,7 +352,7 @@ dependencies {
 	compileFlat    'org.apache.ws.commons.axiom:axiom-dom:1.4.0'
 	compileFlat    'org.apache.ws.commons.axiom:axiom-impl:1.4.0'
 	compileFlat    'org.apache.ws.commons.schema:XmlSchema:' + xmlSchemaVersion
-	compileFlat    'org.bouncycastle:bcprov-jdk18on:1.86'
+	compileFlat    'org.bouncycastle:bcprov-jdk18on:1.87'
 	compileFlat    'org.apache.xmlbeans:xmlbeans:3.1.1-sb-fixed'
 	compileFlat    'org.apache.xmlgraphics:fop:2.12', { exclude module: 'batik-js'}
 	compileFlat    'org.codehaus.jettison:jettison:1.5.7'
