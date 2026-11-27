@@ -90,7 +90,8 @@ class QualificationReportTest(unittest.TestCase):
     def test_evaluation_license_keeps_a_warning_with_passing_samples(self):
         self.write_result("A_init", "true")
         self.write_result("main", "true")
-        collect(SUITES[0], self.repo, 0, self.reports, evaluation_license=True)
+        collect(SUITES[0], self.repo, 0, self.reports,
+                outcome={"phase": "jmeter_exited", "license": "evaluation"})
         report = self.summary()["reports"][0]
         self.assertEqual(report["status"], "incomplete")
         self.assertEqual(report["license"], "evaluation")

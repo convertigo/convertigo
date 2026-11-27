@@ -13,61 +13,83 @@ REQUIRED_SUITES = ("qualif-jmx-1", "qualif-jmx-2", "qualif-jmx-3")
 REDIS_SUITE = "qualif-jmx-4"
 MOBILE_SUITE = "qualif-jmx-mobile"
 SUITES = (*REQUIRED_SUITES, REDIS_SUITE, MOBILE_SUITE)
+RUN_PHASES = {
+    "image_preparing", "compose_starting", "compose_started", "jmeter_started", "jmeter_exited",
+}
+INFRASTRUCTURE = {
+    "docker_unreachable", "image_pull_failed", "image_lookup_failed", "engine_lookup_failed",
+    "compose_up_failed", "jmeter_lookup_failed", "jmeter_not_started", "jmeter_wait_failed",
+    "cleanup_failed", "runner_launch_failed",
+}
+PRECONDITIONS = {
+    "image_unconfigured", "mobile_plan_missing", "optional_source_unavailable", "runner_missing",
+}
+LICENSE_MODES = {"evaluation", "licensed", "indeterminate"}
+REPORT_FIELDS = {
+    "license": LICENSE_MODES,
+    "phase": RUN_PHASES | PRECONDITIONS | {"deadline_exceeded", "runner_unreported", "runner_launch_failed"},
+    "infrastructure": INFRASTRUCTURE,
+    "diagnostics": {"complete", "partial", "unavailable"},
+}
 
 
-def count_samples(path):
+def count_samples(path, allow_partial):
     tests = failures = 0
-    with path.open("rb") as source:
-        events = ElementTree.iterparse(source, events=("start", "end"))
-        _, root = next(events)
-        if root.tag != "testResults":
-            raise ValueError
-        depth = 1
-        for event, element in events:
-            if event == "start":
-                depth += 1
-                continue
-            if element.tag in ("httpSample", "sample"):
-                result = element.get("s")
-                if result not in ("true", "false"):
-                    raise ValueError
-                tests += 1
-                failures += result == "false"
-            depth -= 1
-            element.clear()
-            if depth == 1:
-                root.clear()
-    if not tests:
-        raise ValueError
-    return tests, failures
+    try:
+        with path.open("rb") as source:
+            events = ElementTree.iterparse(source, events=("start", "end"))
+            _, root = next(events)
+            if root.tag != "testResults":
+                raise ValueError
+            depth = 1
+            for event, element in events:
+                if event == "start":
+                    depth += 1
+                    continue
+                if element.tag in ("httpSample", "sample"):
+                    result = element.get("s")
+                    if result not in ("true", "false"):
+                        raise ValueError
+                    tests += 1
+                    failures += result == "false"
+                depth -= 1
+                element.clear()
+                if depth == 1:
+                    root.clear()
+    except (OSError, ValueError, ElementTree.ParseError):
+        return (tests, failures, False) if allow_partial else (0, 0, False)
+    return tests, failures, bool(tests)
 
 
-def collect(suite, repo, status, output, evaluation_license=False):
+def collect(suite, repo, status, output, outcome=None):
     plans = (["mobileAppBuild"] if suite == MOBILE_SUITE
              else sorted(plan.stem for plan in (repo / "jmx").glob("*.jmx")))
     tests = failures = missing = 0
     # The Redis runner checks readiness of both nodes before running its plans.
     init_plans = [] if suite == REDIS_SUITE else ["A_init"]
+    allow_partial = outcome is not None and outcome["phase"] == "deadline_exceeded"
     for name in [*init_plans, *plans]:
-        try:
-            count, failed = count_samples(repo / "out" / "jtl" / f"{name}.jtl")
-        except (OSError, ValueError, ElementTree.ParseError):
+        if status is None:
             missing += 1
         else:
+            count, failed, complete = count_samples(repo / "out" / "jtl" / f"{name}.jtl", allow_partial)
             tests += count
             failures += failed
-    if status or failures:
+            missing += not complete
+
+    fields = {key: outcome.get(key) for key in REPORT_FIELDS} if outcome is not None else {}
+    phase = fields.get("phase")
+    if failures or (status and phase in (None, "jmeter_exited")):
         verdict = "failed"
-    elif missing or not plans or evaluation_license:
+    elif (missing or not plans or fields.get("license") == "evaluation"
+          or fields.get("infrastructure") or phase not in (None, "jmeter_exited")):
         verdict = "incomplete"
     else:
         verdict = "passed"
     output.mkdir(parents=True, exist_ok=True)
-    report = dict(tests=tests, failures=failures, missingPlans=missing, status=verdict)
-    if evaluation_license:
-        report["license"] = "evaluation"
+    report = dict(tests=tests, failures=failures, missingPlans=missing, status=verdict, **fields)
     (output / f"{suite}.json").write_text(json.dumps(report) + "\n")
-    warning = "Warning: " if verdict != "passed" else ""
+    warning = "Warning: " if verdict != "passed" or fields.get("diagnostics") in ("partial", "unavailable") else ""
     print(f"{warning}{suite}: {verdict}")
 
 
@@ -82,8 +104,10 @@ def read_suite(path, name):
                 and (status != "passed" or counts["tests"] > 0
                      and not counts["failures"] and not counts["missingPlans"])):
             report = dict(name=name, status=status, **counts)
-            if data.get("license") == "evaluation":
-                report["license"] = "evaluation"
+            for field, allowed in REPORT_FIELDS.items():
+                value = data.get(field)
+                if isinstance(value, str) and value in allowed:
+                    report[field] = value
             return report
     except (OSError, ValueError, TypeError, KeyError):
         pass
@@ -113,9 +137,10 @@ def summarize(source, output):
     subject = f"Engine {engine} | Suites {suites_label} | Redis {redis_label} | Mobile {mobile_label} | {build}"[:100]
     lines = [subject, f"Qualification: {qualification}", ""]
     for report in reports:
-        license_note = ", evaluation license" if report.get("license") == "evaluation" else ""
-        lines.append(f"{report['name']}: {report['status']} (samples={report['tests']}, "
-                     f"failures={report['failures']}, missing plans={report['missingPlans']}{license_note})")
+        details = [f"samples={report['tests']}", f"failures={report['failures']}",
+                   f"missing plans={report['missingPlans']}"]
+        details.extend(f"{key}={report[key]}" for key in REPORT_FIELDS if key in report)
+        lines.append(f"{report['name']}: {report['status']} ({', '.join(details)})")
     message = "\n".join(lines) + "\n"
     output.mkdir(parents=True, exist_ok=True)
     (output / "qualif-summary.txt").write_text(message)
@@ -139,13 +164,12 @@ def main():
     collect_parser.add_argument("repo", type=Path)
     collect_parser.add_argument("status", type=int)
     collect_parser.add_argument("output", type=Path)
-    collect_parser.add_argument("--evaluation-license", action="store_true")
     summary_parser = commands.add_parser("summary")
     summary_parser.add_argument("source", type=Path)
     summary_parser.add_argument("output", type=Path)
     args = parser.parse_args()
     if args.command == "collect":
-        collect(args.suite, args.repo, args.status, args.output, args.evaluation_license)
+        collect(args.suite, args.repo, args.status, args.output)
     else:
         summarize(args.source, args.output)
     return 0

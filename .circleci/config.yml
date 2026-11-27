@@ -37,11 +37,12 @@ commands:
     - run:
         name: Checkout the qualification suite
         command: |
+          set +x
           : "${QUALIF_GITHUB_TOKEN:?Set QUALIF_GITHUB_TOKEN in the qualif-github context}"
           umask 077
           askpass=$(mktemp)
           trap 'rm -f "$askpass"' EXIT
-          printf '%s\n' '#!/bin/sh' 'printf "%s\n" "$QUALIF_GITHUB_TOKEN"' > "$askpass"
+          printf '%s\n' '#!/bin/sh' 'set +x' 'printf "%s\n" "$QUALIF_GITHUB_TOKEN"' > "$askpass"
           chmod 700 "$askpass"
           mkdir -p /tmp/qualification-sources
           cd /tmp/qualification-sources
@@ -50,8 +51,10 @@ commands:
             git -c credential.helper= -c credential.username=x-access-token clone \
               --depth 1 --branch "<< parameters.branch >>" --single-branch \
               "https://github.com/convertigo/convertigo-qualif-jmx-<< parameters.suite >>.git"); then
-            git -C "convertigo-qualif-jmx-<< parameters.suite >>" rev-parse HEAD
-            rm -rf -- "convertigo-qualif-jmx-<< parameters.suite >>/.git"
+            suite_repo="convertigo-qualif-jmx-<< parameters.suite >>"
+            git -C "$suite_repo" rev-parse HEAD > "$suite_repo/.qualif-source-sha"
+            cat "$suite_repo/.qualif-source-sha"
+            rm -rf -- "$suite_repo/.git"
           elif << parameters.optional >>; then
             echo "Warning: optional qualification sources are unavailable"
           else
@@ -69,6 +72,7 @@ commands:
         name: Run qualification and collect counters
         no_output_timeout: 40m
         command: |
+          set +x
           source /tmp/build.env
           if [ "<< parameters.suite >>" = 4 ]; then
             export C8O_IMAGE="$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE"
@@ -79,18 +83,12 @@ commands:
         root: /tmp
         paths:
         - qualif-reports/<< parameters.report >>.json
-    - aws-cli/setup
     - run:
         name: Upload private qualification diagnostics
         command: |
+          set +x
           source /tmp/build.env
-          report="<< parameters.report >>"
-          diagnostics="/tmp/qualif-private/$report.tar.gz"
-          if [ -f "$diagnostics" ]; then
-            aws s3 cp --only-show-errors --acl private "$diagnostics" \
-              "s3://convertigo-ci/convertigo-$CONVERTIGO_BUILD_NAME/qualif/private/$report.tar.gz" \
-              >/dev/null 2>&1 || echo "Warning: could not upload $report diagnostics"
-          fi
+          bash .circleci/upload_qualif.sh "<< parameters.report >>" "$CONVERTIGO_BUILD_NAME" /tmp
 
   docker_build_push:
     description: >
@@ -669,6 +667,7 @@ jobs:
     - run:
         name: Pull the Docker aks image
         command: |
+          set +x
           source /tmp/build.env
           docker pull "$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-aks"
           docker tag "$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-aks" c8o:latest
@@ -697,6 +696,7 @@ jobs:
     - run:
         name: Pull the Docker default image
         command: |
+          set +x
           source /tmp/build.env
           docker pull "$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE"
           docker tag "$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE" c8o:latest
@@ -716,6 +716,7 @@ jobs:
     - run:
         name: Pull the Docker default image
         command: |
+          set +x
           source /tmp/build.env
           docker pull "$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE"
           docker tag "$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE" c8o:latest
