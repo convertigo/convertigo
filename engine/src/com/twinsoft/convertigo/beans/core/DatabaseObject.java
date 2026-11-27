@@ -699,7 +699,9 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 
 			// Stores the value
 			Node node = null;
-			if (exportOptions.contains(ExportOption.bIncludeCompiledValue)) {
+			if (exportOptions.contains(ExportOption.bIncludeCompiledValue)
+					&& !(exportOptions.contains(ExportOption.bHidePassword)
+							&& isMaskedProperty(Visibility.Platform, propertyDescriptorName))) {
 				node = XMLUtils.writeObjectToXml(document, value, compiledValue);
 			} else {
 				node = XMLUtils.writeObjectToXml(document, value);
@@ -1064,6 +1066,19 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 
 	public boolean isCipheredProperty(String propertyName) {
 		return false;
+	}
+
+	/**
+	 * Recognize an unchanged value from an editor that sends back the serialized property.
+	 * Check before compilation so a symbol keeps its source expression.
+	 */
+	public boolean matchesCipheredPropertyValue(String propertyName, String submittedValue, Object currentValue) {
+		if (!isCipheredProperty(propertyName)) {
+			return false;
+		}
+		Object source = getCompilablePropertySourceValue(propertyName);
+		Object storedValue = source == null ? currentValue : source;
+		return storedValue instanceof String && submittedValue.equals(encryptPropertyValue(storedValue));
 	}
 
 	public boolean isTraceableProperty(String propertyName) {

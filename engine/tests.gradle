@@ -60,6 +60,7 @@ tasks.named('check') {
 	dependsOn 'rhinoCachedScriptScopeTest'
 	dependsOn 'statisticsTest'
 	dependsOn 'crypto2Test'
+	dependsOn 'maskedPropertiesTest'
 	dependsOn 'redisSessionRewriteTest'
 	dependsOn 'redisSessionReadTest'
 	dependsOn 'redisSessionStoreLiveTest'
@@ -70,6 +71,15 @@ tasks.named('check') {
 	dependsOn 'redisContextIndexTest'
 	dependsOn 'siteClipperStoredContextTest'
 	dependsOn 'multipartUploadFolderTest'
+}
+
+tasks.register('maskedPropertiesTest', JavaExec) {
+	group = 'verification'
+	description = 'Masked project property serialization and compatibility with existing editor submissions.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.admin.services.studio.properties.MaskedPropertiesTest'
 }
 
 tasks.register('xsltCacheTest', JavaExec) {

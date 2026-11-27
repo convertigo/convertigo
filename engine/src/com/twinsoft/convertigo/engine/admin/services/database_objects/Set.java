@@ -54,7 +54,7 @@ public class Set extends XmlService {
 	private TwsCachedXPathAPI xpath;
 	private Node postElt;
 	
-	private Object getPropertyValue(DatabaseObject object, String propertyName)
+	private String getPropertyValue(DatabaseObject object, String propertyName)
 			throws TransformerException {
 		Node nodetmp = xpath.selectSingleNode(postElt, "./property[@name=\"" + propertyName
 				+ "\"]/*[1]");
@@ -68,9 +68,7 @@ public class Set extends XmlService {
 			throw new IllegalArgumentException("Property '" + propertyName
 					+ "' not found for object '" + object.getQName() + "'");
 
-		String propertyValue = nodeValue.getNodeValue();
-		
-		return object.compileProperty(propertyName, propertyValue);
+		return nodeValue.getNodeValue();
 	}
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
@@ -94,7 +92,7 @@ public class Set extends XmlService {
 			if (object instanceof Project) {
 				Project project = (Project) object;
 				
-				String objectNewName = getPropertyValue(object, "name").toString();
+				String objectNewName = object.compileProperty("name", getPropertyValue(object, "name")).toString();
 				
 				Engine.theApp.databaseObjectsManager.renameProject(project, objectNewName);
 			}
@@ -114,24 +112,18 @@ public class Set extends XmlService {
 					propertyTypeClass = ClassUtils.primitiveToWrapper(propertyTypeClass);
 				}
 				
-				try{
-					String propertyValue = getPropertyValue(object, propertyName).toString(); 
-
-					Object oPropertyValue = createObject(propertyTypeClass, propertyValue);
-	
+				try {
+					String submittedValue = getPropertyValue(object, propertyName);
 					if (object.isCipheredProperty(propertyName)) {
-						
-						Method getter = propertyDescriptor.getReadMethod();
-						String initialValue = (String) getter.invoke(object, (Object[]) null);
-						
-						if (oPropertyValue.equals(initialValue) || 
-								DatabaseObject.encryptPropertyValue(initialValue).equals(oPropertyValue)) {
-							oPropertyValue = initialValue;
-						}else{
-							object.hasChanged = true;
+						Object initialValue = propertyDescriptor.getReadMethod().invoke(object);
+						if (object.matchesCipheredPropertyValue(propertyName, submittedValue, initialValue)) {
+							continue;
 						}
+						object.hasChanged = true;
 					}
-					
+					String propertyValue = object.compileProperty(propertyName, submittedValue).toString();
+					Object oPropertyValue = createObject(propertyTypeClass, propertyValue);
+
 					if (oPropertyValue != null) {
 						Object args[] = { oPropertyValue };
 						setter.invoke(object, args);

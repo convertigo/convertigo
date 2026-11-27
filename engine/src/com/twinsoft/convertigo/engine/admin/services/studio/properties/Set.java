@@ -111,19 +111,12 @@ public class Set extends JSonService {
 							FormatedContent fc = new FormatedContent(pvalue);
 							setter.invoke(dbo, new Object[] { fc });
 						} else {
+							if (dbo.matchesCipheredPropertyValue(pname, pvalue, oldValue)) {
+								done = true;
+								break;
+							}
 							String propertyValue = dbo.compileProperty(pname, pvalue).toString();
 							Object oPropertyValue = createObject(ptc, propertyValue);
-
-							if (dbo.isCipheredProperty(pname)) {
-								String initialValue = (String) getter.invoke(dbo, (Object[]) null);
-
-								if (oPropertyValue.equals(initialValue)
-										|| DatabaseObject.encryptPropertyValue(initialValue).equals(oPropertyValue)) {
-									oPropertyValue = initialValue;
-									// } else{
-									// dbo.hasChanged = true;
-								}
-							}
 
 							if (oPropertyValue != null) {
 								Object args[] = { oPropertyValue };
