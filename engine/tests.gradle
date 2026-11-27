@@ -166,7 +166,8 @@ tasks.register('stackLimitProtectionTest', JavaExec) {
 	dependsOn sessionTestClasses
 	classpath = sourceSets.sessionTest.runtimeClasspath
 	mainClass = 'org.junit.runner.JUnitCore'
-	args 'com.twinsoft.convertigo.engine.util.XMLUtilsParallelJsonTest'
+	args 'com.twinsoft.convertigo.engine.util.XMLUtilsParallelJsonTest',
+		'com.twinsoft.convertigo.engine.util.StackLimitProtectionTest'
 }
 
 tasks.named('check') { dependsOn 'stackLimitProtectionTest' }

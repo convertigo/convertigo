@@ -1055,7 +1055,9 @@ public class XMLUtils {
 	}
 
 	public static void copyDocument(Document from, Document to) {
-		Node node = to.importNode(from.getDocumentElement(), true);
+		Element root = from.getDocumentElement();
+		RecursionGuard.checkDomDepth(root, "DOM document copy");
+		Node node = to.importNode(root, true);
 		to.getDocumentElement().appendChild(node);
 	}
 
@@ -1273,8 +1275,16 @@ public class XMLUtils {
 	}
 
 	public static String getNormalizedText(Node node) {
+		return getNormalizedText(node, RecursionGuard.getLimit(), node instanceof Document ? 0 : 1);
+	}
+
+	private static String getNormalizedText(Node node, long limit, int depth) {
 		String res = "";
-		if (node.hasChildNodes()) {
+		boolean hasChildren = node.hasChildNodes();
+		if (node instanceof Element || hasChildren) {
+			RecursionGuard.checkDepth("DOM text extraction", limit, depth);
+		}
+		if (hasChildren) {
 			NodeList nl = node.getChildNodes();
 			for (int i = 0; i < nl.getLength(); i++) {
 				if (nl.item(i).getNodeType() == Node.TEXT_NODE) {
@@ -1282,7 +1292,7 @@ public class XMLUtils {
 				} else {
 					// ignore <SCRIPT> nodes ...
 					if (!nl.item(i).getNodeName().equalsIgnoreCase("script"))
-						res += getNormalizedText(nl.item(i));
+						res += getNormalizedText(nl.item(i), limit, depth + 1);
 				}
 			}
 		}
@@ -1614,6 +1624,7 @@ public class XMLUtils {
 	}
 
 	public static Document copyDocumentWithoutNamespace(Document document) throws ParserConfigurationException {
+		RecursionGuard.checkDomDepth(document, "DOM document copy without namespaces");
 		Document newDocument = XMLUtils.createDom("java");
 		copyNodeWithoutNamespace(newDocument, newDocument, document);
 		return newDocument;
@@ -1990,8 +2001,15 @@ public class XMLUtils {
 	}
 	
 	public static void jsonToXml(Object object, String objectKey, Element parentElement, boolean modifyElement, boolean includeDataType, boolean compactArray, String arrayChildrenTag) throws JSONException {
-		Engine.logBeans.trace("Converting JSON to XML: object=" + object + "; objectKey=\"" + objectKey + "\"");
-		
+		long limit = RecursionGuard.getLimit();
+		if (RecursionGuard.exceedsJsonDepth(object, limit)) {
+			throw new JSONException(RecursionGuard.limitMessage("JSON to XML conversion", limit));
+		}
+		Engine.logBeans.trace("Converting JSON to XML with key: " + objectKey);
+		convertJsonToXml(object, objectKey, parentElement, modifyElement, includeDataType, compactArray, arrayChildrenTag);
+	}
+
+	private static void convertJsonToXml(Object object, String objectKey, Element parentElement, boolean modifyElement, boolean includeDataType, boolean compactArray, String arrayChildrenTag) throws JSONException {
 		Document doc = parentElement.getOwnerDocument();
 
 		if ("_attachments".equals(parentElement.getNodeName()) && "item".equals(arrayChildrenTag) && object instanceof JSONObject) {
@@ -2044,7 +2062,7 @@ public class XMLUtils {
 			}
 			
 			for (String key: keys) {
-				jsonToXml(json.get(key), key, element, false, includeDataType, compactArray, arrayChildrenTag);
+				convertJsonToXml(json.get(key), key, element, false, includeDataType, compactArray, arrayChildrenTag);
 			}
 		}
 		// Array value case
@@ -2071,7 +2089,7 @@ public class XMLUtils {
 
 			for (int i = 0; i < len; i++) {
 				Object itemArray = array.get(i);
-				jsonToXml(itemArray, arrayItemObjectKey, arrayElement, false, includeDataType, compactArray, arrayChildrenTag);
+				convertJsonToXml(itemArray, arrayItemObjectKey, arrayElement, false, includeDataType, compactArray, arrayChildrenTag);
 			}
 		}
 		else {
