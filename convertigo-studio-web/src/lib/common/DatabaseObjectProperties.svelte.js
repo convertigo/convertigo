@@ -59,13 +59,20 @@ export function createDatabaseObjectProperties() {
 			if (serial !== selectionLoadSerial || id !== nextId) {
 				return;
 			}
-			properties = Object.entries(res?.properties ?? {}).map(([k, p]) => ({
-				displayName: k,
-				originalValue: p.value,
-				originalMode: p.mode,
-				...p,
-				category: normalizeCategory(p.category)
-			}));
+			properties = Object.entries(res?.properties ?? {}).map(([k, p]) => {
+				const maskedString = p.isMasked === true && p.class === 'java.lang.String';
+				const value = maskedString ? undefined : p.value;
+				return {
+					...p,
+					displayName: k,
+					value,
+					originalValue: value,
+					originalMode: p.mode,
+					maskedString,
+					hasMaskedValue: maskedString && (p.hasMaskedValue ?? Boolean(p.value)),
+					category: normalizeCategory(p.category)
+				};
+			});
 		} finally {
 			if (serial === selectionLoadSerial && id === nextId) {
 				loading = false;
@@ -92,16 +99,25 @@ export function createDatabaseObjectProperties() {
 			return true;
 		}
 		const saveId = id;
+		const submitted = changes.map(({ name, value, mode }) => ({ name, value, mode }));
 		const res = await call('studio.properties.Set', {
 			id: saveId,
-			props: JSON.stringify(changes),
+			props: JSON.stringify(submitted),
 			save: true
 		});
 		if (res?.done) {
-			changes.forEach((p) => {
-				p.originalValue = p.value;
+			changes.forEach((p, index) => {
+				const { value, mode } = submitted[index];
+				if (p.maskedString) {
+					p.hasMaskedValue = value !== '';
+					if (p.value === value) {
+						p.value = undefined;
+					}
+				} else {
+					p.originalValue = value;
+				}
 				if ('mode' in p) {
-					p.originalMode = p.mode;
+					p.originalMode = mode;
 				}
 			});
 			return true;

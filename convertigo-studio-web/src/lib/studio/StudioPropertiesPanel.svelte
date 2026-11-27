@@ -1,4 +1,5 @@
 <script>
+	import MaskedPropertyInput from '$lib/admin/components/MaskedPropertyInput.svelte';
 	import PropertyType from '$lib/admin/components/PropertyType.svelte';
 	import SaveCancelButtons from '$lib/admin/components/SaveCancelButtons.svelte';
 	import AccordionGroup from '$lib/common/components/AccordionGroup.svelte';
@@ -372,6 +373,8 @@
 											<div class="studio-properties__field-control">
 												{#if category == 'Information'}
 													<span class="studio-properties__static">{value}</span>
+												{:else if row.maskedString}
+													<MaskedPropertyInput {row} />
 												{:else if smartType}
 													<PropertyType
 														type="smarttype"
