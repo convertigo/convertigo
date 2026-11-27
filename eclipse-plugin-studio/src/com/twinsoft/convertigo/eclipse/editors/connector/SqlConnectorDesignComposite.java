@@ -375,6 +375,8 @@ class SqlConnectorDesignComposite extends Composite {
 				try {
 					if (item.getData("sql_table") instanceof SqlTableIdentity identity) {
 						var metadata = SqlTableInfo.read(sqlConnector, identity);
+						SqlCrudGeneration.legacyMigrationWarnings(sqlConnector, metadata)
+								.forEach(warning -> messages.append(warning).append('\n'));
 						var transactions = SqlConnector.createSqlTransactions(sqlConnector, metadata, cruds);
 						changed |= SqlCrudGeneration.installTransactions(sqlConnector, transactions, override,
 								accessibility == null ? ngxAccessibility : accessibility, authenticated, accessibility != null);

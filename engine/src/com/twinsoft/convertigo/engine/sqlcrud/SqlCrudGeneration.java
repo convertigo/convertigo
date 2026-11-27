@@ -39,6 +39,7 @@ import com.twinsoft.convertigo.beans.steps.XMLCopyStep;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 /**
@@ -73,7 +74,8 @@ public final class SqlCrudGeneration {
 				var previousSequence = findSequence(project, name);
 				var target = connector.getQName() + "." + name;
 				if (previous != null && !sameTable(previous, candidate)) {
-					throw new EngineException("Transaction " + target + " already exists for another table or has no generated table identity.");
+					throw new EngineException("Transaction " + target + " already exists for another table or has no generated table identity. "
+							+ "Review the existing transaction, sequence and application before migrating them together.");
 				}
 				var transaction = previous == null || override ? candidate : null;
 				// NGX alone reuses existing wrappers and their transaction contract.
@@ -145,6 +147,28 @@ public final class SqlCrudGeneration {
 		}
 		parent.add(replacement);
 		undo.push(() -> parent.remove(replacement));
+	}
+
+	/** Reports older objects by generated name. Their origin and customizations must be reviewed before migration. */
+	public static List<String> legacyMigrationWarnings(SqlConnector connector, SqlTableInfo table) throws EngineException {
+		var warnings = new ArrayList<String>();
+		var prefix = StringUtils.normalize(table.getTableName()) + "_";
+		for (var verb : List.of("COUNT", "LIST", "SELECT", "INSERT", "UPDATE", "DELETE")) {
+			var name = prefix + verb;
+			if (!(connector.getTransactionByName(name) instanceof SqlTransaction sql) || !sql.getCrudQuery().isEmpty()) {
+				continue;
+			}
+			var sequence = findSequence(connector.getProject(), name);
+			var message = "Review " + sql.getQName() + " before migration";
+			if (sequence != null) {
+				message += " with sequence " + sequence.getQName() + " and its callers";
+			}
+			if (!table.allows(verb)) {
+				message += ". This operation remains available in the project, and the current generator omits it for this table";
+			}
+			warnings.add(message + ".");
+		}
+		return warnings;
 	}
 
 	private static boolean sameTable(Transaction previous, SqlTransaction candidate) throws EngineException {
