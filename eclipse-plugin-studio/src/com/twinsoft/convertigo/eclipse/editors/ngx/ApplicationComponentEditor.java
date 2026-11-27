@@ -1912,10 +1912,9 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						}
 					}
 
-					ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path + File.pathSeparator + ionicDir.toString() , "npm", "install",
+					ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path + File.pathSeparator + ionicDir, ionicDir, "npm", "install",
 							"--legacy-peer-deps", "--loglevel", "info");
 					pb.redirectErrorStream(true);
-					pb.directory(ionicDir);
 					LocalWorkDirectory.beginWork(nodeModules);
 					Process p = ProjectProcesses.start(ProjectProcesses.INSTALL, project.getName(), pb).getProcess();
 
@@ -2006,7 +2005,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				Engine.logStudio.warn("Failed to update CAF router", e);
 			}
 
-			ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "run", "ionic:serve");
+			ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path, ionicDir, "npm", "run", "ionic:serve");
 
 			List<String> cmd = pb.command();
 			synchronized (usedPort) {
@@ -2019,7 +2018,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 
 			pb.redirectErrorStream(true);
-			pb.directory(ionicDir);
 
 			String angular_json = FileUtils.readFileToString(new File(ionicDir, "angular.json"), "UTF-8");
 			angular_json = angular_json.replaceFirst("(\"serve\":\s*\\{).*", "$1");
@@ -2563,7 +2561,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 				String path = nodeDir.getAbsolutePath();
 
-				ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "run", buildMode.command());
+				ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path, ionicDir, "npm", "run", buildMode.command());
 
 				List<String> cmd = pb.command();
 				cmd.add("--");
@@ -2576,7 +2574,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				cmd.add("--base-href="+ appBaseHref);
 
 				pb.redirectErrorStream(true);
-				pb.directory(ionicDir);
 				ManagedProcess build = ProjectProcesses.start(buildMode == NgxBuilderBuildMode.watch ? ProjectProcesses.WATCH : ProjectProcesses.BUILD,
 						project.getName(), pb);
 				process = build;

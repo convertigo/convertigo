@@ -30,6 +30,8 @@ import java.io.InputStreamReader;
 import java.lang.ProcessBuilder.Redirect;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -56,6 +58,7 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.process.ManagedProcessSpec;
@@ -244,6 +247,11 @@ public class ProcessUtils {
 	}
 
 	public static ProcessBuilder getNpmProcessBuilder(String paths, List<String> command) throws IOException {
+		return getNpmProcessBuilder(paths, null, command);
+	}
+
+	/** The working directory must be known before applying the npm script policy. */
+	public static ProcessBuilder getNpmProcessBuilder(String paths, File directory, List<String> command) throws IOException {
 		if (command == null || command.size() == 0 || (!command.get(0).equals("npm") && !command.get(0).equals("yarn") && !command.get(0).equals("pnpm") && !command.get(0).equals("npx"))) {
 			throw new IOException("not a npm or yarn or pnpm command");
 		}
@@ -260,31 +268,81 @@ public class ProcessUtils {
 			}
 		}
 
-		var pb = getProcessBuilder(paths, command);
-		configureNpmEnvironment(pb.environment());
+		var pb = getProcessBuilder(paths, command).directory(directory);
+		configureNpmEnvironment(pb.environment(), directory == null ? Path.of("").toAbsolutePath() : directory.toPath());
 		return pb;
 	}
 
 	/** Name of the npm 11 setting that runs the install scripts of all the dependencies, as npm 10 did. */
 	static final String NPM_ALLOW_ALL_SCRIPTS_ENV = "npm_config_dangerously_allow_all_scripts";
 
-	/**
-	 * npm 11 skips the install scripts that are not approved (native modules such as leveldown are not compiled):
-	 * restore the npm 10 behavior unless a value is already set or the engine property npm.allow_all_scripts is false.
-	 * An --ignore-scripts given on the command line stays prioritary in npm.
-	 */
-	static void configureNpmEnvironment(Map<String, String> environment) {
-		for (String key : environment.keySet()) {
-			if (key.equalsIgnoreCase(NPM_ALLOW_ALL_SCRIPTS_ENV)) return;
+	private static final ObjectMapper NPM_PACKAGE_JSON = new ObjectMapper();
+	private static final Pattern NPM_SCRIPT_POLICY = Pattern.compile(
+			"^\\uFEFF?\\s*(?:allow-scripts(?:\\[\\])?|strict-allow-scripts|dangerously-allow-all-scripts)\\s*=");
+
+	/** Keep npm 10 compatibility for projects that have no explicit script policy. */
+	static void configureNpmEnvironment(Map<String, String> environment, Path directory) {
+		if (environment.keySet().stream().anyMatch(NPM_ALLOW_ALL_SCRIPTS_ENV::equalsIgnoreCase)) {
+			logNpmScriptPolicy("keeping the existing environment setting");
+			return;
 		}
 		boolean enabled;
 		try {
 			enabled = EnginePropertiesManager.getPropertyAsBoolean(EnginePropertiesManager.PropertyName.NPM_ALLOW_ALL_SCRIPTS);
-		} catch (RuntimeException uninitialized) {
-			// Process discovery also runs before the engine properties are initialized: keep the default.
+		} catch (IllegalStateException uninitialized) {
+			// Process discovery also runs before the engine properties are initialized.
 			enabled = true;
 		}
-		if (enabled) environment.put(NPM_ALLOW_ALL_SCRIPTS_ENV, "true");
+		if (!enabled) {
+			logNpmScriptPolicy("compatibility is disabled by npm.allow_all_scripts");
+		} else if (environment.entrySet().stream().anyMatch(e ->
+				(e.getKey().equalsIgnoreCase("npm_config_allow_scripts") && !e.getValue().isBlank())
+				|| (e.getKey().equalsIgnoreCase("npm_config_strict_allow_scripts") && "true".equals(e.getValue())))) {
+			logNpmScriptPolicy("using the script policy from the environment");
+		} else {
+			try {
+				if (hasNpmScriptPolicy(directory)) {
+					logNpmScriptPolicy("using the project script policy");
+					return;
+				}
+			} catch (IOException e) {
+				logNpmScriptPolicy("could not read the project policy, leaving npm to handle it");
+				return;
+			}
+			environment.put(NPM_ALLOW_ALL_SCRIPTS_ENV, "true");
+			logNpmScriptPolicy("allowing dependency install scripts for compatibility");
+		}
+	}
+
+	private static boolean hasNpmScriptPolicy(Path directory) throws IOException {
+		for (Path current = directory.toAbsolutePath().normalize(); current != null; current = current.getParent()) {
+			try (var config = Files.newBufferedReader(current.resolve(".npmrc"))) {
+				String line;
+				while ((line = config.readLine()) != null) {
+					if (NPM_SCRIPT_POLICY.matcher(line).find()) {
+						return true;
+					}
+				}
+			} catch (NoSuchFileException e) {
+				// No project npm configuration here.
+			}
+			try (var manifest = Files.newInputStream(current.resolve("package.json"))) {
+				var json = NPM_PACKAGE_JSON.readTree(manifest);
+				return json != null && json.has("allowScripts");
+			} catch (NoSuchFileException e) {
+				// npm also looks for the project root above the working directory.
+				if (Files.isDirectory(current.resolve("node_modules"))) {
+					return false;
+				}
+			}
+		}
+		return false;
+	}
+
+	private static void logNpmScriptPolicy(String decision) {
+		if (Engine.logEngine != null) {
+			Engine.logEngine.debug("npm install scripts: " + decision);
+		}
 	}
 
 	/** Apply the engine proxy to any child process, without exporting upstream credentials. */
@@ -315,7 +373,11 @@ public class ProcessUtils {
 	}
 
 	public static ProcessBuilder getNpmProcessBuilder(String paths, String... command) throws IOException {
-		return getNpmProcessBuilder(paths, new LinkedList<String>(Arrays.asList(command)));
+		return getNpmProcessBuilder(paths, null, command);
+	}
+
+	public static ProcessBuilder getNpmProcessBuilder(String paths, File directory, String... command) throws IOException {
+		return getNpmProcessBuilder(paths, directory, new LinkedList<String>(Arrays.asList(command)));
 	}
 
 	/** at most for the extraction of an archive of Node.js or of a JDK */

@@ -1315,12 +1315,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					long start = System.currentTimeMillis();
 					ProcessBuilder pb;
 					if (existsPackageLockTpl) {
-						pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "install", ionicDir.toString());
+						pb = ProcessUtils.getNpmProcessBuilder(path, ionicDir, "npm", "install", ionicDir.toString());
 					} else {
-						pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "install", ionicDir.toString(), "--no-shrinkwrap", "--no-package-lock");
+						pb = ProcessUtils.getNpmProcessBuilder(path, ionicDir, "npm", "install", ionicDir.toString(), "--no-shrinkwrap", "--no-package-lock");
 					}
 					pb.redirectErrorStream(true);
-					pb.directory(ionicDir);
 					Process p = ProjectProcesses.start(ProjectProcesses.INSTALL, project.getName(), pb).getProcess();
 					Engine.execute(() -> {
 						try {
@@ -1401,7 +1400,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					FileUtils.copyDirectory(assets, privAssets);
 				}
 
-				ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "run", buildMode.command(), "--nobrowser");
+				ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path, ionicDir, "npm", "run", buildMode.command(), "--nobrowser");
 				if (!MobileBuilderBuildMode.production.equals(buildMode)) {
 					List<String> cmd = pb.command();
 					synchronized (usedPort) {
@@ -1414,7 +1413,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					}
 				}
 				pb.redirectErrorStream(true);
-				pb.directory(ionicDir);
 				Process p = ProjectProcesses.start(MobileBuilderBuildMode.production.equals(buildMode) ? ProjectProcesses.BUILD : ProjectProcesses.SERVE,
 						project.getName(), pb).getProcess();
 				BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));

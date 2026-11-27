@@ -36,8 +36,7 @@ import java.util.function.Consumer;
  *
  * <pre>
  * ManagedProcess p = ManagedProcesses.get().start(ManagedProcessSpec.of("ngx-serve:" + project)
- * 		.builder(ProcessUtils.getNpmProcessBuilder(path, "npm", "run", "ionic:serve"))
- * 		.directory(ionicDir)
+ * 		.builder(ProcessUtils.getNpmProcessBuilder(path, ionicDir, "npm", "run", "ionic:serve"))
  * 		.nodePreload(true));
  * </pre>
  */

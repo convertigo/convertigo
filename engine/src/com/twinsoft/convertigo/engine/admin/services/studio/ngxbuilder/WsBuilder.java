@@ -314,10 +314,9 @@ public class WsBuilder extends WebSocketService {
 				}
 			}
 			LocalWorkDirectory.beginWork(nodeModules);
-			var pb = ProcessUtils.getNpmProcessBuilder(path + File.pathSeparator + ionicDir, "npm", "install",
+			var pb = ProcessUtils.getNpmProcessBuilder(path + File.pathSeparator + ionicDir, ionicDir, "npm", "install",
 					"--legacy-peer-deps", "--loglevel", "info");
 			pb.redirectErrorStream(true);
-			pb.directory(ionicDir);
 			var p = start(ProjectProcesses.INSTALL, pb);
 			try (var br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
 				String line;
@@ -376,7 +375,7 @@ public class WsBuilder extends WebSocketService {
 		private void servePackaged(String path, File ionicDir, MobileBuilder mb, Object mutex) throws Exception {
 			new File(project.getDirPath(), "DisplayObjects/mobile").mkdirs();
 
-			var pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "run", "ionic:serve");
+			var pb = ProcessUtils.getNpmProcessBuilder(path, ionicDir, "npm", "run", "ionic:serve");
 			List<String> cmd = pb.command();
 			synchronized (usedPort) {
 				int port = (Math.abs(ionicDir.getAbsolutePath().hashCode()) % 10000) + 40000;
@@ -389,7 +388,6 @@ public class WsBuilder extends WebSocketService {
 			}
 
 			pb.redirectErrorStream(true);
-			pb.directory(ionicDir);
 			var angularJson = new File(ionicDir, "angular.json");
 			var angular = FileUtils.readFileToString(angularJson, "UTF-8");
 			// a path, as the application is reached through the gateway of the Studio or on the network by
@@ -493,7 +491,7 @@ public class WsBuilder extends WebSocketService {
 			}
 
 			var standalone = mb.isStandalone();
-			var pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "run", buildMode.command());
+			var pb = ProcessUtils.getNpmProcessBuilder(path, ionicDir, "npm", "run", buildMode.command());
 			List<String> cmd = pb.command();
 			cmd.add("--");
 			if (!standalone) {
@@ -502,7 +500,6 @@ public class WsBuilder extends WebSocketService {
 			// #393 add base href for project's web app
 			cmd.add("--base-href=" + baseHref);
 			pb.redirectErrorStream(true);
-			pb.directory(ionicDir);
 
 			var p = start(buildMode == NgxBuilderBuildMode.watch ? ProjectProcesses.WATCH : ProjectProcesses.BUILD, pb);
 			var failed = false;
