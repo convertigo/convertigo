@@ -127,8 +127,8 @@ public class SqlCrudContractTest {
 	}
 
 	private void useTransactions(List<SqlTransaction> generated) throws Exception {
+		SqlCrudGeneration.installTransactions(connector, generated, false, null, false, false);
 		for (var transaction : generated) {
-			connector.add(transaction);
 			transactions.put(transaction.getName().substring(transaction.getName().lastIndexOf('_') + 1), transaction);
 		}
 	}
@@ -224,6 +224,38 @@ public class SqlCrudContractTest {
 		transaction.variables.put("predicate", "{{column}}");
 		transaction.variables.put("column", "{{predicate}}");
 		assertThrows(EngineException.class, () -> transaction.initializeQueries(false));
+	}
+
+	@Test
+	public void overridePreservesCustomizedTransactionWithOrWithoutWrapperGeneration() throws Exception {
+		var update = transactions.get("UPDATE");
+		var wrapper = SqlCrudGeneration.createSequence(update, Accessibility.Public, false);
+		var query = update.getSqlQuery() + " AND 1 = 0";
+		update.setSqlQuery(query);
+
+		for (var accessibility : new Accessibility[] {Accessibility.Public, null}) {
+			var replacement = SqlConnector.createSqlTransaction(connector, column("items"), List.of("UPDATE")).get(0);
+			assertThrows(EngineException.class, () -> SqlCrudGeneration.installTransactions(connector,
+					List.of(replacement), true, accessibility, false, accessibility != null));
+			assertSame(update, connector.getTransactionByName(update.getName()));
+			assertSame(wrapper, update.getProject().getSequenceByName(update.getName()));
+			assertEquals(query, update.getSqlQuery());
+		}
+	}
+
+	@Test
+	public void overridePreservesChangedTransactionVariablesAndSettings() throws Exception {
+		var update = transactions.get("UPDATE");
+		var replacement = SqlConnector.createSqlTransaction(connector, column("items"), List.of("UPDATE")).get(0);
+		var variable = update.getVariable("crud_fields");
+		variable.setValueOrNull("label");
+		assertThrows(EngineException.class, () -> SqlCrudGeneration.installTransactions(connector,
+				List.of(replacement), true, null, false, false));
+		variable.setValueOrNull(replacement.getVariable("crud_fields").getValueOrNull());
+		update.setMaxResult("1");
+		assertThrows(EngineException.class, () -> SqlCrudGeneration.installTransactions(connector,
+				List.of(replacement), true, null, false, false));
+		assertSame(update, connector.getTransactionByName(update.getName()));
 	}
 
 	@Test
@@ -416,6 +448,51 @@ public class SqlCrudContractTest {
 		list.setSqlQuery(list.getSqlQuery() + "\n{{missing_marker}}");
 		var failure = assertThrows(EngineException.class, () -> list.initializeQueries(false));
 		assertTrue(failure.getMessage().contains("Unresolved marker"));
+	}
+
+	@Test
+	public void importedLegacyListKeepsItsOrderByInput() throws Exception {
+		execute("DROP TABLE IF EXISTS legacy_notes", "CREATE TABLE legacy_notes (label VARCHAR(20))",
+				"INSERT INTO legacy_notes VALUES ('first'), ('second')");
+		var original = connector.newTransaction();
+		original.setName(column("legacy_notes") + "_LIST");
+		original.setSqlQuery("SELECT label FROM legacy_notes ORDER BY {{order_by}}");
+		var document = XMLUtils.getDefaultDocumentBuilder().newDocument();
+		var definition = original.toXml(document);
+		document.appendChild(definition);
+		definition.setAttribute("version", "8.4.7");
+		for (var child = definition.getFirstChild(); child != null; child = child.getNextSibling()) {
+			if (child instanceof Element property && property.getAttribute("name").equals("crudQuery")) {
+				definition.removeChild(child);
+				break;
+			}
+		}
+		var legacy = (SqlTransaction) com.twinsoft.convertigo.beans.core.DatabaseObject.read(definition);
+		connector.add(legacy);
+		transactions.put("LEGACY", legacy);
+		assertEquals(List.of("second", "first"), labels(run("LEGACY", Map.of("order_by", "label DESC"))));
+		var table = SqlTableInfo.read(connector, column("legacy_notes"));
+		var replacement = SqlConnector.createSqlTransactions(connector, table, List.of("LIST"));
+		assertThrows(EngineException.class, () -> SqlCrudGeneration.installTransactions(connector,
+				replacement, true, Accessibility.Public, false, true));
+		assertSame(legacy, connector.getTransactionByName(legacy.getName()));
+	}
+
+	@Test
+	public void legacyWritesAreReportedWhenTheTableNoLongerAllowsThem() throws Exception {
+		execute("DROP TABLE IF EXISTS legacy_notes", "CREATE TABLE legacy_notes (label VARCHAR(20))");
+		var table = SqlTableInfo.read(connector, column("legacy_notes"));
+		var legacy = connector.newTransaction();
+		legacy.setName(column("legacy_notes") + "_UPDATE");
+		legacy.setSqlQuery("UPDATE legacy_notes SET label = {label}");
+		connector.add(legacy);
+		var wrapper = SqlCrudGeneration.createSequence(legacy, Accessibility.Public, false);
+		var warnings = SqlCrudGeneration.legacyMigrationWarnings(connector, table);
+		assertEquals(1, warnings.size());
+		assertTrue(warnings.get(0).contains(legacy.getQName()));
+		assertTrue(warnings.get(0).contains(wrapper.getQName()));
+		assertTrue(warnings.get(0).contains("generator omits it"));
+		assertSame(legacy, connector.getTransactionByName(legacy.getName()));
 	}
 
 	@Test
