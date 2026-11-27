@@ -744,7 +744,8 @@ jobs:
               fi
             done
           else
-            rm -f -- "$mobile_plan"
+            # The historical IBM 3270 SSL plan has no enabled samples.
+            rm -f -- "$mobile_plan" "$suite_repo/jmx/ibm3270_ssl.jmx"
           fi
           status=0
           (cd "$suite_repo" && unset QUALIF_GITHUB_TOKEN && sh run.sh) >/dev/null 2>&1 || status=$?
