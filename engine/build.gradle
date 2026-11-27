@@ -251,9 +251,12 @@ tasks.register('prepareWarRuntimeClasspath', Sync) {
 def installPouchDbFrom = { Sync task, Closure resolveClasspath ->
 	task.from {
 		def provider = couchDbProviderArtifacts(resolveClasspath()).singleFile
-		new java.util.zip.ZipFile(provider).withCloseable { archive ->
-			if (!archive.getEntry('pouchdb/bundle-info.json') || !archive.getEntry('pouchdb/pouchdb-server.cjs')) {
-				throw new GradleException("The resolved CouchDB provider JAR ${provider.name} does not contain the PouchDB bundle")
+		new java.util.jar.JarFile(provider).withCloseable { archive ->
+			if (archive.manifest?.mainAttributes?.getValue('Convertigo-PouchDB-Bundle-Layout') != '1'
+					|| !archive.getEntry('pouchdb/bundle-info.json') || !archive.getEntry('pouchdb/pouchdb-server.cjs')) {
+				throw new GradleException("CouchDB provider ${provider.name} lacks the required PouchDB bundle layout (1). "
+						+ "Publish the provider from codex/tomcat11, verify the snapshot on m2.convertigo.com, "
+						+ "then resolve it again with --refresh-dependencies. CI only uses the remote provider.")
 			}
 		}
 		zipTree(provider)
