@@ -15,7 +15,10 @@ Resolution, on each start of PouchDB:
 2. Without a usable bundle the engine installs PouchDB with `npm ci` in a staging directory.
    It applies the provider patches, checks the installed script and addon, and atomically activates
    the installation under `<workspace>/pouchdb/npm`, keyed by the package lock and patch version.
-   The first installation of each revision requires access to the npm registry.
+   A workspace installation with the expected lockfile can be reused after the native check.
+   If npm is needed, it uses the workspace's project configuration, including its registry and
+   paths relative to the workspace. A fresh installation without a suitable local runtime needs
+   access to the configured npm registry or a complete npm cache.
 
 The databases, `config.json` and `log.txt` are always in `<workspace>/pouchdb`. Any previous
 `node_modules` directory in that workspace is left in place.
