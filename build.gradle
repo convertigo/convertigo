@@ -15,7 +15,7 @@ buildscript {
 
 plugins {
   id 'io.github.ben-manes.versions' version '0.67.0'
-  id 'org.owasp.dependencycheck' version '12.2.2'
+  id 'org.owasp.dependencycheck' version '13.0.0'
 }
 
 import com.monochromeroad.gradle.plugin.aws.s3.S3Sync
