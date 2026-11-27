@@ -160,6 +160,17 @@ tasks.register('stepSourceTest', JavaExec) {
 	args 'com.twinsoft.convertigo.beans.core.StepSourceTest'
 }
 
+tasks.register('stackLimitProtectionTest', JavaExec) {
+	group = 'verification'
+	description = 'Boundaries and configuration for protected recursive engine operations.'
+	dependsOn sessionTestClasses
+	classpath = sourceSets.sessionTest.runtimeClasspath
+	mainClass = 'org.junit.runner.JUnitCore'
+	args 'com.twinsoft.convertigo.engine.util.XMLUtilsParallelJsonTest'
+}
+
+tasks.named('check') { dependsOn 'stackLimitProtectionTest' }
+
 tasks.register('requestableStepCloneTest', JavaExec) {
 	group = 'verification'
 	description = 'A clone of a requestable step orders its own variables, also under concurrent runs.'

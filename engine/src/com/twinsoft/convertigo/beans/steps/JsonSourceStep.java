@@ -31,6 +31,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.json.JsonPathSource;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.XMLUtils.XmlToJsonDepthException;
 
 public class JsonSourceStep extends SourceStep {
 
@@ -64,6 +65,8 @@ public class JsonSourceStep extends SourceStep {
 					if (node instanceof Element) {
 						try {
 							string += XMLUtils.XmlToJson((Element) node, true, true, null);
+						} catch (XmlToJsonDepthException e) {
+							throw new EngineException(e.getMessage(), e);
 						} catch (JSONException e) {
 							string += node.getNodeValue();
 						}
