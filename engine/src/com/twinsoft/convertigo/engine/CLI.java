@@ -401,12 +401,11 @@ public class CLI {
 			if (packageLockTpl.exists() && !packageLock.exists()) {
 				com.twinsoft.convertigo.engine.util.FileUtils.copyFile(packageLockTpl, packageLock);
 			}
-			pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "install", "--legacy-peer-deps");
+			pb = ProcessUtils.getNpmProcessBuilder(nodePath, ionicDir, "npm", "install", "--legacy-peer-deps");
 		} else {
-			pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "install", ionicDir.toString(), "--no-shrinkwrap", "--no-package-lock");
+			pb = ProcessUtils.getNpmProcessBuilder(nodePath, ionicDir, "npm", "install", ionicDir.toString(), "--no-shrinkwrap", "--no-package-lock");
 		}
 		pb.redirectErrorStream(true);
-		pb.directory(ionicDir);
 		LocalWorkDirectory.beginWork(nodeModules);
 		// managed: stopped with its tree when the JVM exits, Node.js also when it dies
 		Process p = ManagedProcesses.get().start(ManagedProcessSpec.of("cli-install:" + project.getName()).builder(pb).nodePreload(true)).getProcess();
@@ -444,7 +443,7 @@ public class CLI {
 			} catch (Exception e) {}
 			
 			NgxBuilderBuildMode buildMode = "production".equals(mode) ? NgxBuilderBuildMode.prod : NgxBuilderBuildMode.fast;
-			pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "run", buildMode.command(), "--nobrowser");
+			pb = ProcessUtils.getNpmProcessBuilder(nodePath, ionicDir, "npm", "run", buildMode.command(), "--nobrowser");
 			
 			List<String> cmd = pb.command();
 			cmd.add("--");
@@ -455,14 +454,13 @@ public class CLI {
 			pb.environment().put("NODE_OPTIONS", "max-old-space-size=8192");
 		} else {
 			if ("debug".equals(mode)) {
-				pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "run", "build", "--nobrowser");
+				pb = ProcessUtils.getNpmProcessBuilder(nodePath, ionicDir, "npm", "run", "build", "--nobrowser");
 			} else {
 //				pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "run", "build", "--aot", "--minifyjs", "--minifycss", "--release", "--nobrowser");
-				pb = ProcessUtils.getNpmProcessBuilder(nodeDir.getAbsolutePath(), "npm", "run", MobileBuilderBuildMode.production.command(), "--nobrowser");
+				pb = ProcessUtils.getNpmProcessBuilder(nodeDir.getAbsolutePath(), ionicDir, "npm", "run", MobileBuilderBuildMode.production.command(), "--nobrowser");
 			}
 		}
 		pb.redirectErrorStream(true);
-		pb.directory(ionicDir);
 		p = ManagedProcesses.get().start(ManagedProcessSpec.of("cli-build:" + project.getName()).builder(pb).nodePreload(true)).getProcess();
 		try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
 			while ((line = br.readLine()) != null) {

@@ -107,13 +107,24 @@ public class BuildJobTest {
   static class ConvertigoPlugin { static final String PLUGIN_UNIQUE_ID = "test"; }
   static class StringUtils { static boolean isNotBlank(String value) { return !value.isBlank(); } }
   static class ProcessUtils {
-    static ProcessBuilder getNpmProcessBuilder(String directory, String... args) { return new ProcessBuilder(args); }
+    static ProcessBuilder getNpmProcessBuilder(String paths, File directory, String... args) { return new ProcessBuilder(args).directory(directory); }
+  }
+  record ManagedProcess(Process getProcess) {
+    void stop() {
+      getProcess.descendants().forEach(ProcessHandle::destroyForcibly);
+      getProcess.destroyForcibly();
+    }
+  }
+  static class ProjectProcesses {
+    static final String WATCH = "watch", BUILD = "build";
+    static ManagedProcess start(String function, String project, ProcessBuilder builder) throws IOException {
+      return new ManagedProcess(builder.start());
+    }
   }
   Project project = new Project();
   EditorInput applicationEditorInput = new EditorInput();
   File nodeDir = new File("."), ionicDir;
   BuildItem buildItem = new BuildItem();
-  Collection<Process> processes = new LinkedList<>();
   NgxBuilderBuildMode buildMode;
   Pattern pRemoveEchap = Pattern.compile("\\\\x1b\\\\[[0-9;]*m");
   void terminateNode(boolean productionOnly) {}
@@ -144,7 +155,6 @@ public class BuildJobTest {
       job.thread.join(15000);
       check(!job.thread.isAlive(), "Job terminates: " + scenario);
       check(job.monitor.done && !host.buildItem.selected, "monitor and toolbar cleaned up: " + scenario);
-      check(host.processes.isEmpty(), "process reference released: " + scenario);
       check(new File(host.project.root, "DisplayObjects/mobile/assets/preserved.txt").exists(), "assets preserved");
       if (scenario.equals("ok")) {
         check(job.failure == null && job.monitor.status.equals("Build finished"), "successful exit reported");

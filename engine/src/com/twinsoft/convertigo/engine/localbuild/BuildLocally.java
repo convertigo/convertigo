@@ -123,11 +123,10 @@ public abstract class BuildLocally {
 		}
 
 		parameters.add(0, command);
+		File directory = launchDir.getCanonicalFile();
 		ProcessBuilder pb = command.equals("npm") ?
-				ProcessUtils.getNpmProcessBuilder(paths, parameters)
-				: ProcessUtils.getProcessBuilder(paths, parameters);
-		// Set the directory from where the command will be executed
-		pb.directory(launchDir.getCanonicalFile());
+				ProcessUtils.getNpmProcessBuilder(paths, directory, parameters)
+				: ProcessUtils.getProcessBuilder(paths, parameters).directory(directory);
 
 		pb.redirectErrorStream(mergeError);
 

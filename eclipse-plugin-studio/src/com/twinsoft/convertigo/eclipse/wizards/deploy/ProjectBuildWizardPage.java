@@ -148,12 +148,11 @@ class ProjectBuildWizardPage extends WizardPage {
 					if (packageLockTpl.exists() && !packageLock.exists()) {
 						com.twinsoft.convertigo.engine.util.FileUtils.copyFile(packageLockTpl, packageLock);
 					}
-					pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "install", "--legacy-peer-deps");
+					pb = ProcessUtils.getNpmProcessBuilder(nodePath, ionicDir, "npm", "install", "--legacy-peer-deps");
 				} else {
-					pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "install", ionicDir.toString(), "--no-shrinkwrap", "--no-package-lock");
+					pb = ProcessUtils.getNpmProcessBuilder(nodePath, ionicDir, "npm", "install", ionicDir.toString(), "--no-shrinkwrap", "--no-package-lock");
 				}
 				pb.redirectErrorStream(true);
-				pb.directory(ionicDir);
 				com.twinsoft.convertigo.engine.LocalWorkDirectory.beginWork(nodeModules);
 				Process p = start("install", pb, monitor);
 				br = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -200,14 +199,13 @@ class ProjectBuildWizardPage extends WizardPage {
 											"/projects/"+ project.getName() +"/DisplayObjects/mobile/";
 					} catch (Exception e) {}
 					
-					pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "run", NgxBuilderBuildMode.prod.command(), "--nobrowser");
+					pb = ProcessUtils.getNpmProcessBuilder(nodePath, ionicDir, "npm", "run", NgxBuilderBuildMode.prod.command(), "--nobrowser");
 					pb.environment().put("NODE_OPTIONS", "max-old-space-size=8192");
 					List<String> cmd = pb.command();
 					cmd.add("--");
 					cmd.add("--base-href="+ appBaseHref); // #393 add base href for project's web app
 					
 					pb.redirectErrorStream(true);
-					pb.directory(ionicDir);
 					p = start("build", pb, monitor);
 					Matcher matcher = Pattern.compile("(\\d+)% (.*)").matcher("");
 					int lastProgress = 0;
@@ -237,9 +235,8 @@ class ProjectBuildWizardPage extends WizardPage {
 					}
 				} else {
 					monitor.beginTask("Launching the " + MobileBuilderBuildMode.production.label() + " build", IProgressMonitor.UNKNOWN);
-					pb = ProcessUtils.getNpmProcessBuilder(nodeDir.getAbsolutePath(), "npm", "run", MobileBuilderBuildMode.production.command(), "--nobrowser");
+					pb = ProcessUtils.getNpmProcessBuilder(nodeDir.getAbsolutePath(), ionicDir, "npm", "run", MobileBuilderBuildMode.production.command(), "--nobrowser");
 					pb.redirectErrorStream(true);
-					pb.directory(ionicDir);
 					p = start("build", pb, monitor);
 					br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 					while (!monitor.isCanceled() && (line = br.readLine()) != null) {
