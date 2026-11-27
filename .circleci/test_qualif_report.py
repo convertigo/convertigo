@@ -275,6 +275,7 @@ class QualificationReportTest(unittest.TestCase):
             'Expected: PRIVATE_EXPECTED but got "PRIVATE_ACTUAL"',
             'Actual: PRIVATE_ACTUAL_ONLY',
             'Test failed: text expected to equal "PRIVATE_COMPARISON" but was PRIVATE_RESPONSE',
+            'Mobile build still pending at the polling deadline',
         )
         assertions = "".join(
             f"<assertionResult><failure>true</failure><failureMessage>{message}</failureMessage></assertionResult>"
@@ -291,6 +292,7 @@ class QualificationReportTest(unittest.TestCase):
             "Expected …, actual …",
             "Actual …",
             "Test failed: text expected to equal …",
+            "Mobile build still pending at the polling deadline",
         ])
         html = (self.public / f"{SUITES[0]}.html").read_text()
         self.assertIn('@name=&quot;…&quot; and @value=&#x27;…&#x27; and @code', html)

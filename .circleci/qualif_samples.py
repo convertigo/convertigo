@@ -21,6 +21,7 @@ ACTUAL_VALUE = re.compile(r'\b(?:actual|got|obtained|received|but\s+was)\b', re.
 MOBILE_ASSERTIONS = {
     'Mobile build launch was not accepted',
     'Mobile build still pending at the final check',
+    'Mobile build still pending at the polling deadline',
     'Mobile build failed',
     'Mobile build status was unavailable',
     'Timed out waiting for the Android build to complete',

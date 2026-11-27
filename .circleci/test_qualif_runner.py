@@ -5,6 +5,9 @@ import subprocess
 import tempfile
 import textwrap
 import unittest
+from unittest.mock import patch
+
+from qualif_runner import run
 
 ROOT = Path(__file__).resolve().parent.parent
 SHA = 'a' * 40
@@ -136,7 +139,7 @@ class WrapperTest(unittest.TestCase):
         self.assertIsNone(report['infrastructure'])
         self.assertEqual(files['run.exit'], b'not_run\n')
 
-    def test_combined_runner_releases_final_check_after_redis_and_keeps_both_verdicts(self):
+    def test_combined_runner_waits_after_redis_and_keeps_both_verdicts(self):
         mobile = self.work / 'mobile'
         (mobile / 'jmx').mkdir(parents=True)
         (mobile / 'jmx' / 'mobileAppBuild.jmx').touch()
@@ -145,6 +148,7 @@ class WrapperTest(unittest.TestCase):
             : > "$QUALIF_MOBILE_STARTED"
             while [ ! -f "$QUALIF_MOBILE_CHECK" ]; do sleep 0.05; done
             test -f ../sources/redis-finished
+            sleep 0.2
             mkdir -p out/jtl
             printf '%s\\n' jmeter_exited collected > out/runner-events
             printf '%s' '<testResults><sample s="false"/></testResults>' > out/jtl/mobileAppBuild.jtl
@@ -152,7 +156,7 @@ class WrapperTest(unittest.TestCase):
             exit 1
             """))
         self.env['C8O_IMAGE'] = 'standard-image'
-        _, redis, _ = self.run_wrapper('qualif-jmx-4', """\
+        result, redis, _ = self.run_wrapper('qualif-jmx-4', """\
             set -eu
             test -f ../qualif-mobile-*/launched
             test -z "${QUALIF_LAB_KEYS_XML:-}"
@@ -162,10 +166,20 @@ class WrapperTest(unittest.TestCase):
             printf '%s' '<testResults><sample s="true"/></testResults>' > out/jtl/ordinary.jtl
             : > redis-finished
             """, '--mobile-repo', str(mobile), '--mobile-image', 'aks-image',
-            '--deadline', '4', '--grace', '0.5')
+            '--deadline', '4', '--grace', '0.5', '--heartbeat', '0.05')
         report = json.loads((self.work / 'qualif-reports' / 'qualif-jmx-mobile.json').read_text())
+        self.assertGreaterEqual(result.stdout.count('Qualification in progress'), 2)
         self.assertEqual((redis['status'], redis['tests']), ('passed', 1))
         self.assertEqual((report['status'], report['tests'], report['failures']), ('failed', 2, 1))
+
+    def test_mobile_runner_wait_allows_polling_and_cleanup_after_redis(self):
+        check = self.work / 'redis-finished'
+        check.touch()
+        with patch('qualif_runner.subprocess.Popen') as process, patch('qualif_runner.monotonic', return_value=0):
+            process.return_value.wait.return_value = 0
+            with (self.work / 'run.log').open('wb') as log:
+                self.assertEqual(run(self.repo, {'QUALIF_MOBILE_CHECK': str(check)}, log, 2400, 120), (0, None))
+            process.return_value.wait.assert_called_once_with(timeout=15 * 60 + 90)
 
     def test_nonempty_license_request_without_observation_is_indeterminate(self):
         _, report, _ = self.run_wrapper('qualif-jmx-2', """\

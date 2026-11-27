@@ -19,6 +19,8 @@ from qualif_report import INFRASTRUCTURE, LICENSE_MODES, MOBILE_SUITE, REDIS_SUI
 from qualif_samples import redact, secret_values
 
 RUN_EVENTS = RUN_PHASES | INFRASTRUCTURE | {'collecting', 'collected', 'diagnostics_partial'}
+MOBILE_POLL_SECONDS = 15 * 60
+MOBILE_COLLECTION_SECONDS = 90
 
 
 def keep_alive(done, interval):
@@ -44,13 +46,14 @@ def run(repo, env, log, deadline, grace):
     try:
         end = monotonic() + deadline
         if marker := env.get('QUALIF_MOBILE_CHECK'):
-            # The final status request and cleanup get a bounded wait after Redis.
+            # JMeter measures the polling deadline from launch. Allow the full window
+            # here too in case Redis finishes before the mobile launch.
             while not Path(marker).is_file() and monotonic() < end:
                 try:
                     return runner.wait(timeout=min(1, max(0, end - monotonic()))), None
                 except subprocess.TimeoutExpired:
                     pass
-            end = min(end, monotonic() + 90)
+            end = min(end, monotonic() + MOBILE_POLL_SECONDS + MOBILE_COLLECTION_SECONDS)
         return runner.wait(timeout=max(0, end - monotonic())), None
     except subprocess.TimeoutExpired:
         send_signal(runner, signal.SIGTERM)
@@ -177,7 +180,7 @@ def run_combined(redis_repo, mobile_repo, work, deadline, grace, mobile_image):
             'QUALIF_MOBILE_IMAGE': mobile_image,
         }
         handoff_window = min(deadline, 120)
-        mobile_deadline = handoff_window + deadline + grace + 90
+        mobile_deadline = handoff_window + max(deadline + grace, MOBILE_POLL_SECONDS) + MOBILE_COLLECTION_SECONDS
         with ThreadPoolExecutor(max_workers=1) as pool:
             mobile = pool.submit(qualification, MOBILE_SUITE, mobile_repo, work, mobile_deadline, grace, overrides)
             done = threading.Event()
